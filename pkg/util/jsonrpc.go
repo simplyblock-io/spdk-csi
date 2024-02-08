@@ -275,7 +275,7 @@ func (client *rpcClient) getVolumeInfo(lvolID string) (map[string]string, error)
 		"name":        lvolID,
 		"uuid":        lvolID,
 		"nqn":         result[0].Nqn,
-		"model":       lvolID, // TODO: check this for caching node
+		"model":       lvolID,
 		"targetType":  "tcp",
 		"connections": string(connectionsData),
 	}, nil

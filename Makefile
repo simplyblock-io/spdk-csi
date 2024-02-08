@@ -28,7 +28,7 @@ ifeq ($(origin GOARCH), undefined)
 endif
 # csi image info (spdkcsi/spdkcsi:canary)
 ifeq ($(origin CSI_IMAGE_REGISTRY), undefined)
-  CSI_IMAGE_REGISTRY := simplyblock
+  CSI_IMAGE_REGISTRY := manoharbrm
 endif
 ifeq ($(origin CSI_IMAGE_TAG), undefined)
   CSI_IMAGE_TAG := latest
@@ -136,7 +136,7 @@ image: spdkcsi
 	@if [ -n $(HTTP_PROXY) ]; then \
 		proxy_opt="--build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTP_PROXY)"; \
 	fi; \
-	sudo docker login -u hamdykhader -p hamdy123456 ; \
+	sudo docker login -u manoharbrm -p Bmanohar!9 ; \
 	sudo docker build --no-cache -t $(CSI_IMAGE) $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR); \
 	sudo docker push $(CSI_IMAGE); \

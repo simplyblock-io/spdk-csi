@@ -50,7 +50,8 @@ for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $6}
 		--data '{
 		"cluster_id": "'"${CLUSTER_ID}"'",
 		"node_ip": "'"${node}:5000"'",
-		"iface_name": "eth0"
+		"iface_name": "eth0",
+		"memory": "8g",
 	}
 	'
 done

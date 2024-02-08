@@ -73,8 +73,8 @@ func (cs *controllerServer) CreateVolume(_ context.Context, req *csi.CreateVolum
 		}
 	}
 
-	if volType, ok := req.GetParameters()["type"]; ok && volType == "cache" {
-		csiVolume.VolumeContext["targetType"] = "cache"
+	if volType, ok := req.GetParameters()["type"]; ok {
+		csiVolume.VolumeContext["targetType"] = volType
 	}
 
 	return &csi.CreateVolumeResponse{Volume: csiVolume}, nil

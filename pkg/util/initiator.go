@@ -65,7 +65,7 @@ func NewSpdkCsiInitiator(volumeContext map[string]string, spdkNode *NodeNVMf) (S
 		}, nil
 	case "cache":
 		return &initiatorCache{
-			lvol:   volumeContext["lvol"],
+			lvol:   volumeContext["uuid"],
 			model:  volumeContext["model"],
 			client: *spdkNode.client,
 		}, nil
@@ -133,7 +133,7 @@ func (cache *initiatorCache) Connect() (string, error) {
 			req := LVolCachingNodeConnect{
 				LvolID: cache.lvol,
 			}
-			klog.Info("connecting caching node: ", cnode.Hostname, "with lvol: ", cache.lvol)
+			klog.Info("connecting caching node: ", cnode.Hostname, " with lvol: ", cache.lvol)
 			resp, err := cache.client.callSBCLI("PUT", fmt.Sprintf("/cachingnode/connect/%s", cnode.UUID), req)
 			if err != nil {
 				klog.Error("caching node connect error:", err)
