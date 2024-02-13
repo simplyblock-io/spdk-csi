@@ -4,7 +4,7 @@
 name: codespell
 on:
   push: ['master', 'dev']
-  pull_request: {}
+  pull_request:
 
 jobs:
   codespell:

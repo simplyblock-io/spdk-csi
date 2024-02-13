@@ -1,6 +1,6 @@
 name: k8s api version check
 on:
-    pull_request: {}
+    pull_request:
     push: ['master', 'dev']
 
 jobs:

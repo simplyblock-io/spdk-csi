@@ -1,6 +1,6 @@
 name: Linux Unit tests
 on:
-    pull_request: {}
+    pull_request:
     push: ['master', 'dev']
 
 
