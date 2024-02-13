@@ -4,24 +4,18 @@ We now also have the concept of caching-nodes. These will be Kubernetes nodes wh
 
 
 ### Preparing nodes
-Caching nodes are a special kind of node that provides storage by mounting a local NVMe disk. To prepare the nodes run the below steps.
+Caching nodes are a special kind of node that provides storage by mounting a local NVMe disk. To prepare the nodes run the below steps. Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those values in `/etc/sysctl.conf`. We suggest allocating atleast 8GB of huge pages.
 
 ```
 echo "======= setting huge pages ======="
-echo "vm.nr_hugepages=2048" >>/etc/sysctl.conf
+echo "vm.nr_hugepages=2048" >>/etc/sysctl.conf # 
 sysctl -p
 
 # confirm it by running
 cat /proc/meminfo | grep -i hug
 
-echo "======= creating huge pages mount ======="
-mkdir /mnt/huge
-mount -t hugetlbfs -o size=2G nodev /mnt/huge
-echo "nodev /mnt/huge hugetlbfs size=2G 0 0" >>/etc/fstab
-
 # reboot
 sudo reboot
-
 ```
 
 After the nodes are prepared, label the kubernetes nodes
@@ -51,7 +45,7 @@ for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $6}
 		"cluster_id": "'"${CLUSTER_ID}"'",
 		"node_ip": "'"${node}:5000"'",
 		"iface_name": "eth0",
-		"memory": "8g",
+		"spdk_mem": 8589934592,
 	}
 	'
 done
