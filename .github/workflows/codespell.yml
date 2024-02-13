@@ -2,7 +2,10 @@
 # https://github.com/codespell-project/actions-codespell
 # https://github.com/codespell-project/codespell
 name: codespell
-on: [push, pull_request]
+on:
+  push: ['master', 'dev']
+  pull_request: {}
+
 jobs:
   codespell:
     name: Check for spelling errors

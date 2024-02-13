@@ -1,7 +1,8 @@
 name: Linux Unit tests
 on:
     pull_request: {}
-    push: {}
+    push: ['master', 'dev']
+
 
 jobs:
 
