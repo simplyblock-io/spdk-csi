@@ -9,8 +9,8 @@ kind: ConfigMap
 metadata:
   name: spdkcsi-cm
 data:
-  # rpcURL: spdk json rpc target
-  # targetType: nvme-rdma, nvme-tcp, iscsi
+  # uuid: the simplyblock cluster UUID
+  # ip: the management IP of the simplyblock cluster
   # targetAddr: target service IP
   config.json: |-
 {{ toJson .Values.csiConfig | indent 4 -}}

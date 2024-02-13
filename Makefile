@@ -145,3 +145,6 @@ image: spdkcsi
 clean:
 	rm -f $(OUT_DIR)/spdkcsi
 	go clean -testcache
+
+sanity-test: spdkcsi
+	test/sanity/run-test.sh

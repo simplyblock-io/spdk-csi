@@ -1,0 +1,33 @@
+name: Linux Unit tests
+on:
+    pull_request: {}
+    push: {}
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: ^1.21
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Test
+      run: |
+        make test
+
+    # - name: Sanity test
+    #   env:
+    #     GITHUB_ACTIONS: true
+    #   run: |
+    #     export PATH=$PATH:$HOME/.local/bin
+    #     make
+    #     echo "is running in github actions: $GITHUB_ACTIONS"
+    #     make sanity-test

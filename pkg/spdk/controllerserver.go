@@ -381,7 +381,7 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 	if err != nil {
 		return nil, err
 	}
-	klog.Infof("spdk node created: name=%s, url=%s", config.Simplybk.IP)
+	klog.Infof("spdk node created: url=%s", config.Simplybk.IP)
 
 	return util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret), nil
 }
@@ -394,7 +394,7 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 
 	spdkNode, err := NewsimplyBlockClient()
 	if err != nil {
-		klog.Errorf("failed to create spdk node %s: %s", err.Error())
+		klog.Errorf("failed to create spdk node %v", err.Error())
 		return nil, fmt.Errorf("no valid spdk node found")
 	}
 
