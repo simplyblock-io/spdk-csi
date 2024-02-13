@@ -21,7 +21,7 @@ spec:
       - name: spdkcsi-registrar
         securityContext:
           privileged: true
-        image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
+        image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0
         imagePullPolicy: "IfNotPresent"
         args:
         - "--v=5"
@@ -70,6 +70,12 @@ spec:
         - name: spdkcsi-nodeserver-config
           mountPath: /etc/spdkcsi-nodeserver-config/
           readOnly: true
+        - name: spdkcsi-config
+          mountPath: /etc/spdkcsi-config/
+          readOnly: true
+        - name: spdkcsi-secret
+          mountPath: /etc/spdkcsi-secret/
+          readOnly: true
       volumes:
       - name: socket-dir
         hostPath:
@@ -97,3 +103,10 @@ spec:
         configMap:
           name: spdkcsi-nodeservercm
           optional: true
+      - name: spdkcsi-config
+        configMap:
+          name: spdkcsi-cm
+      - name: spdkcsi-secret
+        secret:
+          secretName: spdkcsi-secret
+
