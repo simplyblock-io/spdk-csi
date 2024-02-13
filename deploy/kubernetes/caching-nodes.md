@@ -4,7 +4,7 @@ We now also have the concept of caching-nodes. These will be Kubernetes nodes wh
 
 
 ### Preparing nodes
-Caching nodes are a special kind of node that provides storage by mounting a local NVMe disk. To prepare the nodes run the below steps. Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those values in `/etc/sysctl.conf`. We suggest allocating atleast 8GB of huge pages.
+Caching nodes are a special kind of node that provides storage by mounting a local NVMe disk. To prepare the nodes run the below steps. Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those values in `/etc/sysctl.conf`. We suggest allocating at least 8GB of huge pages.
 
 ```
 echo "======= setting huge pages ======="
@@ -56,7 +56,7 @@ These steps are already added to `./deploy.sh` script.
 
 ### StorageClass
 
-If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with addtional volume parameter as `type: cache`.
+If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: cache`.
 
 
 ### Usage and Implementation
