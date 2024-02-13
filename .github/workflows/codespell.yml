@@ -3,7 +3,8 @@
 # https://github.com/codespell-project/codespell
 name: codespell
 on:
-  push: ['master', 'dev']
+  push: 
+    branches: ['master', 'dev']
   pull_request:
 
 jobs:
