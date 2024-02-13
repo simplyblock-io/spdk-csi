@@ -20,6 +20,6 @@ jobs:
     - name: Check deploy folder
       run: |
         pluto detect-files -d deploy --ignore-deprecations --ignore-removals
-    - name: Check example folder
+    - name: Check kubernetes folder
       run: |
-        pluto detect-files -d deploy/example
+        pluto detect-files -d deploy/kubernetes
