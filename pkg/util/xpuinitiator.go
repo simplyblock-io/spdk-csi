@@ -347,7 +347,7 @@ func (xpu *xpuInitiator) ctxTimeout() (context.Context, context.CancelFunc) {
 	return ctxTimeout, cancel
 }
 
-// re-use the Connect() and Disconnect() functions from initiator.go
+// reuse the Connect() and Disconnect() functions from initiator.go
 func newInitiatorNVMf(model string) *initiatorNVMf {
 	return &initiatorNVMf{
 		targetType: xpuNvmfTCPTargetType,

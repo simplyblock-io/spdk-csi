@@ -4,21 +4,25 @@
 ---
 image:
   spdkcsi:
-    repository: spdkcsi/spdkcsi
-    tag: canary
-    pullPolicy: Never
+    repository: manoharbrm/spdkcsi
+    tag: latest
+    pullPolicy: Always
   csiProvisioner:
-    repository: k8s.gcr.io/sig-storage/csi-provisioner
-    tag: v2.0.2
-    pullPolicy: IfNotPresent
+    repository: registry.k8s.io/sig-storage/csi-provisioner
+    tag: v3.5.0
+    pullPolicy: Always
   csiAttacher:
-    repository: k8s.gcr.io/sig-storage/csi-attacher
-    tag: v3.0.0
-    pullPolicy: IfNotPresent
+    repository: gcr.io/k8s-staging-sig-storage/csi-attacher
+    tag: v3.5.0
+    pullPolicy: Always
   nodeDriverRegistrar:
-    repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
-    tag: v2.0.1
-    pullPolicy: IfNotPresent
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.8.0
+    pullPolicy: Always
+  csiSnapshotter:
+    repository: registry.k8s.io/sig-storage/csi-snapshotter
+    tag: v6.2.2
+    pullPolicy: Always
 
 serviceAccount:
   # Specifies whether a serviceAccount should be created
@@ -38,10 +42,9 @@ externallyManagedSecret:
 
 spdkdev:
   # Specifies whether a spdkdev should be created
-  create: true
+  create: false
 
 storageclass:
-  # Specifies whether a spdkdev should be created
   create: true
 
 controller:
@@ -49,19 +52,14 @@ controller:
 
 # Configuration for the CSI to connect to the cluster
 csiConfig:
-  nodes:
-  - name: &name localhost
-    rpcURL: 'http://127.0.0.1:9009'
-    targetType: nvme-tcp
-    targetAddr: 127.0.0.1
+  simplybk:
+    uuid: 963c9d0a-4506-43c3-a722-0b7c8b157038
+    ip: 13.58.2.30
 
 # Configuration for the csiSecret
 csiSecret:
-  rpcTokens:
-  # The "name" matches "csiConfig.node.name"
-  - name: *name
-    username: spdkcsiuser
-    password: spdkcsipass
+  simplybk:
+    secret: 2BAbQTPEDi4o73VHymg2
 
 spdkdevCreateCommonds:
   /root/spdk/app/spdk_tgt/spdk_tgt > /tmp/spdk-tgt.log 2>&1 &

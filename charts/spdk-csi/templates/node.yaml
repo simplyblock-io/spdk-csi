@@ -17,7 +17,7 @@ spec:
 {{ include "spdk.labels" . | indent 6 }}
         app: spdkcsi-node
     spec:
-      serviceAccount: spdkcsi-node-sa
+      serviceAccountName: spdkcsi-node-sa
       hostNetwork: true
       containers:
       - name: spdkcsi-registrar
@@ -38,7 +38,7 @@ spec:
         securityContext:
           privileged: true
           capabilities:
-            add: ["SYS_ADMIN"]
+            add: ["SYS_ADMIN", "SYS_MODULE"]
           allowPrivilegeEscalation: true
         image: "{{ .Values.image.spdkcsi.repository }}:{{ .Values.image.spdkcsi.tag }}"
         imagePullPolicy: {{ .Values.image.spdkcsi.pullPolicy }}
@@ -55,8 +55,7 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh", "-c",
-                        "/usr/sbin/iscsid || echo failed to start iscsid"]
+              command: ["/bin/sh", "-c", "sudo modprobe nvme-tcp || echo failed to modprobe nvme-tcp"]
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -72,6 +71,12 @@ spec:
           mountPath: /sys
         - name: spdkcsi-nodeserver-config
           mountPath: /etc/spdkcsi-nodeserver-config/
+          readOnly: true
+        - name: spdkcsi-config
+          mountPath: /etc/spdkcsi-config/
+          readOnly: true
+        - name: spdkcsi-secret
+          mountPath: /etc/spdkcsi-secret/
           readOnly: true
       volumes:
       - name: socket-dir
@@ -99,3 +104,10 @@ spec:
       - name: spdkcsi-nodeserver-config
         configMap:
           name: spdkcsi-nodeservercm
+          optional: true
+      - name: spdkcsi-config
+        configMap:
+          name: spdkcsi-cm
+      - name: spdkcsi-secret
+        secret:
+          secretName: spdkcsi-secret
