@@ -191,4 +191,5 @@ linters:
   - gci
   - noctx
   - godot
+  - ginkgolinter
   fast: false

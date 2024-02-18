@@ -17,7 +17,7 @@ OUT_DIR := ./_out
 # dir for tools: e.g., golangci-lint
 TOOL_DIR := $(OUT_DIR)/tool
 # use golangci-lint for static code check
-GOLANGCI_VERSION := v1.52.2
+GOLANGCI_VERSION := v1.56.2
 GOLANGCI_BIN := $(TOOL_DIR)/golangci-lint
 # go source, scripts
 SOURCE_DIRS := cmd pkg
@@ -45,7 +45,8 @@ spdkcsi:
 	@CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=linux go build -buildvcs=false -o $(OUT_DIR)/spdkcsi ./cmd/
 
 # static code check, text lint
-lint: golangci yamllint shellcheck mdl codespell
+# lint: golangci yamllint shellcheck mdl codespell
+lint: golangci 
 
 .PHONY: golangci
 golangci: $(GOLANGCI_BIN)

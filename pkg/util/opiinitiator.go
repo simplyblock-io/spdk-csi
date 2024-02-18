@@ -133,7 +133,7 @@ func (opi *opiCommon) createNvmeRemoteController(ctx context.Context) error {
 		return fmt.Errorf("failed to create remote NVMf controller for '%s': %w", nvmfRemoteControllerID, err)
 	}
 	klog.Info("OPI.CreateNvmeRemoteController() <= ", createResp)
-	opi.nvmfRemoteControllerName = createResp.Name
+	opi.nvmfRemoteControllerName = createResp.GetName()
 	return nil
 }
 
@@ -188,7 +188,7 @@ func (opi *opiCommon) createNvmfPath(ctx context.Context) error {
 		return fmt.Errorf("failed to create remote NVMf path for '%s': %w", nvmfPathID, err)
 	}
 	klog.Info("OPI.CreateNVMfPath() <= ", createResp)
-	opi.nvmfPathName = createResp.Name
+	opi.nvmfPathName = createResp.GetName()
 	return nil
 }
 
@@ -232,7 +232,7 @@ func (i *opiInitiatorNvme) createNvmeSubsystem(ctx context.Context) error {
 		return fmt.Errorf("failed to create NVMe subsystem for '%s': %w", nvmeSubsystemID, err)
 	}
 	klog.Info("OPI.CreateNvmeSubsystem() <= ", createResp)
-	i.subsystemName = createResp.Name
+	i.subsystemName = createResp.GetName()
 
 	return nil
 }
@@ -280,7 +280,7 @@ func (i *opiInitiatorNvme) createNvmeController(ctx context.Context, physID uint
 		return fmt.Errorf("failed to create NVMe controller: %w", err)
 	}
 	klog.Infof("OPI.CreateNvmeController() with pfId '%d' <= %+v", physID, createResp)
-	i.nvmeControllerName = createResp.Name
+	i.nvmeControllerName = createResp.GetName()
 
 	return nil
 }
@@ -331,7 +331,7 @@ func (i *opiInitiatorNvme) createNvmeNamespace(ctx context.Context) error {
 		return err
 	}
 	klog.Info("OPI.CreateNvmeNamespace() <= ", createResp)
-	i.namespaceName = createResp.Name
+	i.namespaceName = createResp.GetName()
 	return nil
 }
 
@@ -448,7 +448,7 @@ func (i *opiInitiatorVirtioBlk) createVirtioBlk(ctx context.Context, physID uint
 		return fmt.Errorf("failed to create virtio-blk device with pfId (%d) error: %w", physID, err)
 	}
 	klog.Info("OPI.CreateVirtioBlk() <= ", blkDevice)
-	i.virtioBlkName = blkDevice.Name
+	i.virtioBlkName = blkDevice.GetName()
 
 	return nil
 }
