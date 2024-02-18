@@ -63,7 +63,3 @@ spec:
         volumeMounts:
         - name: dev-vol
           mountPath: /dev
-        resources:
-          limits:
-            memory: "2Gi"
-            cpu: "1"

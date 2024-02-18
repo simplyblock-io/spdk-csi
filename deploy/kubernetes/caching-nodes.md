@@ -4,19 +4,31 @@ We now also have the concept of caching-nodes. These will be Kubernetes nodes wh
 
 
 ### Preparing nodes
-Caching nodes are a special kind of node that provides storage by mounting a local NVMe disk. To prepare the nodes run the below steps. Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those values in `/etc/sysctl.conf`. We suggest allocating at least 8GB of huge pages.
+Caching nodes are a special kind of node that works as a cache with a local NVMe disk.
+
+
+#### Step1: Setup hugepages
+
+Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating atleast 8GB of huge pages.
 
 ```
-echo "======= setting huge pages ======="
-echo "vm.nr_hugepages=2048" >>/etc/sysctl.conf # 
-sysctl -p
+sudo sysctl -w vm.nr_hugepages=4096
+```
 
-# confirm it by running
+confirm the hugepage changes by running
 cat /proc/meminfo | grep -i hug
 
-# reboot
-sudo reboot
+
+and restart kubelet
 ```
+systemctl restart kubelet
+```
+
+#### Step2: Mount the SSD to be used for caching
+If the instance comes with a default NVMe disk, it can be used. Or an additional EBS or SSD volume can be mounted. the disks can be viewed by running: `lspci`
+
+
+#### Step3: Tag the kubernetes nodes
 
 After the nodes are prepared, label the kubernetes nodes
 ```
