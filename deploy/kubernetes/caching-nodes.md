@@ -9,7 +9,7 @@ Caching nodes are a special kind of node that works as a cache with a local NVMe
 
 #### Step1: Setup hugepages
 
-Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating atleast 8GB of huge pages.
+Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating at least 8GB of huge pages.
 
 ```
 sudo sysctl -w vm.nr_hugepages=4096
