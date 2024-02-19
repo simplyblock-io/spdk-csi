@@ -1,4 +1,4 @@
-name: Linux Unit tests
+name: Linux Unit tests and docker push
 on:
     pull_request:
     push:
@@ -24,21 +24,6 @@ jobs:
     - name: Test
       run: |
         make test
-
-    # - name: Sanity test
-    #   env:
-    #     GITHUB_ACTIONS: true
-    #   run: |
-    #     export PATH=$PATH:$HOME/.local/bin
-    #     make
-    #     echo "is running in github actions: $GITHUB_ACTIONS"
-    #     make sanity-test
-
-  dockerpush:
-    name: Push
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
 
     - name: Set docker image tag
       id: get_info
