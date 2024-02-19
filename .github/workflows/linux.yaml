@@ -35,7 +35,8 @@ jobs:
     #     make sanity-test
 
   dockerpush:
-    name: Build
+    name: Push
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - name: Login to Docker Hub
