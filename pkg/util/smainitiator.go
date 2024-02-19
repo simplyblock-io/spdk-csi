@@ -18,6 +18,7 @@ package util
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -102,14 +103,14 @@ func (sma *smaCommon) CreateDevice(ctx context.Context, req *smarpc.CreateDevice
 		return fmt.Errorf("failed to create device for id '%s': %w", sma.volumeContext["model"], err)
 	}
 	if response == nil {
-		return fmt.Errorf("create device: nil response")
+		return errors.New("create device: nil response")
 	}
 	klog.Info("SMA.CreateDevice() <= ", response)
 
-	if response.Handle == "" {
+	if response.GetHandle() == "" {
 		return fmt.Errorf("create device '%s': no device handle in response", sma.volumeContext["model"])
 	}
-	sma.deviceHandle = response.Handle
+	sma.deviceHandle = response.GetHandle()
 	return nil
 }
 
@@ -117,13 +118,13 @@ func (sma *smaCommon) AttachVolume(ctx context.Context, req *smarpc.AttachVolume
 	klog.Info("SMA.AttachVolume() => ", req)
 	response, err := sma.client.AttachVolume(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to attach volume %q to device '%s': %w", sma.volumeContext["model"], req.DeviceHandle, err)
+		return fmt.Errorf("failed to attach volume %q to device '%s': %w", sma.volumeContext["model"], req.GetDeviceHandle(), err)
 	}
 	if response == nil {
-		return fmt.Errorf("attach volume '%s' for device '%s': nil response", sma.volumeContext["model"], req.DeviceHandle)
+		return fmt.Errorf("attach volume '%s' for device '%s': nil response", sma.volumeContext["model"], req.GetDeviceHandle())
 	}
 	klog.Info("SMA.AttachVolume() <= ", response)
-	sma.volumeID = req.Volume.VolumeId
+	sma.volumeID = req.GetVolume().GetVolumeId()
 
 	return nil
 }
@@ -132,10 +133,10 @@ func (sma *smaCommon) DetachVolume(ctx context.Context, req *smarpc.DetachVolume
 	klog.Info("SMA.DetachVolume() => ", req)
 	response, err := sma.client.DetachVolume(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to detach volume %q from device '%s': %w", sma.volumeContext["model"], req.DeviceHandle, err)
+		return fmt.Errorf("failed to detach volume %q from device '%s': %w", sma.volumeContext["model"], req.GetDeviceHandle(), err)
 	}
 	if response == nil {
-		return fmt.Errorf("detach volume '%s' from volume '%s': nil response", sma.volumeContext["model"], req.DeviceHandle)
+		return fmt.Errorf("detach volume '%s' from volume '%s': nil response", sma.volumeContext["model"], req.GetDeviceHandle())
 	}
 	klog.Info("SMA.DetachVolume() <= ", response)
 	sma.volumeID = nil
@@ -147,10 +148,10 @@ func (sma *smaCommon) DeleteDevice(ctx context.Context, req *smarpc.DeleteDevice
 	klog.Info("SMA.DeleteDevice() => ", req)
 	response, err := sma.client.DeleteDevice(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to delete device '%s': %w", req.Handle, err)
+		return fmt.Errorf("failed to delete device '%s': %w", req.GetHandle(), err)
 	}
 	if response == nil {
-		return fmt.Errorf("delete device '%s': nil response", req.Handle)
+		return fmt.Errorf("delete device '%s': nil response", req.GetHandle())
 	}
 	klog.Info("SMA.DeleteDevice() <= ", response)
 	sma.deviceHandle = ""
@@ -364,7 +365,7 @@ func (i *smaInitiatorVirtioBlk) Disconnect(ctx context.Context) error {
 
 func volumeUUID(model string) ([]byte, error) {
 	if model == "" {
-		return nil, fmt.Errorf("no volume available")
+		return nil, errors.New("no volume available")
 	}
 
 	volUUID, err := uuid.Parse(model)

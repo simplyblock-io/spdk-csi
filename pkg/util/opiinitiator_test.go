@@ -24,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -314,8 +315,7 @@ func TestCreateNvmeRemoteController(t *testing.T) {
 	// Call the function under test
 	err := opi.createNvmeRemoteController(context.Background())
 	// Assert that the error returned is nil
-	assert.NoError(t, err, "create remote Nvme controller")
-
+	require.NoError(t, err, "create remote Nvme controller")
 	// Assert that the GetNvmeRemoteController and CreateNvmeRemoteController functions were called with the expected arguments
 	mockClient.AssertCalled(t, "CreateNvmeRemoteController", mock.Anything, &opiapiStorage.CreateNvmeRemoteControllerRequest{
 		NvmeRemoteController: &opiapiStorage.NvmeRemoteController{
@@ -351,9 +351,9 @@ func TestDeleteNvmeRemoteController_Success(t *testing.T) {
 
 	// Call the method under test
 	err := opi.createNvmeRemoteController(context.TODO())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = opi.deleteNvmeRemoteController(context.TODO())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Assert that the expected methods were called
 	mockClient.AssertExpectations(t)
@@ -424,11 +424,11 @@ func TestCreateNvmePath(t *testing.T) {
 	// Call the function under test
 	err := opi.createNvmeRemoteController(context.Background())
 	// Assert that the error returned is nil
-	assert.NoError(t, err, "create remote Nvme controller")
+	require.NoError(t, err, "create remote Nvme controller")
 
 	err = opi.createNvmfPath(context.Background())
 	// Assert that the error returned is nil
-	assert.NoError(t, err, "create Nvme path")
+	require.NoError(t, err, "create Nvme path")
 
 	// Assert that the CreateNvmeRemoteController function was called with the expected arguments
 	mockClient.AssertCalled(t, "CreateNvmeRemoteController", mock.Anything, &opiapiStorage.CreateNvmeRemoteControllerRequest{
@@ -475,7 +475,7 @@ func TestCreateVirtioBlk_Failure(t *testing.T) {
 	mockClient.On("CreateVirtioBlk", mock.Anything, mock.Anything).Return(nil, errors.New("Controller does not exist"))
 
 	err := opi.createVirtioBlk(context.TODO(), 1)
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err, nil)
 }
 
 func TestCreateVirtioBlk_Success(t *testing.T) {
@@ -505,7 +505,7 @@ func TestCreateVirtioBlk_Success(t *testing.T) {
 		}, nil)
 
 	err := opi.createVirtioBlk(context.TODO(), 1)
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err, nil)
 }
 
 func TestDeleteVirtioBlk_Success(t *testing.T) {
@@ -528,7 +528,7 @@ func TestDeleteVirtioBlk_Success(t *testing.T) {
 	mockClient.On("DeleteVirtioBlk", mock.Anything, mock.Anything).Return(nil, errors.New("Could not find Controller"))
 
 	err := opi.deleteVirtioBlk(context.TODO())
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err, nil)
 }
 
 func TestDeleteVirtioBlk_Failure(t *testing.T) {
@@ -551,7 +551,7 @@ func TestDeleteVirtioBlk_Failure(t *testing.T) {
 	mockClient.On("DeleteVirtioBlk", mock.Anything, mock.Anything).Return(nil, errors.New("failed to delete device"))
 
 	err := opi.deleteVirtioBlk(context.TODO())
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err, nil)
 }
 
 func TestCreateNvmeSubsystem(t *testing.T) {
@@ -573,7 +573,7 @@ func TestCreateNvmeSubsystem(t *testing.T) {
 		}, nil)
 
 	err := opi.createNvmeSubsystem(context.TODO())
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err, nil)
 }
 
 func TestDeleteNvmeSubsystem(t *testing.T) {
@@ -590,7 +590,7 @@ func TestDeleteNvmeSubsystem(t *testing.T) {
 	}
 	mockClient.On("DeleteNvmeSubsystem", mock.Anything, mock.Anything).Return(nil, errors.New("unable to find key"))
 	err := opi.deleteNvmeSubsystem(context.TODO())
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err, nil)
 }
 
 func TestCreateNvmeController(t *testing.T) {
@@ -610,7 +610,7 @@ func TestCreateNvmeController(t *testing.T) {
 			Name: opiObjectPrefix + opi.volumeContext["model"],
 		}, nil)
 	err := opi.createNvmeController(context.TODO(), 1)
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err, nil)
 }
 
 func TestDeleteNvmeController(t *testing.T) {
@@ -627,7 +627,7 @@ func TestDeleteNvmeController(t *testing.T) {
 	}
 	mockClient.On("DeleteNvmeController", mock.Anything, mock.Anything).Return(nil, errors.New("unable to find key"))
 	err := opi.deleteNvmeController(context.TODO())
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err, nil)
 }
 
 func TestCreateNvmeNamespace(t *testing.T) {
@@ -643,7 +643,7 @@ func TestCreateNvmeNamespace(t *testing.T) {
 	}
 	mockClient.On("CreateNvmeNamespace", mock.Anything, mock.Anything).Return(nil, errors.New("unable to find key"))
 	err := opi.createNvmeNamespace(context.TODO())
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err, nil)
 }
 
 func TestDeleteNvmeNamespace(t *testing.T) {
@@ -660,5 +660,5 @@ func TestDeleteNvmeNamespace(t *testing.T) {
 	}
 	mockClient.On("DeleteNvmeNamespace", mock.Anything, mock.Anything).Return(nil, errors.New("unable to find key"))
 	err := opi.deleteNvmeNamespace(context.TODO())
-	assert.NotEqual(t, err, nil)
+	assert.Error(t, err, nil)
 }

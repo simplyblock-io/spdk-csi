@@ -2,9 +2,9 @@
 
 set -ex
 
-CLUSTER_ID='ccfe1e14-e107-486a-a5d4-01c887c04394'
-MGMT_IP='18.191.102.134'
-CLUSTER_SECRET='8K9BVlNfYo6aiLamu1c2'
+CLUSTER_ID='57811933-0e5f-45ff-ae57-8e4b3065a520'
+MGMT_IP='3.142.76.165'
+CLUSTER_SECRET='ivxe3GjP5bEay5o0UI1G'
 
 # list in creation order
 files=(driver config-map nodeserver-config-map secret controller-rbac node-rbac controller node storageclass caching-node)
@@ -32,6 +32,12 @@ if [ $output -lt 2 ]; then
     echo "No caching nodes found. Exiting..."
     exit 0
 fi
+
+
+## check if the caching nodes has required huge pages
+echo "-- caching nodes --"
+kubectl get nodes -l type=cache
+
 
 kubectl apply -f caching-node.yaml
 kubectl wait --timeout=3m --for=condition=ready pod -l app=caching-node

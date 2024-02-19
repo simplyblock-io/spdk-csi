@@ -113,7 +113,7 @@ func (cs *controllerServer) DeleteVolume(_ context.Context, req *csi.DeleteVolum
 
 func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
 	// make sure we support all requested caps
-	for _, cap := range req.VolumeCapabilities {
+	for _, cap := range req.GetVolumeCapabilities() {
 		supported := false
 		for _, accessMode := range cs.Driver.GetVolumeCapabilityAccessModes() {
 			if cap.GetAccessMode().GetMode() == accessMode.GetMode() {
@@ -127,7 +127,7 @@ func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *c
 	}
 	return &csi.ValidateVolumeCapabilitiesResponse{
 		Confirmed: &csi.ValidateVolumeCapabilitiesResponse_Confirmed{
-			VolumeCapabilities: req.VolumeCapabilities,
+			VolumeCapabilities: req.GetVolumeCapabilities(),
 		},
 	}, nil
 }
@@ -212,7 +212,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
 	if err == nil {
 		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-		klog.V(5).Info("volume already exists", vol.VolumeId)
+		klog.V(5).Info("volume already exists", vol.GetVolumeId())
 		return &vol, nil
 	}
 
@@ -246,7 +246,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return nil, err
 	}
 	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-	klog.V(5).Info("successfully created volume from SimplyBlock with Volume ID: ", vol.VolumeId)
+	klog.V(5).Info("successfully created volume from SimplyBlock with Volume ID: ", vol.GetVolumeId())
 
 	return &vol, nil
 }
@@ -309,7 +309,6 @@ func (cs *controllerServer) ControllerExpandVolume(_ context.Context, req *csi.C
 		return nil, err
 	}
 	_, err = cs.spdkNode.ResizeVolume(spdkVol.lvolID, updatedSize)
-
 	if err != nil {
 		klog.Errorf("failed to resize lvol, LVolID: %s err: %v", spdkVol.lvolID, err)
 		return nil, err
@@ -395,7 +394,7 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	spdkNode, err := NewsimplyBlockClient()
 	if err != nil {
 		klog.Errorf("failed to create spdk node %v", err.Error())
-		return nil, fmt.Errorf("no valid spdk node found")
+		return nil, errors.New("no valid spdk node found")
 	}
 
 	server.spdkNode = spdkNode

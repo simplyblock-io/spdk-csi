@@ -18,6 +18,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -105,7 +106,7 @@ func getNvmeDeviceName(uuidFilePath, nvmeModel string) (string, error) {
 		return nvmeReDeviceName.ReplaceAllString(deviceSysFileName, ""), nil
 	}
 
-	return "", fmt.Errorf("does not match")
+	return "", errors.New("does not match")
 }
 
 func CheckIfNvmeDeviceExists(nvmeModel string, ignorePaths map[string]struct{}) (string, error) {
@@ -172,7 +173,7 @@ func GetNvmeDeviceName(nvmeModel, bdf string) (string, error) {
 		return "", fmt.Errorf("failed to find nvme device name: %w", err)
 	}
 
-	deviceGlob := fmt.Sprintf("/dev/%s", deviceName)
+	deviceGlob := "/dev/" + deviceName
 
 	return waitForDeviceReady(deviceGlob, 20)
 }
@@ -208,7 +209,7 @@ func GetVirtioBlkDeviceName(bdf string, wait bool) (string, error) {
 	}
 
 	// wait for the block device ready for VirtioBlk, eg, in the form of "/dev/vda"
-	deviceGlob := fmt.Sprintf("/dev/%s", deviceName[0].Name())
+	deviceGlob := "/dev/" + deviceName[0].Name()
 
 	return waitForDeviceReady(deviceGlob, 20)
 }
@@ -237,7 +238,7 @@ func GetAvailablePhysicalFunction(kvmBridgeCount int) (pf, vf uint32, err error)
 func ConvertInterfaceToMap(data interface{}) (map[string]string, error) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("the data is not a map[string]interface{}")
+		return nil, errors.New("the data is not a map[string]interface{}")
 	}
 
 	strMap := make(map[string]string)
@@ -280,7 +281,7 @@ func lookupContext(folder, fileName string) (interface{}, error) {
 			return data,
 				fmt.Errorf("failed to read stashed context JSON from path (%s): %w", fPath, err)
 		}
-		return data, fmt.Errorf("volume context JSON file not found")
+		return data, errors.New("volume context JSON file not found")
 	}
 	err = json.Unmarshal(encodedBytes, &data)
 	if err != nil {
