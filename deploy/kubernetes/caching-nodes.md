@@ -6,6 +6,17 @@ We now also have the concept of caching-nodes. These will be Kubernetes nodes wh
 ### Preparing nodes
 Caching nodes are a special kind of node that works as a cache with a local NVMe disk.
 
+#### Step 0: Networking & tools
+
+Make sure that the Kubernetes worker nodes to be used for cache has access to the simplyblock storage cluster. If you are using terraform to deploy the cluster. Please attach `container-instance-sg` security group to all the instances. 
+
+#### Step1: Install nvme cli tools
+
+To attach NVMe device to the host machine, the CSI driver uses [nvme-cli]([url](https://github.com/linux-nvme/nvme-cli)). So lets install that
+```
+sudo yum install -y nvme-cli
+sudo modprobe nvme-tcp
+```
 
 #### Step1: Setup hugepages
 
@@ -21,11 +32,22 @@ cat /proc/meminfo | grep -i hug
 
 and restart kubelet
 ```
-systemctl restart kubelet
+sudo systemctl restart kubelet
 ```
 
+conform if huge pages are added to the cluster or not. 
+```
+kubectl describe node ip-10-0-2-184.us-east-2.compute.internal | grep hugepages-2Mi
+```
+this output should show 8GB. This worker node can allocate 8GB of hugepages to pods which is required in case of SPDK pods.
+
 #### Step2: Mount the SSD to be used for caching
-If the instance comes with a default NVMe disk, it can be used. Or an additional EBS or SSD volume can be mounted. the disks can be viewed by running: `lspci`
+If the instance comes with a default NVMe disk, it can be used. Or an additional EBS or SSD volume can be mounted. the disks can be viewed by running: 
+
+```
+sudo yum install pciutils
+lspci
+```
 
 
 #### Step3: Tag the kubernetes nodes
