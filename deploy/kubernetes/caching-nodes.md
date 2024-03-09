@@ -69,6 +69,10 @@ kubectl apply -f caching-node.yaml
 Once the caching nodes agents are deployed, we add the caching node simplyblock cluster
 
 ```
+MGMT_IP=3.16.54.133
+CLUSTER_ID=8d4aee39-3c4f-4c4b-8cef-08502327f2a3
+CLUSTER_SECRET=GhbS1fwU8WSiABazTZUb
+
 for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $6}'); do
 	echo "adding caching node: $node"
 
