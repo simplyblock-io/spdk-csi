@@ -51,3 +51,8 @@ jobs:
         docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
         docker push simplyblock/spdkcsi:$TAG
         docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
+
+        if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+          docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
+          docker push simplyblock/spdkcsi:latest
+        fi
