@@ -73,6 +73,10 @@ func (cs *controllerServer) CreateVolume(_ context.Context, req *csi.CreateVolum
 		}
 	}
 
+	if volType, ok := req.GetParameters()["type"]; ok {
+		csiVolume.VolumeContext["targetType"] = volType
+	}
+
 	return &csi.CreateVolumeResponse{Volume: csiVolume}, nil
 }
 
@@ -109,7 +113,7 @@ func (cs *controllerServer) DeleteVolume(_ context.Context, req *csi.DeleteVolum
 
 func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
 	// make sure we support all requested caps
-	for _, cap := range req.VolumeCapabilities {
+	for _, cap := range req.GetVolumeCapabilities() {
 		supported := false
 		for _, accessMode := range cs.Driver.GetVolumeCapabilityAccessModes() {
 			if cap.GetAccessMode().GetMode() == accessMode.GetMode() {
@@ -123,7 +127,7 @@ func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *c
 	}
 	return &csi.ValidateVolumeCapabilitiesResponse{
 		Confirmed: &csi.ValidateVolumeCapabilitiesResponse_Confirmed{
-			VolumeCapabilities: req.VolumeCapabilities,
+			VolumeCapabilities: req.GetVolumeCapabilities(),
 		},
 	}, nil
 }
@@ -208,7 +212,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
 	if err == nil {
 		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-		klog.V(5).Info("volume already exists", vol.VolumeId)
+		klog.V(5).Info("volume already exists", vol.GetVolumeId())
 		return &vol, nil
 	}
 
@@ -242,7 +246,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return nil, err
 	}
 	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-	klog.V(5).Info("successfully created volume from SimplyBlock with Volume ID: ", vol.VolumeId)
+	klog.V(5).Info("successfully created volume from SimplyBlock with Volume ID: ", vol.GetVolumeId())
 
 	return &vol, nil
 }
@@ -305,7 +309,6 @@ func (cs *controllerServer) ControllerExpandVolume(_ context.Context, req *csi.C
 		return nil, err
 	}
 	_, err = cs.spdkNode.ResizeVolume(spdkVol.lvolID, updatedSize)
-
 	if err != nil {
 		klog.Errorf("failed to resize lvol, LVolID: %s err: %v", spdkVol.lvolID, err)
 		return nil, err
@@ -353,12 +356,7 @@ func (cs *controllerServer) ListSnapshots(_ context.Context, _ *csi.ListSnapshot
 	}, nil
 }
 
-func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
-	server := controllerServer{
-		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
-		volumeLocks:             util.NewVolumeLocks(),
-	}
-
+func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 	// get spdk node configs, see deploy/kubernetes/config-map.yaml
 	var config struct {
 		Simplybk struct {
@@ -382,14 +380,23 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	if err != nil {
 		return nil, err
 	}
+	klog.Infof("spdk node created: url=%s", config.Simplybk.IP)
 
-	spdkNode := util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret)
-	if spdkNode == nil {
-		klog.Errorf("failed to create spdk node %s: %s", config.Simplybk.UUID, err.Error())
-		return nil, fmt.Errorf("no valid spdk node found")
+	return util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret), nil
+}
+
+func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
+	server := controllerServer{
+		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
+		volumeLocks:             util.NewVolumeLocks(),
 	}
 
-	klog.Infof("spdk node created: name=%s, url=%s", config.Simplybk.UUID, config.Simplybk.IP)
+	spdkNode, err := NewsimplyBlockClient()
+	if err != nil {
+		klog.Errorf("failed to create spdk node %v", err.Error())
+		return nil, errors.New("no valid spdk node found")
+	}
+
 	server.spdkNode = spdkNode
 	return &server, nil
 

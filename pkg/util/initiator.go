@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -41,12 +42,17 @@ type SpdkCsiInitiator interface {
 	Disconnect() error
 }
 
-func NewSpdkCsiInitiator(volumeContext map[string]string) (SpdkCsiInitiator, error) {
+const DevDiskByID = "/dev/disk/by-id/*%s*"
+
+func NewSpdkCsiInitiator(volumeContext map[string]string, spdkNode *NodeNVMf) (SpdkCsiInitiator, error) {
 	targetType := strings.ToLower(volumeContext["targetType"])
 	switch targetType {
 	case "rdma", "tcp":
 		var connections []connectionInfo
-		json.Unmarshal([]byte(volumeContext["connections"]), &connections)
+		err := json.Unmarshal([]byte(volumeContext["connections"]), &connections)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshall connections. Error: %v", err.Error())
+		}
 		return &initiatorNVMf{
 			// see util/nvmf.go VolumeInfo()
 			targetType:  volumeContext["targetType"],
@@ -59,6 +65,12 @@ func NewSpdkCsiInitiator(volumeContext map[string]string) (SpdkCsiInitiator, err
 			targetAddr: volumeContext["targetAddr"],
 			targetPort: volumeContext["targetPort"],
 			iqn:        volumeContext["iqn"],
+		}, nil
+	case "cache":
+		return &initiatorCache{
+			lvol:   volumeContext["uuid"],
+			model:  volumeContext["model"],
+			client: *spdkNode.client,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unknown initiator: %s", targetType)
@@ -75,9 +87,141 @@ type initiatorNVMf struct {
 	model       string
 }
 
-func execWithTimeoutRetry(cmdLine []string, timeout int, retry int) (err error) {
+type initiatorCache struct {
+	lvol   string
+	model  string
+	client rpcClient
+}
+
+type cachingNodeList struct {
+	Hostname string `json:"hostname"`
+	UUID     string `json:"id"`
+}
+
+type LVolCachingNodeConnect struct {
+	LvolID string `json:"lvol_id"`
+}
+
+func (cache *initiatorCache) Connect() (string, error) {
+	// get the hostname
+	hostname, err := os.Hostname()
+	if err != nil {
+		os.Exit(1)
+	}
+	hostname = strings.Split(hostname, ".")[0]
+	klog.Info("hostname: ", hostname)
+
+	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
+	if err != nil {
+		klog.Error(err)
+		return "", err
+	}
+
+	data, err := json.Marshal(out)
+	if err != nil {
+		return "", err
+	}
+	var cnodes []*cachingNodeList
+	err = json.Unmarshal(data, &cnodes)
+	if err != nil {
+		return "", err
+	}
+
+	klog.Info("found caching nodes: ", cnodes)
+
+	isCachingNodeConnected := false
+	for _, cnode := range cnodes {
+		if hostname != cnode.Hostname {
+			continue
+		}
+
+		var resp interface{}
+		req := LVolCachingNodeConnect{
+			LvolID: cache.lvol,
+		}
+		klog.Info("connecting caching node: ", cnode.Hostname, " with lvol: ", cache.lvol)
+		resp, err = cache.client.callSBCLI("PUT", "/cachingnode/connect/"+cnode.UUID, req)
+		if err != nil {
+			klog.Error("caching node connect error:", err)
+			return "", err
+		}
+		klog.Info("caching node connect resp: ", resp)
+		isCachingNodeConnected = true
+	}
+
+	if !isCachingNodeConnected {
+		return "", errors.New("failed to find the caching node")
+	}
+
+	// get the caching node ID associated with the hostname
+	// connect lvol and caching node
+
+	deviceGlob := fmt.Sprintf(DevDiskByID, cache.model)
+	devicePath, err := waitForDeviceReady(deviceGlob, 20)
+	if err != nil {
+		return "", err
+	}
+	return devicePath, nil
+}
+
+func (cache *initiatorCache) Disconnect() error {
+	// get the hostname
+	// get the caching node ID associated with the hostname
+	// connect lvol and caching node
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		os.Exit(1)
+	}
+	hostname = strings.Split(hostname, ".")[0]
+	klog.Info("hostname: ", hostname)
+
+	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
+	if err != nil {
+		klog.Error(err)
+		return err
+	}
+
+	data, err := json.Marshal(out)
+	if err != nil {
+		return err
+	}
+	var cnodes []*cachingNodeList
+	err = json.Unmarshal(data, &cnodes)
+	if err != nil {
+		return err
+	}
+	klog.Info("found caching nodes: ", cnodes)
+
+	isCachingNodeConnected := false
+	for _, cnode := range cnodes {
+		if hostname != cnode.Hostname {
+			continue
+		}
+		klog.Info("disconnect caching node: ", cnode.Hostname, "with lvol: ", cache.lvol)
+		req := LVolCachingNodeConnect{
+			LvolID: cache.lvol,
+		}
+		resp, err := cache.client.callSBCLI("PUT", "/cachingnode/disconnect/"+cnode.UUID, req)
+		if err != nil {
+			klog.Error("caching node disconnect error:", err)
+			return err
+		}
+		klog.Info("caching node disconnect resp: ", resp)
+		isCachingNodeConnected = true
+	}
+
+	if !isCachingNodeConnected {
+		return errors.New("failed to find the caching node")
+	}
+
+	deviceGlob := fmt.Sprintf(DevDiskByID, cache.model)
+	return waitForDeviceGone(deviceGlob)
+}
+
+func execWithTimeoutRetry(cmdLine []string, timeout, retry int) (err error) {
 	for retry > 0 {
-		err = execWithTimeout(cmdLine, 40)
+		err = execWithTimeout(cmdLine, timeout)
 		if err == nil {
 			return nil
 		}
@@ -102,7 +246,7 @@ func (nvmf *initiatorNVMf) Connect() (string, error) {
 		}
 	}
 
-	deviceGlob := fmt.Sprintf("/dev/disk/by-id/*%s*", nvmf.model)
+	deviceGlob := fmt.Sprintf(DevDiskByID, nvmf.model)
 	devicePath, err := waitForDeviceReady(deviceGlob, 20)
 	if err != nil {
 		return "", err
@@ -119,7 +263,7 @@ func (nvmf *initiatorNVMf) Disconnect() error {
 		klog.Errorf("command %v failed: %s", cmdLine, err)
 	}
 
-	deviceGlob := fmt.Sprintf("/dev/disk/by-id/*%s*", nvmf.model)
+	deviceGlob := fmt.Sprintf(DevDiskByID, nvmf.model)
 	return waitForDeviceGone(deviceGlob)
 }
 
@@ -208,7 +352,7 @@ func execWithTimeout(cmdLine []string, timeout int) error {
 	output, err := cmd.CombinedOutput()
 
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		return fmt.Errorf("timed out")
+		return errors.New("timed out")
 	}
 	if output != nil {
 		klog.Infof("command returned: %s", output)

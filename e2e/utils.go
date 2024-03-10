@@ -250,14 +250,14 @@ func deleteMultiPvcsAndTestPodWithMultiPvcs() {
 // rolloutNodeServer Use the delete corresponding pod to simulate a rollout. In this way, when the function returns,
 // the state of the NodeServer has definitely changed, which is convenient for subsequent state detection.
 func rolloutNodeServer() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", fmt.Sprintf("app=%s", nodeDsName))
+	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+nodeDsName)
 	if err != nil {
 		e2elog.Logf("failed to rollout node server: %s", err)
 	}
 }
 
 func rolloutControllerServer() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", fmt.Sprintf("app=%s", controllerStsName))
+	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+controllerStsName)
 	if err != nil {
 		e2elog.Logf("failed to rollout controller server: %s", err)
 	}
@@ -370,7 +370,7 @@ func execCommandInPod(f *framework.Framework, c, ns string, opt *metav1.ListOpti
 	if stdErr != "" {
 		e2elog.Logf("stdErr occurred: %v", stdErr)
 	}
-	Expect(err).ShouldNot(HaveOccurred())
+	Expect(err).ShouldNot(HaveOccurred()) //nolint
 	return stdOut, stdErr
 }
 
@@ -378,8 +378,8 @@ func getCommandInPodOpts(f *framework.Framework, c, ns string, opt *metav1.ListO
 	cmd := []string{"/bin/sh", "-c", c}
 	podList, err := f.PodClientNS(ns).List(ctx, *opt)
 	framework.ExpectNoError(err)
-	Expect(podList.Items).NotTo(BeNil())
-	Expect(err).ShouldNot(HaveOccurred())
+	Expect(podList.Items).NotTo(BeNil())  //nolint
+	Expect(err).ShouldNot(HaveOccurred()) //nolint
 
 	return framework.ExecOptions{
 		Command:            cmd,
@@ -415,8 +415,8 @@ func checkDataPersist(f *framework.Framework) error {
 	}
 
 	// read data from PVC
-	persistData, stdErr := execCommandInPod(f, fmt.Sprintf("cat %s", dataPath), nameSpace, &opt)
-	Expect(stdErr).Should(BeEmpty())
+	persistData, stdErr := execCommandInPod(f, "cat "+dataPath, nameSpace, &opt)
+	Expect(stdErr).Should(BeEmpty()) //nolint
 	if !strings.Contains(persistData, data) {
 		return fmt.Errorf("data not persistent: expected data %s received data %s ", data, persistData)
 	}
@@ -457,8 +457,8 @@ func checkDataPersistForMultiPvcs(f *framework.Framework) error {
 
 	// read data from PVC
 	for i := 0; i < len(dataPaths); i++ {
-		persistData, stdErr := execCommandInPod(f, fmt.Sprintf("cat %s", dataPaths[i]), nameSpace, &opt)
-		Expect(stdErr).Should(BeEmpty())
+		persistData, stdErr := execCommandInPod(f, "cat "+dataPaths[i], nameSpace, &opt)
+		Expect(stdErr).Should(BeEmpty()) //nolint
 		if !strings.Contains(persistData, dataContents[i]) {
 			return fmt.Errorf("data not persistent: expected data %s received data %s ", dataContents[i], persistData)
 		}

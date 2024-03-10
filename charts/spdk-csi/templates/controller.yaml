@@ -19,7 +19,7 @@ spec:
 {{ include "spdk.labels" . | indent 6 }}
         app: spdkcsi-controller
     spec:
-      serviceAccount: spdkcsi-controller-sa
+      serviceAccountName: spdkcsi-controller-sa
       hostNetwork: true
       containers:
       - name: spdkcsi-provisioner
@@ -31,6 +31,20 @@ spec:
         - "--timeout=30s"
         - "--retry-interval-start=500ms"
         - "--leader-election=false"
+        - "--feature-gates=Topology=true"
+        volumeMounts:
+        - name: socket-dir
+          mountPath: /csi
+      - name: spdkcsi-snapshotter
+        image: "{{ .Values.image.csiSnapshotter.repository }}:{{ .Values.image.csiSnapshotter.tag }}"
+        args:
+        - "--csi-address=unix:///csi/csi-provisioner.sock"
+        - "--v=5"
+        - "--timeout=150s"
+        - "--leader-election=false"
+        imagePullPolicy: {{ .Values.image.csiProvisioner.pullPolicy }}
+        securityContext:
+          privileged: true
         volumeMounts:
         - name: socket-dir
           mountPath: /csi

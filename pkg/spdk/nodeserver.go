@@ -44,6 +44,7 @@ type nodeServer struct {
 	xpuConnClient *grpc.ClientConn
 	xpuTargetType string
 	kvmPciBridges int
+	spdkNode      *util.NodeNVMf
 }
 
 func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
@@ -87,13 +88,13 @@ func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
 	// once the connection is built, send pings every 10 seconds if there is no activity
 	// FIXME (JingYan): when there are multiple xPU nodes, find a better way to choose one to connect with
 
-	var xpuConnClient *grpc.ClientConn
+	var xpuConnClient, conn *grpc.ClientConn
 	var xpuTargetType string
 
 	for i := range config.XPUList {
 		if config.XPUList[i].TargetType != "" && config.XPUList[i].TargetAddr != "" {
 			klog.Infof("TargetType: %v, TargetAddr: %v.", config.XPUList[i].TargetType, config.XPUList[i].TargetAddr)
-			conn, err := grpc.Dial(
+			conn, err = grpc.Dial(
 				config.XPUList[i].TargetAddr,
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithBlock(),
@@ -122,6 +123,11 @@ func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
 	ns.xpuConnClient = xpuConnClient
 	ns.xpuTargetType = xpuTargetType
 
+	ns.spdkNode, err = NewsimplyBlockClient()
+	if err != nil {
+		klog.Error("failed to create simplyblock client", err)
+		return nil, err
+	}
 	return ns, nil
 }
 
@@ -154,7 +160,7 @@ func (ns *nodeServer) NodeStageVolume(_ context.Context, req *csi.NodeStageVolum
 	// }
 
 	vc["stagingParentPath"] = stagingParentPath
-	initiator, err = util.NewSpdkCsiInitiator(vc)
+	initiator, err = util.NewSpdkCsiInitiator(vc, ns.spdkNode)
 	if err != nil {
 		klog.Errorf("failed to create spdk initiator, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
@@ -219,7 +225,7 @@ func (ns *nodeServer) NodeUnstageVolume(_ context.Context, req *csi.NodeUnstageV
 		vc["stagingParentPath"] = stagingParentPath
 		initiator, err = util.NewSpdkCsiXpuInitiator(vc, ns.xpuConnClient, ns.xpuTargetType, ns.kvmPciBridges)
 	} else {
-		initiator, err = util.NewSpdkCsiInitiator(volumeContext)
+		initiator, err = util.NewSpdkCsiInitiator(volumeContext, ns.spdkNode)
 	}
 	if err != nil {
 		klog.Errorf("failed to create spdk initiator, volumeID: %s err: %v", volumeID, err)
@@ -304,7 +310,7 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	fsType := req.GetVolumeCapability().GetMount().GetFsType()
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
-	switch req.VolumeCapability.AccessMode.Mode {
+	switch req.GetVolumeCapability().GetAccessMode().GetMode() {
 	case csi.VolumeCapability_AccessMode_SINGLE_NODE_READER_ONLY,
 		csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY:
 		mntFlags = append(mntFlags, "ro")
@@ -391,11 +397,11 @@ func (ns *nodeServer) deleteMountPoint(path string) error {
 
 func getStagingTargetPath(req interface{}) string {
 	switch vr := req.(type) {
-	case *csi.NodeStageVolumeRequest:
+	case csi.NodeStageVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
-	case *csi.NodeUnstageVolumeRequest:
+	case csi.NodeUnstageVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
-	case *csi.NodePublishVolumeRequest:
+	case csi.NodePublishVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
 	}
 	return ""

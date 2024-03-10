@@ -15,6 +15,7 @@ package util
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -41,11 +42,12 @@ const (
 	TransportTypeNvmfTCP   = "nvmftcp"
 	TransportTypeNvme      = "nvme"
 	TransportTypeVirtioBlk = "virtioblk"
+	TargetTypeCache        = "cache"
 )
 
 type XpuInitiator interface {
-	Connect(context.Context, *ConnectParams) error
-	Disconnect(context.Context) error
+	Connect(ctx context.Context, params *ConnectParams) error
+	Disconnect(ctx context.Context) error
 	GetParam() map[string]string
 }
 
@@ -323,7 +325,7 @@ func (xpu *xpuInitiator) DisconnectNvme(ctx context.Context) error {
 func (xpu *xpuInitiator) DisconnectVirtioBlk(ctx context.Context) error {
 	klog.Infof("xpu Disconnect virtioblk device '%s'", xpu.devicePath)
 	if xpu.devicePath == "" {
-		return fmt.Errorf("failed to get block device path")
+		return errors.New("failed to get block device path")
 	}
 	if err := xpu.backend.Disconnect(ctx); err != nil {
 		return err
@@ -346,7 +348,7 @@ func (xpu *xpuInitiator) ctxTimeout() (context.Context, context.CancelFunc) {
 	return ctxTimeout, cancel
 }
 
-// re-use the Connect() and Disconnect() functions from initiator.go
+// reuse the Connect() and Disconnect() functions from initiator.go
 func newInitiatorNVMf(model string) *initiatorNVMf {
 	return &initiatorNVMf{
 		targetType: xpuNvmfTCPTargetType,

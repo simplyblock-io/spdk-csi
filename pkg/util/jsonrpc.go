@@ -209,7 +209,7 @@ func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
-	out, err := client.callSBCLI("GET", fmt.Sprintf("csi/get_volume_info/%s", lvolID), nil)
+	out, err := client.callSBCLI("GET", "csi/get_volume_info/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
@@ -238,10 +238,9 @@ type connectionInfo struct {
 
 // get a volume and return a BDev
 func (client *rpcClient) getVolumeInfo(lvolID string) (map[string]string, error) {
-	var result []LvolConnectResp
+	var result []*LvolConnectResp
 
-	out, err := client.callSBCLI("GET",
-		fmt.Sprintf("/lvol/connect/%s", lvolID), nil)
+	out, err := client.callSBCLI("GET", "/lvol/connect/"+lvolID, nil)
 	if err != nil {
 		klog.Error(err)
 		if errorMatches(err, ErrJSONNoSuchDevice) {
@@ -293,8 +292,7 @@ func (client *rpcClient) getVolumeInfo(lvolID string) (map[string]string, error)
 // }
 
 func (client *rpcClient) deleteVolume(lvolID string) error {
-	_, err := client.callSBCLI("DELETE",
-		fmt.Sprintf("csi/delete_lvol/%s", lvolID), nil)
+	_, err := client.callSBCLI("DELETE", "csi/delete_lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}
@@ -349,8 +347,7 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE",
-		fmt.Sprintf("csi/delete_snapshot/%s", snapshotID), nil)
+	_, err := client.callSBCLI("DELETE", "csi/delete_snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -538,7 +535,7 @@ func (client *rpcClient) callSBCLI(method, path string, args interface{}) (inter
 	// klog.V(5).Info("response.Obj", response)
 
 	if response.Error.Code > 0 {
-		return nil, fmt.Errorf(response.Error.Message)
+		return nil, errors.New(response.Error.Message)
 	}
 	if response.Result != nil {
 		return response.Result, nil
