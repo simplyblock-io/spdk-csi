@@ -397,12 +397,14 @@ func (ns *nodeServer) deleteMountPoint(path string) error {
 
 func getStagingTargetPath(req interface{}) string {
 	switch vr := req.(type) {
-	case csi.NodeStageVolumeRequest:
+	case *csi.NodeStageVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
-	case csi.NodeUnstageVolumeRequest:
+	case *csi.NodeUnstageVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
-	case csi.NodePublishVolumeRequest:
+	case *csi.NodePublishVolumeRequest:
 		return vr.GetStagingTargetPath() + "/" + vr.GetVolumeId()
+	default:
+		klog.Warningf("invalid request %T", vr)
 	}
 	return ""
 }

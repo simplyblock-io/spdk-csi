@@ -226,6 +226,9 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	// 	sourceType = "lvol"
 	// }
 
+	distr_ndcs, _ := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	distr_npcs, _ := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -236,8 +239,8 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		MaxWmBytes:  req.GetParameters()["qos_w_mbytes"],
 		Compression: req.GetParameters()["compression"],
 		Encryption:  req.GetParameters()["encryption"],
-		DistNdcs:    req.GetParameters()["distr-ndcs"],
-		DistNpcs:    req.GetParameters()["distr-npcs"],
+		DistNdcs:    distr_ndcs,
+		DistNpcs:    distr_npcs,
 	}
 
 	volumeID, err = cs.spdkNode.CreateVolume(&createVolReq)

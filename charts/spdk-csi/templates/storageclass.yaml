@@ -18,8 +18,8 @@ parameters:
   qos_w_mbytes: "0"
   compression: "False"
   encryption: "False"
-  distr-ndcs: "1"
-  distr-npcs: "1"
+  distr_ndcs: "1"
+  distr_npcs: "1"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
