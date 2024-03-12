@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega" //nolint
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -464,4 +465,29 @@ func checkDataPersistForMultiPvcs(f *framework.Framework) error {
 		}
 	}
 	return err
+}
+
+func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout time.Duration) error {
+	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+		pvc, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		if pvc.Status.Phase != corev1.ClaimBound {
+			return false, nil
+		}
+
+		pvName := pvc.Spec.VolumeName
+		pv, err := c.CoreV1().PersistentVolumes().Get(ctx, pvName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		return pv.Spec.ClaimRef != nil && pv.Spec.StorageClassName != "", nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to verify dynamic PV creation for PVC %s: %w", pvcName, err)
+	}
+	return nil
 }
