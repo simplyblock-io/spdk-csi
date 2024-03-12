@@ -55,9 +55,9 @@ spec:
       hostNetwork: true
       containers:
       - name: c-node-api-container
-        image: hamdykhader/simplyblock:latest
+        image: simplyblock/simplyblock:dev
         imagePullPolicy: "Always"
-        command: ["python", "WebApp/caching_node_app_k8s.py"]
+        command: ["python", "simplyblock_web/caching_node_app_k8s.py"]
         env:
         - name: HOSTNAME
           valueFrom:
