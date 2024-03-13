@@ -9,14 +9,10 @@ import (
 
 const (
 	iscsiConfigMapData = `{
-  "nodes": [
-    {
-      "name": "localhost",
-      "rpcURL": "http://127.0.0.1:9009",
-      "targetType": "iscsi",
-      "targetAddr": "127.0.0.1"
-    }
-  ]
+	"simplybk": {
+		"uuid": "79276661-5f8a-405d-ab6d-651b88326206",
+		"ip": "44.204.254.210"
+	 }
 }`
 )
 
