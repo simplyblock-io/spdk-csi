@@ -26,8 +26,9 @@ jobs:
       
     - name: Authenticate with Kubernetes cluster
       run: |
-        mkdir ${HOME}/.kube
-        echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode > ${HOME}/.kube/config
+        mkdir -p ~/.kube
+        echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode > ~/.kube/config
+       # echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
       # env:
       # #   KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
 
