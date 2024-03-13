@@ -1,14 +1,13 @@
 name: SPDK E2E TEST
 
 on:
-    pull_request:
-    push:
-      branches: ['test_for_dynamic_pv']
+  push:
+    branches: ['test_for_dynamic_pv']
 
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
@@ -26,8 +25,8 @@ jobs:
       
     - name: Authenticate with Kubernetes cluster
       run: |
-        mkdir -p ~/.kube
-        echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode > ~/.kube/config
+        mkdir -p ${HOME}/.kube
+        echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode >  ${HOME}/.kube/config
        # echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
       # env:
       # #   KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
