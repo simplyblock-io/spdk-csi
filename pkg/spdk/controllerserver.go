@@ -226,8 +226,17 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	// 	sourceType = "lvol"
 	// }
 
-	distr_ndcs, _ := strconv.Atoi(req.GetParameters()["distr_ndcs"])
-	distr_npcs, _ := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	distr_ndcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	if err != nil {
+		klog.Errorf("Error converting distr_ndcs: %v", err)
+		return nil, err
+	}
+
+	distr_npcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	if err != nil {
+		klog.Errorf("Error converting distr_npcs: %v", err)
+		return nil, err
+	}
 
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
