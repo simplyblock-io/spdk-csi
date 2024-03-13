@@ -10,9 +10,9 @@ import (
 // ////
 const (
 	iscsiConfigMapData = `{
-	"simplybk": {
-		"uuid": "ea3f384f-e3b4-4a69-879f-06b75a6e43cf",
-		"ip": "44.214.142.255"
+  "simplybk": {
+	 "uuid": "ea3f384f-e3b4-4a69-879f-06b75a6e43cf",
+	 "ip": "44.214.142.255"
 	}
 }`
 )

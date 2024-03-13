@@ -23,6 +23,7 @@ const (
 	yamlDir                  = "../deploy/kubernetes/"
 	driverPath               = yamlDir + "driver.yaml"
 	secretPath               = yamlDir + "secret.yaml"
+	configmapPath            = yamlDir + "config-map.yaml"
 	controllerRbacPath       = yamlDir + "controller-rbac.yaml"
 	nodeRbacPath             = yamlDir + "node-rbac.yaml"
 	controllerPath           = yamlDir + "controller.yaml"
@@ -47,8 +48,10 @@ const (
 var ctx = context.TODO()
 
 func deployConfigs(configMapData string) {
-	configMapData = "--from-literal=config.json=" + configMapData
-	_, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
+	//configMapData = "--from-literal=config.json=" + configMapData
+	//_, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
+	_, err = framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
+
 	if err != nil {
 		e2elog.Logf("failed to create config map %s", err)
 	}
