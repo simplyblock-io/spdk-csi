@@ -226,15 +226,15 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	// 	sourceType = "lvol"
 	// }
 
-	distr_ndcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	distrNdcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
 	if err != nil {
-		klog.Errorf("Error converting distr_ndcs: %v", err)
+		klog.Errorf("Error converting distrNdcs: %v", err)
 		return nil, err
 	}
 
-	distr_npcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
+	distrNpcs, err := strconv.Atoi(req.GetParameters()["distr_ndcs"])
 	if err != nil {
-		klog.Errorf("Error converting distr_npcs: %v", err)
+		klog.Errorf("Error converting distrNpcs: %v", err)
 		return nil, err
 	}
 
@@ -248,8 +248,8 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		MaxWmBytes:  req.GetParameters()["qos_w_mbytes"],
 		Compression: req.GetParameters()["compression"],
 		Encryption:  req.GetParameters()["encryption"],
-		DistNdcs:    distr_ndcs,
-		DistNpcs:    distr_npcs,
+		DistNdcs:    distrNdcs,
+		DistNpcs:    distrNpcs,
 	}
 
 	volumeID, err = cs.spdkNode.CreateVolume(&createVolReq)
