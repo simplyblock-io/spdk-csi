@@ -50,8 +50,7 @@ var ctx = context.TODO()
 func deployConfigs(configMapData string) {
 	//configMapData = "--from-literal=config.json=" + configMapData
 	//_, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
-	_, err = framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
-
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
 	if err != nil {
 		e2elog.Logf("failed to create config map %s", err)
 	}
