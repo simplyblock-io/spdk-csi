@@ -231,20 +231,20 @@ func waitForNodeServerReady(c kubernetes.Interface, timeout time.Duration) error
 	return nil
 }
 
-func verifyNodeServerLog(expLogList []string) error {
-	log, err := framework.RunKubectl(nameSpace, "logs", "-l", "app=spdkcsi-node", "-c", "spdkcsi-node", "--tail", "-1")
-	if err != nil {
-		return fmt.Errorf("failed to obtain the log from node server: %w", err)
-	}
+// func verifyNodeServerLog(expLogList []string) error {
+// 	log, err := framework.RunKubectl(nameSpace, "logs", "-l", "app=spdkcsi-node", "-c", "spdkcsi-node", "--tail", "-1")
+// 	if err != nil {
+// 		return fmt.Errorf("failed to obtain the log from node server: %w", err)
+// 	}
 
-	for _, expLog := range expLogList {
-		if !strings.Contains(log, expLog) {
-			return fmt.Errorf("failed to catch the log about %s", expLog)
-		}
-	}
+// 	for _, expLog := range expLogList {
+// 		if !strings.Contains(log, expLog) {
+// 			return fmt.Errorf("failed to catch the log about %s", expLog)
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
