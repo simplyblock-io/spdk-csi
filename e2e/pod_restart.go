@@ -26,7 +26,7 @@ import (
 var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginkgo.BeforeEach(func() {
-		deployConfigs(nvmeofConfigMapData)
+		deployConfigs(iscsiConfigMapData)
 		deployCsi()
 	})
 	ginkgo.AfterEach(func() {
