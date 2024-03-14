@@ -8,11 +8,11 @@ on:
         required: true
         default: '79276661-5f8a-405d-ab6d-651b88326206'
       ip:
-        description: 'IP address for the test'
+        description: ''
         required: true
         default: '18.218.243.112'
       secret:
-        description: 'Secret for the test'
+        description: ''
         required: true
         default: '8K9BVlNfYo6aiLamu1c2'
 jobs:
