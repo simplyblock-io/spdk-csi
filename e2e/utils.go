@@ -31,11 +31,6 @@ const (
 	storageClassPath         = yamlDir + "storageclass.yaml"
 	pvcPath                  = "pvc.yaml"
 	testPodPath              = "testpod.yaml"
-	smaNvmfConfigPath        = "sma-nvmf.yaml"
-	smaNvmeConfigPath        = "sma-nvme.yaml"
-	smaVirtioBlkConfigPath   = "sma-virtioblk.yaml"
-	opiNvmeConfigPath        = "opi-nvme.yaml"
-	opiVirtioBlkConfigPath   = "opi-virtioblk.yaml"
 	multiPvcsPath            = "multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "testpod-multi-pvc.yaml"
 
