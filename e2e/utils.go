@@ -463,11 +463,9 @@ spec:
       claimName: spdkcsi-pvc
 `, podName))
 
-	// Get current directory
 	_, filename, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(filename)
 
-	// Write YAML to file
 	filePath := filepath.Join(dir, fmt.Sprintf("%s.yaml", podName))
 	if err := ioutil.WriteFile(filePath, podYAML, 0644); err != nil {
 		return "", fmt.Errorf("failed to write YAML to file: %v", err)
