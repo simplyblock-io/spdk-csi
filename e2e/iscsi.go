@@ -22,7 +22,6 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	ginkgo.BeforeEach(func() {
 		deployConfigs(iscsiConfigMapData)
 		deployCsi()
-		deletePVCAndTestPod()
 	})
 
 	ginkgo.AfterEach(func() {
