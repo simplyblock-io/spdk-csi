@@ -27,7 +27,6 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	ginkgo.AfterEach(func() {
 		deleteCsi()
 		deleteConfigs()
-		deletePVCAndTestPod()
 	})
 
 	ginkgo.Context("Test SPDK CSI ISCSI", func() {
