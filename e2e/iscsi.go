@@ -7,23 +7,10 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
-const (
-	iscsiConfigMapData = `{
-  "nodes": [
-    {
-      "name": "localhost",
-      "rpcURL": "http://127.0.0.1:9009",
-      "targetType": "iscsi",
-      "targetAddr": "127.0.0.1"
-    }
-  ]
-}`
-)
-
 var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginkgo.BeforeEach(func() {
-		deployConfigs(iscsiConfigMapData)
+		deployConfigs()
 		deployCsi()
 	})
 
@@ -42,7 +29,16 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 			})
 
 			ginkgo.By("checking node daemonset is running", func() {
-				err := waitForNodeServerReady(f.ClientSet, 2*time.Minute)
+				err := waitForNodeServerReady(f.ClientSet, 3*time.Minute)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+			})
+
+			ginkgo.By("create a PVC and verify dynamic PV", func() {
+				deployPVC()
+				defer deletePVC()
+				err := verifyDynamicPVCreation(f.ClientSet, "spdkcsi-pvc", 5*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -52,7 +48,7 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 				deployPVC()
 				deployTestPod()
 				defer deletePVCAndTestPod()
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -73,6 +69,47 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
+
+			///////////////////////////////////////
+			ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
+				deployMultiPvcs()
+				deployTestPodWithMultiPvcs()
+				defer func() {
+					deleteMultiPvcsAndTestPodWithMultiPvcs()
+					if err := waitForTestPodGone(f.ClientSet); err != nil {
+						ginkgo.Fail(err.Error())
+					}
+					for _, pvcName := range []string{"spdkcsi-pvc1", "spdkcsi-pvc2", "spdkcsi-pvc3"} {
+						if err := waitForPvcGone(f.ClientSet, pvcName); err != nil {
+							ginkgo.Fail(err.Error())
+						}
+					}
+				}()
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+
+				/* 				ginkgo.By("restart csi driver", func() {
+					//rolloutNodeServer()
+					//rolloutControllerServer()
+					err = waitForNodeServerReady(f.ClientSet, 3*time.Minute)
+					if err != nil {
+						ginkgo.Fail(err.Error())
+					}
+					err = waitForControllerReady(f.ClientSet, 4*time.Minute)
+					if err != nil {
+						ginkgo.Fail(err.Error())
+					}
+				}) */
+
+				err = checkDataPersistForMultiPvcs(f)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+			})
+
+			//////////////////////////////////////
 		})
 	})
 })

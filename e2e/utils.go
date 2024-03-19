@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega" //nolint
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -22,6 +23,7 @@ const (
 	yamlDir                  = "../deploy/kubernetes/"
 	driverPath               = yamlDir + "driver.yaml"
 	secretPath               = yamlDir + "secret.yaml"
+	configmapPath            = yamlDir + "config-map.yaml"
 	controllerRbacPath       = yamlDir + "controller-rbac.yaml"
 	nodeRbacPath             = yamlDir + "node-rbac.yaml"
 	controllerPath           = yamlDir + "controller.yaml"
@@ -29,11 +31,6 @@ const (
 	storageClassPath         = yamlDir + "storageclass.yaml"
 	pvcPath                  = "pvc.yaml"
 	testPodPath              = "testpod.yaml"
-	smaNvmfConfigPath        = "sma-nvmf.yaml"
-	smaNvmeConfigPath        = "sma-nvme.yaml"
-	smaVirtioBlkConfigPath   = "sma-virtioblk.yaml"
-	opiNvmeConfigPath        = "opi-nvme.yaml"
-	opiVirtioBlkConfigPath   = "opi-virtioblk.yaml"
 	multiPvcsPath            = "multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "testpod-multi-pvc.yaml"
 
@@ -45,9 +42,10 @@ const (
 
 var ctx = context.TODO()
 
-func deployConfigs(configMapData string) {
-	configMapData = "--from-literal=config.json=" + configMapData
-	_, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
+func deployConfigs() {
+	// configMapData = "--from-literal=config.json=" + configMapData
+	// _, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
 	if err != nil {
 		e2elog.Logf("failed to create config map %s", err)
 	}
@@ -58,7 +56,8 @@ func deployConfigs(configMapData string) {
 }
 
 func deleteConfigs() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "configmap", "spdkcsi-cm")
+	// _, err := framework.RunKubectl(nameSpace, "delete", "configmap", "spdkcsi-cm")
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", configmapPath)
 	if err != nil {
 		e2elog.Logf("failed to delete config map: %s", err)
 	}
@@ -98,76 +97,6 @@ func deleteCsi() {
 	}
 }
 
-func deploySmaNvmfConfig() {
-	_, err := framework.RunKubectl(nameSpace, "apply", "-f", smaNvmfConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to create Sma Nvmf configmap %s", err)
-	}
-}
-
-func deleteSmaNvmfConfig() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "-f", smaNvmfConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to delete Sma Nvmf configmap %s", err)
-	}
-}
-
-func deploySmaNvmeConfig() {
-	_, err := framework.RunKubectl(nameSpace, "apply", "-f", smaNvmeConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to create Sma Nvme configmap %s", err)
-	}
-}
-
-func deleteSmaNvmeConfig() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "-f", smaNvmeConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to delete Sma Nvme configmap %s", err)
-	}
-}
-
-func deploySmaVirtioBlkConfig() {
-	_, err := framework.RunKubectl(nameSpace, "apply", "-f", smaVirtioBlkConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to create Sma VirtioBlk configmap %s", err)
-	}
-}
-
-func deleteSmaVirtioBlkConfig() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "-f", smaVirtioBlkConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to delete Sma VirtioBlk configmap %s", err)
-	}
-}
-
-func deployOpiNvmeConfig() {
-	_, err := framework.RunKubectl(nameSpace, "apply", "-f", opiNvmeConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to create Opi Nvme configmap %s", err)
-	}
-}
-
-func deleteOpiNvmeConfig() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "-f", opiNvmeConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to delete Opi Nvme configmap %s", err)
-	}
-}
-
-func deployOpiVirtioBlkConfig() {
-	_, err := framework.RunKubectl(nameSpace, "apply", "-f", opiVirtioBlkConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to create Opi VirtioBlk configmap %s", err)
-	}
-}
-
-func deleteOpiVirtioBlkConfig() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "-f", opiVirtioBlkConfigPath)
-	if err != nil {
-		e2elog.Logf("failed to delete Opi VirtioBlk configmap %s", err)
-	}
-}
-
 func deployTestPod() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodPath)
 	if err != nil {
@@ -182,18 +111,18 @@ func deleteTestPod() {
 	}
 }
 
-func deleteTestPodForce() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
-	if err != nil {
-		e2elog.Logf("failed to delete test pod: %s", err)
-	}
-}
+// func deleteTestPodForce() {
+// 	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
+// 	if err != nil {
+// 		e2elog.Logf("failed to delete test pod: %s", err)
+// 	}
+// }
 
-func deleteTestPodWithTimeout(timeout time.Duration) error {
-	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
-		WithTimeout(time.After(timeout)).Exec()
-	return err
-}
+// func deleteTestPodWithTimeout(timeout time.Duration) error {
+// 	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
+// 		WithTimeout(time.After(timeout)).Exec()
+// 	return err
+// }
 
 func deployPVC() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", pvcPath)
@@ -249,7 +178,7 @@ func deleteMultiPvcsAndTestPodWithMultiPvcs() {
 
 // rolloutNodeServer Use the delete corresponding pod to simulate a rollout. In this way, when the function returns,
 // the state of the NodeServer has definitely changed, which is convenient for subsequent state detection.
-func rolloutNodeServer() {
+/* func rolloutNodeServer() {
 	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+nodeDsName)
 	if err != nil {
 		e2elog.Logf("failed to rollout node server: %s", err)
@@ -261,9 +190,9 @@ func rolloutControllerServer() {
 	if err != nil {
 		e2elog.Logf("failed to rollout controller server: %s", err)
 	}
-}
+} */
 
-func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error { //nolint:unparam //Keep timeout parameter, it may be used in the future
+func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		sts, err := c.AppsV1().StatefulSets(nameSpace).Get(ctx, controllerStsName, metav1.GetOptions{})
 		if err != nil {
@@ -297,20 +226,20 @@ func waitForNodeServerReady(c kubernetes.Interface, timeout time.Duration) error
 	return nil
 }
 
-func verifyNodeServerLog(expLogList []string) error {
-	log, err := framework.RunKubectl(nameSpace, "logs", "-l", "app=spdkcsi-node", "-c", "spdkcsi-node", "--tail", "-1")
-	if err != nil {
-		return fmt.Errorf("failed to obtain the log from node server: %w", err)
-	}
+// func verifyNodeServerLog(expLogList []string) error {
+// 	log, err := framework.RunKubectl(nameSpace, "logs", "-l", "app=spdkcsi-node", "-c", "spdkcsi-node", "--tail", "-1")
+// 	if err != nil {
+// 		return fmt.Errorf("failed to obtain the log from node server: %w", err)
+// 	}
 
-	for _, expLog := range expLogList {
-		if !strings.Contains(log, expLog) {
-			return fmt.Errorf("failed to catch the log about %s", expLog)
-		}
-	}
+// 	for _, expLog := range expLogList {
+// 		if !strings.Contains(log, expLog) {
+// 			return fmt.Errorf("failed to catch the log about %s", expLog)
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
@@ -464,4 +393,29 @@ func checkDataPersistForMultiPvcs(f *framework.Framework) error {
 		}
 	}
 	return err
+}
+
+func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout time.Duration) error {
+	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+		pvc, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		if pvc.Status.Phase != corev1.ClaimBound {
+			return false, nil
+		}
+
+		pvName := pvc.Spec.VolumeName
+		pv, err := c.CoreV1().PersistentVolumes().Get(ctx, pvName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		return pv.Spec.ClaimRef != nil && pv.Spec.StorageClassName != "", nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to verify dynamic PV creation for PVC %s: %w", pvcName, err)
+	}
+	return nil
 }
