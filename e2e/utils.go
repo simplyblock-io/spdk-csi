@@ -111,18 +111,18 @@ func deleteTestPod() {
 	}
 }
 
-func deleteTestPodForce() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
-	if err != nil {
-		e2elog.Logf("failed to delete test pod: %s", err)
-	}
-}
+// func deleteTestPodForce() {
+// 	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
+// 	if err != nil {
+// 		e2elog.Logf("failed to delete test pod: %s", err)
+// 	}
+// }
 
-func deleteTestPodWithTimeout(timeout time.Duration) error {
-	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
-		WithTimeout(time.After(timeout)).Exec()
-	return err
-}
+// func deleteTestPodWithTimeout(timeout time.Duration) error {
+// 	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
+// 		WithTimeout(time.After(timeout)).Exec()
+// 	return err
+// }
 
 func deployPVC() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", pvcPath)

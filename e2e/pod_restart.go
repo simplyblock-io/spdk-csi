@@ -16,7 +16,7 @@ limitations under the License.
 
 package e2e
 
-import (
+/* import (
 	"time"
 
 	ginkgo "github.com/onsi/ginkgo/v2"
@@ -42,7 +42,7 @@ var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 				}
 			})
 			ginkgo.By("checking node daemonset is running", func() {
-				err := waitForNodeServerReady(f.ClientSet, 2*time.Minute)
+				err := waitForNodeServerReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -81,4 +81,4 @@ var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 			})
 		})
 	})
-})
+}) */

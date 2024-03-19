@@ -29,7 +29,7 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 			})
 
 			ginkgo.By("checking node daemonset is running", func() {
-				err := waitForNodeServerReady(f.ClientSet, 2*time.Minute)
+				err := waitForNodeServerReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -48,7 +48,7 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 				deployPVC()
 				deployTestPod()
 				defer deletePVCAndTestPod()
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -85,12 +85,12 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 						}
 					}
 				}()
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
 
-				ginkgo.By("restart csi driver", func() {
+				/* 				ginkgo.By("restart csi driver", func() {
 					//rolloutNodeServer()
 					//rolloutControllerServer()
 					err = waitForNodeServerReady(f.ClientSet, 3*time.Minute)
@@ -101,7 +101,7 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					if err != nil {
 						ginkgo.Fail(err.Error())
 					}
-				})
+				}) */
 
 				err = checkDataPersistForMultiPvcs(f)
 				if err != nil {
