@@ -197,7 +197,7 @@ func deletePVCAndTestPod(podName string) {
 
 // rolloutNodeServer Use the delete corresponding pod to simulate a rollout. In this way, when the function returns,
 // the state of the NodeServer has definitely changed, which is convenient for subsequent state detection.
-func rolloutNodeServer() {
+/* func rolloutNodeServer() {
 	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+nodeDsName)
 	if err != nil {
 		e2elog.Logf("failed to rollout node server: %s", err)
@@ -209,7 +209,7 @@ func rolloutControllerServer() {
 	if err != nil {
 		e2elog.Logf("failed to rollout controller server: %s", err)
 	}
-}
+} */
 
 func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error { //nolint:unparam //Keep timeout parameter, it may be used in the future
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
