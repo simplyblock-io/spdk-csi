@@ -3,9 +3,6 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -40,12 +37,12 @@ const (
 	// controller statefulset and node daemonset names
 	controllerStsName = "spdkcsi-controller"
 	nodeDsName        = "spdkcsi-node"
-	//testPodName       = "spdkcsi-test"
+	testPodName       = "spdkcsi-test"
 )
 
 var ctx = context.TODO()
 
-func deployConfigs(configMapData string) {
+func deployConfigs() {
 	// configMapData = "--from-literal=config.json=" + configMapData
 	// _, err := framework.RunKubectl(nameSpace, "create", "configmap", "spdkcsi-cm", configMapData)
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
@@ -100,45 +97,29 @@ func deleteCsi() {
 	}
 }
 
-func deployTestPod(podName string) {
-	filePath, err := generatePodYAML(podName)
-	if err != nil {
-		e2elog.Logf("failed to generate Pod YAML: %s", err)
-	}
-	_, err = framework.RunKubectl(nameSpace, "apply", "-f", filePath)
+func deployTestPod() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodPath)
 	if err != nil {
 		e2elog.Logf("failed to create test pod: %s", err)
 	}
 }
 
-func deleteTestPod(podName string) {
-	filePath, err := generatePodYAML(podName)
-	if err != nil {
-		e2elog.Logf("failed to generate Pod YAML: %s", err)
-	}
-	_, err = framework.RunKubectl(nameSpace, "delete", "-f", filePath)
+func deleteTestPod() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodPath)
 	if err != nil {
 		e2elog.Logf("failed to delete test pod: %s", err)
 	}
 }
 
-func deleteTestPodForce(podName string) {
-	filePath, err := generatePodYAML(podName)
-	if err != nil {
-		e2elog.Logf("failed to generate Pod YAML: %s", err)
-	}
-	_, err = framework.RunKubectl(nameSpace, "delete", "--force", "-f", filePath)
+func deleteTestPodForce() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
 	if err != nil {
 		e2elog.Logf("failed to delete test pod: %s", err)
 	}
 }
 
-func deleteTestPodWithTimeout(timeout time.Duration, podName string) error {
-	filePath, err := generatePodYAML(podName)
-	if err != nil {
-		e2elog.Logf("failed to generate Pod YAML: %s", err)
-	}
-	_, err = framework.NewKubectlCommand(nameSpace, "delete", "-f", filePath).
+func deleteTestPodWithTimeout(timeout time.Duration) error {
+	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
 		WithTimeout(time.After(timeout)).Exec()
 	return err
 }
@@ -157,43 +138,43 @@ func deletePVC() {
 	}
 }
 
-func deletePVCAndTestPod(podName string) {
-	deleteTestPod(podName)
+func deletePVCAndTestPod() {
+	deleteTestPod()
 	deletePVC()
 }
 
-// func deployTestPodWithMultiPvcs() {
-// 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodWithMultiPvcsPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to create test pod with multiple pvcs: %s", err)
-// 	}
-// }
+func deployTestPodWithMultiPvcs() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodWithMultiPvcsPath)
+	if err != nil {
+		e2elog.Logf("failed to create test pod with multiple pvcs: %s", err)
+	}
+}
 
-// func deleteTestPodWithMultiPvcs() {
-// 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithMultiPvcsPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to delete test pod with multiple pvcs: %s", err)
-// 	}
-// }
+func deleteTestPodWithMultiPvcs() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithMultiPvcsPath)
+	if err != nil {
+		e2elog.Logf("failed to delete test pod with multiple pvcs: %s", err)
+	}
+}
 
-// func deployMultiPvcs() {
-// 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", multiPvcsPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to create pvcs: %s", err)
-// 	}
-// }
+func deployMultiPvcs() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", multiPvcsPath)
+	if err != nil {
+		e2elog.Logf("failed to create pvcs: %s", err)
+	}
+}
 
-// func deleteMultiPvcs() {
-// 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", multiPvcsPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to delete pvcs: %s", err)
-// 	}
-// }
+func deleteMultiPvcs() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", multiPvcsPath)
+	if err != nil {
+		e2elog.Logf("failed to delete pvcs: %s", err)
+	}
+}
 
-// func deleteMultiPvcsAndTestPodWithMultiPvcs() {
-// 	deleteTestPodWithMultiPvcs()
-// 	deleteMultiPvcs()
-// }
+func deleteMultiPvcsAndTestPodWithMultiPvcs() {
+	deleteTestPodWithMultiPvcs()
+	deleteMultiPvcs()
+}
 
 // rolloutNodeServer Use the delete corresponding pod to simulate a rollout. In this way, when the function returns,
 // the state of the NodeServer has definitely changed, which is convenient for subsequent state detection.
@@ -260,7 +241,7 @@ func waitForNodeServerReady(c kubernetes.Interface, timeout time.Duration) error
 // 	return nil
 // }
 
-func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration, testPodName string) error {
+func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		pod, err := c.CoreV1().Pods(nameSpace).Get(ctx, testPodName, metav1.GetOptions{})
 		if err != nil {
@@ -277,7 +258,7 @@ func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration, testPodN
 	return nil
 }
 
-func waitForTestPodGone(c kubernetes.Interface, testPodName string) error {
+func waitForTestPodGone(c kubernetes.Interface) error {
 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		_, err := c.CoreV1().Pods(nameSpace).Get(ctx, testPodName, metav1.GetOptions{})
 		if err != nil {
@@ -294,22 +275,22 @@ func waitForTestPodGone(c kubernetes.Interface, testPodName string) error {
 	return nil
 }
 
-// func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
-// 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-// 		_, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
-// 		if err != nil {
-// 			if errors.IsNotFound(err) {
-// 				return true, nil
-// 			}
-// 			return false, err
-// 		}
-// 		return false, nil
-// 	})
-// 	if err != nil {
-// 		return fmt.Errorf("failed to wait for pvc (%s) gone: %w", pvcName, err)
-// 	}
-// 	return nil
-// }
+func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
+	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
+		_, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return true, nil
+			}
+			return false, err
+		}
+		return false, nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to wait for pvc (%s) gone: %w", pvcName, err)
+	}
+	return nil
+}
 
 //nolint:unparam // Currently, "ns" always receives "nameSpace", skip this linter checking
 func execCommandInPod(f *framework.Framework, c, ns string, opt *metav1.ListOptions) (stdOut, stdErr string) {
@@ -341,7 +322,7 @@ func getCommandInPodOpts(f *framework.Framework, c, ns string, opt *metav1.ListO
 	}
 }
 
-func checkDataPersist(f *framework.Framework, podName string) error {
+func checkDataPersist(f *framework.Framework) error {
 	data := "Data that needs to be stored"
 	// write data to PVC
 	dataPath := "/spdkvol/test"
@@ -350,14 +331,14 @@ func checkDataPersist(f *framework.Framework, podName string) error {
 	}
 	execCommandInPod(f, fmt.Sprintf("echo %s > %s", data, dataPath), nameSpace, &opt)
 
-	deleteTestPod(podName)
-	err := waitForTestPodGone(f.ClientSet, podName)
+	deleteTestPod()
+	err := waitForTestPodGone(f.ClientSet)
 	if err != nil {
 		return err
 	}
 
-	deployTestPod(podName)
-	err = waitForTestPodReady(f.ClientSet, 5*time.Minute, podName)
+	deployTestPod()
+	err = waitForTestPodReady(f.ClientSet, 5*time.Minute)
 	if err != nil {
 		return err
 	}
@@ -372,47 +353,47 @@ func checkDataPersist(f *framework.Framework, podName string) error {
 	return err
 }
 
-// func checkDataPersistForMultiPvcs(f *framework.Framework) error {
-// 	dataContents := []string{
-// 		"Data that needs to be stored to vol1",
-// 		"Data that needs to be stored to vol2",
-// 		"Data that needs to be stored to vol3",
-// 	}
-// 	// write data to PVC
-// 	dataPaths := []string{
-// 		"/spdkvol1/test",
-// 		"/spdkvol2/test",
-// 		"/spdkvol3/test",
-// 	}
-// 	opt := metav1.ListOptions{
-// 		LabelSelector: "app=spdkcsi-pvc",
-// 	}
-// 	for i := 0; i < len(dataPaths); i++ {
-// 		execCommandInPod(f, fmt.Sprintf("echo %s > %s", dataContents[i], dataPaths[i]), nameSpace, &opt)
-// 	}
+func checkDataPersistForMultiPvcs(f *framework.Framework) error {
+	dataContents := []string{
+		"Data that needs to be stored to vol1",
+		"Data that needs to be stored to vol2",
+		"Data that needs to be stored to vol3",
+	}
+	// write data to PVC
+	dataPaths := []string{
+		"/spdkvol1/test",
+		"/spdkvol2/test",
+		"/spdkvol3/test",
+	}
+	opt := metav1.ListOptions{
+		LabelSelector: "app=spdkcsi-pvc",
+	}
+	for i := 0; i < len(dataPaths); i++ {
+		execCommandInPod(f, fmt.Sprintf("echo %s > %s", dataContents[i], dataPaths[i]), nameSpace, &opt)
+	}
 
-// 	deleteTestPodWithMultiPvcs()
-// 	err := waitForTestPodGone(f.ClientSet)
-// 	if err != nil {
-// 		return err
-// 	}
+	deleteTestPodWithMultiPvcs()
+	err := waitForTestPodGone(f.ClientSet)
+	if err != nil {
+		return err
+	}
 
-// 	deployTestPodWithMultiPvcs()
-// 	err = waitForTestPodReady(f.ClientSet, 3*time.Minute)
-// 	if err != nil {
-// 		return err
-// 	}
+	deployTestPodWithMultiPvcs()
+	err = waitForTestPodReady(f.ClientSet, 3*time.Minute)
+	if err != nil {
+		return err
+	}
 
-// 	// read data from PVC
-// 	for i := 0; i < len(dataPaths); i++ {
-// 		persistData, stdErr := execCommandInPod(f, "cat "+dataPaths[i], nameSpace, &opt)
-// 		Expect(stdErr).Should(BeEmpty()) //nolint
-// 		if !strings.Contains(persistData, dataContents[i]) {
-// 			return fmt.Errorf("data not persistent: expected data %s received data %s ", dataContents[i], persistData)
-// 		}
-// 	}
-// 	return err
-// }
+	// read data from PVC
+	for i := 0; i < len(dataPaths); i++ {
+		persistData, stdErr := execCommandInPod(f, "cat "+dataPaths[i], nameSpace, &opt)
+		Expect(stdErr).Should(BeEmpty()) //nolint
+		if !strings.Contains(persistData, dataContents[i]) {
+			return fmt.Errorf("data not persistent: expected data %s received data %s ", dataContents[i], persistData)
+		}
+	}
+	return err
+}
 
 func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
@@ -437,39 +418,4 @@ func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout tim
 		return fmt.Errorf("failed to verify dynamic PV creation for PVC %s: %w", pvcName, err)
 	}
 	return nil
-}
-
-func generatePodYAML(podName string) (string, error) {
-	// Generate Pod YAML
-	podYAML := []byte(fmt.Sprintf(`
-apiVersion: v1
-kind: Pod
-metadata:
-  name: %s
-  labels:
-    app: spdkcsi-pvc
-spec:
-  containers:
-  - name: alpine
-    image: alpine:3
-    imagePullPolicy: IfNotPresent
-    command: ["sleep", "365d"]
-    volumeMounts:
-    - mountPath: "/spdkvol"
-      name: spdk-volume
-  volumes:
-  - name: spdk-volume
-    persistentVolumeClaim:
-      claimName: spdkcsi-pvc
-`, podName))
-
-	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filename)
-
-	filePath := filepath.Join(dir, fmt.Sprintf("%s.yaml", podName))
-	if err := ioutil.WriteFile(filePath, podYAML, 0644); err != nil {
-		return "", fmt.Errorf("failed to write YAML to file: %v", err)
-	}
-
-	return filePath, nil
 }

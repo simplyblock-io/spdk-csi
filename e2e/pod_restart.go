@@ -26,7 +26,7 @@ import (
 var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginkgo.BeforeEach(func() {
-		deployConfigs(iscsiConfigMapData)
+		deployConfigs()
 		deployCsi()
 	})
 	ginkgo.AfterEach(func() {
@@ -49,10 +49,10 @@ var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 			})
 			ginkgo.By("create a PVC and bind it to a pod", func() {
 				deployPVC()
-				deployTestPod("create-pvc-bind")
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute, "create-pvc-bind")
+				deployTestPod()
+				defer deletePVCAndTestPod()
+				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
 				if err != nil {
-					deletePVCAndTestPod("create-pvc-bind")
 					ginkgo.Fail(err.Error())
 				}
 			})
@@ -72,10 +72,10 @@ var _ = ginkgo.Describe("SPDKCSI-DRIVER-RESTART", func() {
 				// Under normal circumstances, the pod will be immediately deleted.
 				// When the nodeserver encounters an error, the kubelet will continuously retry,
 				// resulting in the operation timing out.
-				err := deleteTestPodWithTimeout(120*time.Second, "delete-test-pod")
+				err := deleteTestPodWithTimeout(120 * time.Second)
 				defer deletePVC()
 				if err != nil {
-					deleteTestPodForce("delete-test-pod")
+					deleteTestPodForce()
 					ginkgo.Fail(err.Error())
 				}
 			})

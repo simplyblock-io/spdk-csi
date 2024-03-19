@@ -7,20 +7,10 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
-// ////
-const (
-	iscsiConfigMapData = `{
-  "simplybk": {
-	 "uuid": "ea3f384f-e3b4-4a69-879f-06b75a6e43cf",
-	 "ip": "44.214.142.255"
-	}
-}`
-)
-
 var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginkgo.BeforeEach(func() {
-		deployConfigs(iscsiConfigMapData)
+		deployConfigs()
 		deployCsi()
 	})
 
@@ -56,9 +46,9 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 
 			ginkgo.By("create a PVC and bind it to a pod", func() {
 				deployPVC()
-				deployTestPod("pvc-bind-pod")
-				defer deletePVCAndTestPod("pvc-bind-pod")
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute, "pvc-bind-pod")
+				deployTestPod()
+				defer deletePVCAndTestPod()
+				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
@@ -66,58 +56,58 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 
 			ginkgo.By("check data persistency after the pod is removed and recreated", func() {
 				deployPVC()
-				deployTestPod("data-persist-pod")
-				defer deletePVCAndTestPod("data-persist-pod")
+				deployTestPod()
+				defer deletePVCAndTestPod()
 
-				err := waitForTestPodReady(f.ClientSet, 3*time.Minute,"data-persist-pod")
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
 
-				err = checkDataPersist(f, "data-persist-pod")
+				err = checkDataPersist(f)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
 			})
 
 			///////////////////////////////////////
-			// ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
-			// 	deployMultiPvcs()
-			// 	deployTestPodWithMultiPvcs()
-			// 	defer func() {
-			// 		deleteMultiPvcsAndTestPodWithMultiPvcs()
-			// 		if err := waitForTestPodGone(f.ClientSet); err != nil {
-			// 			ginkgo.Fail(err.Error())
-			// 		}
-			// 		for _, pvcName := range []string{"spdkcsi-pvc1", "spdkcsi-pvc2", "spdkcsi-pvc3"} {
-			// 			if err := waitForPvcGone(f.ClientSet, pvcName); err != nil {
-			// 				ginkgo.Fail(err.Error())
-			// 			}
-			// 		}
-			// 	}()
-			// 	err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
-			// 	if err != nil {
-			// 		ginkgo.Fail(err.Error())
-			// 	}
+			ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
+				deployMultiPvcs()
+				deployTestPodWithMultiPvcs()
+				defer func() {
+					deleteMultiPvcsAndTestPodWithMultiPvcs()
+					if err := waitForTestPodGone(f.ClientSet); err != nil {
+						ginkgo.Fail(err.Error())
+					}
+					for _, pvcName := range []string{"spdkcsi-pvc1", "spdkcsi-pvc2", "spdkcsi-pvc3"} {
+						if err := waitForPvcGone(f.ClientSet, pvcName); err != nil {
+							ginkgo.Fail(err.Error())
+						}
+					}
+				}()
+				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
 
-			// 	ginkgo.By("restart csi driver", func() {
-			// 		rolloutNodeServer()
-			// 		rolloutControllerServer()
-			// 		err = waitForNodeServerReady(f.ClientSet, 3*time.Minute)
-			// 		if err != nil {
-			// 			ginkgo.Fail(err.Error())
-			// 		}
-			// 		err = waitForControllerReady(f.ClientSet, 4*time.Minute)
-			// 		if err != nil {
-			// 			ginkgo.Fail(err.Error())
-			// 		}
-			// 	})
+				ginkgo.By("restart csi driver", func() {
+					//rolloutNodeServer()
+					//rolloutControllerServer()
+					err = waitForNodeServerReady(f.ClientSet, 3*time.Minute)
+					if err != nil {
+						ginkgo.Fail(err.Error())
+					}
+					err = waitForControllerReady(f.ClientSet, 4*time.Minute)
+					if err != nil {
+						ginkgo.Fail(err.Error())
+					}
+				})
 
-			// 	err = checkDataPersistForMultiPvcs(f)
-			// 	if err != nil {
-			// 		ginkgo.Fail(err.Error())
-			// 	}
-			// })
+				err = checkDataPersistForMultiPvcs(f)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+			})
 
 			//////////////////////////////////////
 		})
