@@ -192,7 +192,7 @@ func rolloutControllerServer() {
 	}
 } */
 
-func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error { //nolint:unparam //Keep timeout parameter, it may be used in the future
+func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		sts, err := c.AppsV1().StatefulSets(nameSpace).Get(ctx, controllerStsName, metav1.GetOptions{})
 		if err != nil {
