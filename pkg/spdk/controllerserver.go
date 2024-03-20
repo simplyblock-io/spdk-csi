@@ -407,51 +407,6 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 	return util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret), nil
 }
 
-func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
-	server := controllerServer{
-		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
-		volumeLocks:             util.NewVolumeLocks(),
-	}
-
-	spdkNode, err := NewsimplyBlockClient()
-	if err != nil {
-		klog.Errorf("failed to create spdk node %v", err.Error())
-		return nil, errors.New("no valid spdk node found")
-	}
-
-	server.spdkNode = spdkNode
-	return &server, nil
-
-	// create spdk nodes
-	// for i := range config.Nodes {
-	// 	node := &config.Nodes[i]
-	// 	tokenFound := false
-	// 	// find secret per node
-	// 	for j := range secret.Tokens {
-	// 		token := &secret.Tokens[j]
-	// 		if token.Name == node.Name {
-	// 			tokenFound = true
-	// 			spdkNode, err := util.NewSpdkNode(node.URL, token.UserName, token.Password, node.TargetType, node.TargetAddr)
-	// 			if err != nil {
-	// 				klog.Errorf("failed to create spdk node %s: %s", node.Name, err.Error())
-	// 			} else {
-	// 				klog.Infof("spdk node created: name=%s, url=%s", node.Name, node.URL)
-	// 				server.spdkNodes[node.Name] = spdkNode
-	// 			}
-	// 			break
-	// 		}
-	// 	}
-	// 	if !tokenFound {
-	// 		klog.Errorf("failed to find secret for spdk node %s", node.Name)
-	// 	}
-	// }
-	// if len(server.spdkNodes) == 0 {
-	// 	return nil, fmt.Errorf("no valid spdk node found")
-	// }
-
-	// return &server, nil
-}
-
 func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
 	volumes := []*csi.ListVolumesResponse_Entry{}
 
@@ -504,4 +459,49 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 	return &csi.ControllerGetVolumeResponse{
 		Volume: volume,
 	}, nil
+}
+
+func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
+	server := controllerServer{
+		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
+		volumeLocks:             util.NewVolumeLocks(),
+	}
+
+	spdkNode, err := NewsimplyBlockClient()
+	if err != nil {
+		klog.Errorf("failed to create spdk node %v", err.Error())
+		return nil, errors.New("no valid spdk node found")
+	}
+
+	server.spdkNode = spdkNode
+	return &server, nil
+
+	// create spdk nodes
+	// for i := range config.Nodes {
+	// 	node := &config.Nodes[i]
+	// 	tokenFound := false
+	// 	// find secret per node
+	// 	for j := range secret.Tokens {
+	// 		token := &secret.Tokens[j]
+	// 		if token.Name == node.Name {
+	// 			tokenFound = true
+	// 			spdkNode, err := util.NewSpdkNode(node.URL, token.UserName, token.Password, node.TargetType, node.TargetAddr)
+	// 			if err != nil {
+	// 				klog.Errorf("failed to create spdk node %s: %s", node.Name, err.Error())
+	// 			} else {
+	// 				klog.Infof("spdk node created: name=%s, url=%s", node.Name, node.URL)
+	// 				server.spdkNodes[node.Name] = spdkNode
+	// 			}
+	// 			break
+	// 		}
+	// 	}
+	// 	if !tokenFound {
+	// 		klog.Errorf("failed to find secret for spdk node %s", node.Name)
+	// 	}
+	// }
+	// if len(server.spdkNodes) == 0 {
+	// 	return nil, fmt.Errorf("no valid spdk node found")
+	// }
+
+	// return &server, nil
 }
