@@ -77,6 +77,18 @@ spec:
         volumeMounts:
           - name: socket-dir
             mountPath:  /csi
+        ports:
+          - containerPort: 8080
+            name: http-endpoint
+            protocol: TCP
+        livenessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /healthz/leader-election
+            port: http-endpoint
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 20
       - name: spdkcsi-controller
         image: simplyblock/spdkcsi:latest
         imagePullPolicy: "Always"
