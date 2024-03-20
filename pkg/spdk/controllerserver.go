@@ -465,7 +465,7 @@ func (cs *controllerServer) ListVolumes(ctx context.Context, req *csi.ListVolume
 	for _, volumeID := range volumeIDs {
 		volumeInfo, err := cs.spdkNode.VolumeInfo(volumeID.UUID)
 		if err != nil {
-			klog.Errorf("failed to get volume info for volume %s: %v", volumeID, err)
+			klog.Errorf("failed to get volume info for volume %s: %v", volumeID.UUID, err)
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		volume := &csi.Volume{
