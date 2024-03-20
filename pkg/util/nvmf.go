@@ -101,7 +101,7 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
-func (node *NodeNVMf) ListVolumes() ([]*LvStore, error) {
+func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
 }
 
