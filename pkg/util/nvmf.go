@@ -101,6 +101,10 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
+func (node *NodeNVMf) ListVolumes() ([]*LvStore, error) {
+	return node.client.listVolumes()
+}
+
 // func (node *NodeNVMf) isVolumeCreated(lvolID string) (bool, error) {
 // 	return node.client.isVolumeCreated(lvolID)
 // }

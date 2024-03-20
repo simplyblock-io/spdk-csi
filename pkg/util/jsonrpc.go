@@ -224,6 +224,20 @@ func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 	return &result[0], err
 }
 
+func (client *rpcClient) listVolumes() ([]*LvStore, error) {
+	var results []*LvStore
+
+	out, err := client.callSBCLI("GET", "csi/lvol", nil)
+	if err != nil {
+		return nil, err
+	}
+	results, ok := out.([]*LvStore)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+	}
+	return results, nil
+}
+
 type LvolConnectResp struct {
 	Nqn     string `json:"nqn"`
 	Port    int    `json:"port"`
