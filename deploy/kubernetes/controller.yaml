@@ -90,7 +90,7 @@ spec:
           timeoutSeconds: 10
           periodSeconds: 20
       - name: spdkcsi-controller
-        image: simplyblock/spdkcsi:pr-14-7170fc88
+        image: simplyblock/spdkcsi:pr-14-2b299d3b
         imagePullPolicy: "Always"
         args:
         - "--v=5"

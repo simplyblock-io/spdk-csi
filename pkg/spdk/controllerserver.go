@@ -407,39 +407,40 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 	return util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret), nil
 }
 
-func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-	volumes := []*csi.ListVolumesResponse_Entry{}
+// func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
+// 	volumes := []*csi.ListVolumesResponse_Entry{}
 
-	volumeIDs, err := cs.spdkNode.ListVolumes()
-	if err != nil {
-		klog.Errorf("failed to list volumes: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+// 	volumeIDs, err := cs.spdkNode.ListVolumes()
+// 	if err != nil {
+// 		klog.Errorf("failed to list volumes: %v", err)
+// 		return nil, status.Error(codes.Internal, err.Error())
+// 	}
 
-	for _, volumeID := range volumeIDs {
-		volumeInfo, err := cs.spdkNode.VolumeInfo(volumeID.UUID)
-		if err != nil {
-			klog.Errorf("failed to get volume info for volume %s: %v", volumeID.UUID, err)
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		volume := &csi.Volume{
-			VolumeId:      volumeID.UUID,
-			VolumeContext: volumeInfo,
-		}
+// 	for _, volumeID := range volumeIDs {
+// 		volumeInfo, err := cs.spdkNode.VolumeInfo(volumeID.UUID)
+// 		if err != nil {
+// 			klog.Errorf("failed to get volume info for volume %s: %v", volumeID.UUID, err)
+// 			return nil, status.Error(codes.NotFound, err.Error())
+// 		}
+// 		volume := &csi.Volume{
+// 			VolumeId:      volumeID.UUID,
+// 			VolumeContext: volumeInfo,
+// 		}
 
-		volumes = append(volumes, &csi.ListVolumesResponse_Entry{
-			Volume: volume,
-		})
-	}
+// 		volumes = append(volumes, &csi.ListVolumesResponse_Entry{
+// 			Volume: volume,
+// 		})
+// 	}
 
-	return &csi.ListVolumesResponse{
-		Entries: volumes,
-	}, nil
-}
+// 	return &csi.ListVolumesResponse{
+// 		Entries: volumes,
+// 	}, nil
+// }
 
 //	func (cs *controllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
 //		return nil, status.Error(codes.Unimplemented, "")
 //	}
+
 func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
 	volumeID := req.GetVolumeId()
 
