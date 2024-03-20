@@ -67,7 +67,7 @@ spec:
           - name: socket-dir
             mountPath: /csi
       - name: spdkcsi-health-monitor
-        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.4.0
+        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.10.0
         imagePullPolicy: "IfNotPresent"
         args:
           - "--v=5"
@@ -81,16 +81,8 @@ spec:
           - containerPort: 8080
             name: http-endpoint
             protocol: TCP
-        livenessProbe:
-          failureThreshold: 1
-          httpGet:
-            path: /healthz/leader-election
-            port: http-endpoint
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
-          periodSeconds: 20
       - name: spdkcsi-controller
-        image: simplyblock/spdkcsi:pr-14-07be50af
+        image: simplyblock/spdkcsi:pr-14-f6459e7d
         imagePullPolicy: "Always"
         args:
         - "--v=5"

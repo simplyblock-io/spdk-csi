@@ -455,6 +455,8 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 		VolumeContext: volumeInfo,
 	}
 
+	klog.V(0).Info(fmt.Sprintf("This is my volume: %s", volume))
+
 	return &csi.ControllerGetVolumeResponse{
 		Volume: volume,
 	}, nil
