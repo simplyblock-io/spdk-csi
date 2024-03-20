@@ -72,7 +72,7 @@ spec:
         args:
           - "--v=5"
           - "--csi-address=unix:///csi/csi-provisioner.sock"
-          - "--leader-election"
+          #- "--leader-election"
           - "--http-endpoint=:8080"
         volumeMounts:
           - name: socket-dir
@@ -90,7 +90,7 @@ spec:
           timeoutSeconds: 10
           periodSeconds: 20
       - name: spdkcsi-controller
-        image: simplyblock/spdkcsi:pr-14-62227826
+        image: simplyblock/spdkcsi:pr-14-7170fc88
         imagePullPolicy: "Always"
         args:
         - "--v=5"
