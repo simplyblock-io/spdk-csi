@@ -410,7 +410,6 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
 	volumes := []*csi.ListVolumesResponse_Entry{}
 
-	// Assuming cs.spdkNode is an instance of SpdkNode interface
 	volumeIDs, err := cs.spdkNode.ListVolumes()
 	if err != nil {
 		klog.Errorf("failed to list volumes: %v", err)
@@ -438,10 +437,9 @@ func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesReq
 	}, nil
 }
 
-// func (cs *controllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-// 	return nil, status.Error(codes.Unimplemented, "")
-// }
-
+//	func (cs *controllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
+//		return nil, status.Error(codes.Unimplemented, "")
+//	}
 func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
 	volumeID := req.GetVolumeId()
 

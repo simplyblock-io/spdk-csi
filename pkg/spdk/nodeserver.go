@@ -131,6 +131,11 @@ func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
 	return ns, nil
 }
 
+func (ns *nodeServer) NodeGetVolumeStats(ctx context.Context, in *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
+	//	return nil, status.Error(codes.Unimplemented, "")
+	return &csi.NodeGetVolumeStatsResponse{}, nil
+}
+
 func (ns *nodeServer) NodeStageVolume(_ context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	volumeID := req.GetVolumeId()
 	unlock := ns.volumeLocks.Lock(volumeID)

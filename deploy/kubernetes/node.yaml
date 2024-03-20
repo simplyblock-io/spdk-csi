@@ -38,7 +38,7 @@ spec:
           capabilities:
             add: ["SYS_ADMIN", "SYS_MODULE"]
           allowPrivilegeEscalation: true
-        image: simplyblock/spdkcsi:pr-14-9a686821
+        image: simplyblock/spdkcsi:pr-14-82ae49d9
         imagePullPolicy: "Always"
         args:
         - "--v=5"

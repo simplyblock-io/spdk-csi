@@ -67,7 +67,7 @@ spec:
           - name: socket-dir
             mountPath: /csi
       - name: spdkcsi-health-monitor
-        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.4.0
+        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.11.0
         imagePullPolicy: "IfNotPresent"
         args:
           - "--v=5"
@@ -90,7 +90,7 @@ spec:
           timeoutSeconds: 10
           periodSeconds: 20
       - name: spdkcsi-controller
-        image: simplyblock/spdkcsi:pr-14-9a686821
+        image: simplyblock/spdkcsi:pr-14-82ae49d9
         imagePullPolicy: "Always"
         args:
         - "--v=5"
