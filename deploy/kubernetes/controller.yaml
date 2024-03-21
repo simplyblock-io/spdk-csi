@@ -82,7 +82,7 @@ spec:
             name: http-endpoint
             protocol: TCP
       - name: spdkcsi-controller
-        image: simplyblock/spdkcsi:pr-14-f6459e7d
+        image: simplyblock/spdkcsi:pr-14-59fcfa61
         imagePullPolicy: "Always"
         args:
         - "--v=5"
