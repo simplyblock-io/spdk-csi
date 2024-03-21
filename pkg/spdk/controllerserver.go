@@ -448,7 +448,7 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, err
 	}
 
 	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
