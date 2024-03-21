@@ -448,6 +448,11 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
+	if err != nil {
 		klog.Errorf("failed to get spdkVol for %s: %v", volumeID, err)
 
 		return &csi.ControllerGetVolumeResponse{
@@ -464,15 +469,16 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 	}
 
 	volume := &csi.Volume{
-		VolumeId: spdkVol.lvolID,
+		VolumeId:      spdkVol.lvolID,
+		VolumeContext: volumeInfo,
 	}
 
 	return &csi.ControllerGetVolumeResponse{
 		Volume: volume,
 		Status: &csi.ControllerGetVolumeResponse_VolumeStatus{
 			VolumeCondition: &csi.VolumeCondition{
-				Abnormal: true,
-				Message:  "This is for testing",
+				Abnormal: false,
+				Message:  "",
 			},
 		},
 	}, nil
