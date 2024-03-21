@@ -465,7 +465,9 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 					Message:  err.Error(),
 				},
 			},
-		}, status.Error(codes.Internal, err.Error())
+		}, nil
+
+		//status.Error(codes.Internal, err.Error())
 	}
 
 	volume := &csi.Volume{
