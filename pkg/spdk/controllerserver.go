@@ -443,8 +443,10 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 
 func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
 	volumeID := req.GetVolumeId()
+	unlock := cs.volumeLocks.Lock(volumeID)
+	defer unlock()
 
-	volumeInfo, err := cs.spdkNode.VolumeInfo(volumeID)
+	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
 		klog.Errorf("failed to get volume info for volume %s: %v", volumeID, err)
 
@@ -462,8 +464,7 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 	}
 
 	volume := &csi.Volume{
-		VolumeId:      volumeID,
-		VolumeContext: volumeInfo,
+		VolumeId: spdkVol.lvolID,
 	}
 
 	return &csi.ControllerGetVolumeResponse{
