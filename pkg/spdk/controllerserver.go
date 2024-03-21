@@ -466,7 +466,6 @@ func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.Cont
 				},
 			},
 		}, nil
-
 	}
 
 	volume := &csi.Volume{
