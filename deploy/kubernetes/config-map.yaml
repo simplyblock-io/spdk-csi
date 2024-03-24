@@ -31,12 +31,14 @@ data:
     cluster_uuid = cluster_config['simplybk']['uuid']
     cluster_ip = cluster_config['simplybk']['ip']
     hostname = os.getenv('HOSTNAME')
+    hostname = hostname.split(".")[0]
 
     url = f'http://{cluster_ip}/cachingnode/recreate/{hostname}'
     headers = {
         'Authorization': f'{cluster_uuid} {cluster_secret}'
     }
 
+    print(f"making GET request to: {url}")
     response = requests.get(url, headers=headers)
 
     print("Response Text:", response.text)
