@@ -526,10 +526,9 @@ func checkCachingNodes(timeout time.Duration) error {
 		for _, node := range nodeIPs {
 			fmt.Printf("Adding caching node: %s\n", node)
 
-			curlCommand := fmt.Sprintf("curl --location \"http://%s/cachingnode/\" --header \"Content-Type: application/json\" --header \"Authorization: %s %s\" --data '{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}'", MGMT_IP, CLUSTER_ID, CLUSTER_SECRET, CLUSTER_ID, node)
-			fmt.Printf("Here is the  curlCommand: %s\n", curlCommand)
-			_, err = executeKubectlCommand(curlCommand)
-			fmt.Printf("I Have executed this curlCommand successfully: %s\n", curlCommand)
+			cmd := exec.Command("curl", "--location", fmt.Sprintf("http://%s/cachingnode/", MGMT_IP), "--header", "Content-Type: application/json", "--header", fmt.Sprintf("Authorization: %s %s", CLUSTER_ID, CLUSTER_SECRET), "--data", fmt.Sprintf("{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}", CLUSTER_ID, node))
+			_, err = cmd.CombinedOutput()
+
 			if err != nil {
 				e2elog.Logf("failed %s", err)
 				return false, err
