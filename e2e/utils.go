@@ -522,7 +522,9 @@ func checkCachingNodes() {
 		fmt.Printf("Adding caching node: %s\n", node)
 
 		curlCommand := fmt.Sprintf("curl --location \"http://%s/cachingnode/\" --header \"Content-Type: application/json\" --header \"Authorization: %s %s\" --data '{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}'", MGMT_IP, CLUSTER_ID, CLUSTER_SECRET, CLUSTER_ID, node)
+		fmt.Printf("Here is the  curlCommand: %s\n", curlCommand)
 		_, err = executeKubectlCommand(curlCommand)
+		fmt.Printf("I Have executed this curlCommand successfully: %s\n", curlCommand)
 		if err != nil {
 			e2elog.Logf("failed %s", err)
 		}
