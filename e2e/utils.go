@@ -512,18 +512,23 @@ func checkCachingNodes(timeout time.Duration) error {
 		// 	return false, err
 		// }
 
-		_, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
+		out, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
 		if err != nil {
 			e2elog.Logf("failed %s", err)
 			return false, err
 		}
+		fmt.Println(out)
 
 		out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
 		if err != nil {
 			e2elog.Logf("failed %s", err)
 			return false, err
 		}
+		fmt.Println(out)
+
 		nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
+		fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+		fmt.Println(nodeIPs)
 		for _, node := range nodeIPs {
 			fmt.Printf("Adding caching node: %s\n", node)
 
