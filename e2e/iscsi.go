@@ -17,6 +17,9 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	ginkgo.BeforeEach(func() {
 		deployConfigs()
 		deployCsi()
+
+		deployCachenode()
+		checkCachingNodes()
 	})
 
 	ginkgo.AfterEach(func() {
