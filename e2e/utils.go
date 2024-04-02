@@ -30,7 +30,9 @@ const (
 	nodePath                 = yamlDir + "node.yaml"
 	storageClassPath         = yamlDir + "storageclass.yaml"
 	pvcPath                  = "pvc.yaml"
+	cachepvcPath             = "pvc-cache.yaml"
 	testPodPath              = "testpod.yaml"
+	cachetestPodPath         = "testpod-cache.yaml"
 	multiPvcsPath            = "multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "testpod-multi-pvc.yaml"
 
@@ -38,6 +40,7 @@ const (
 	controllerStsName = "spdkcsi-controller"
 	nodeDsName        = "spdkcsi-node"
 	testPodName       = "spdkcsi-test"
+	cachetestPodName  = "spdkcsi-cache-test"
 )
 
 var ctx = context.TODO()
@@ -111,6 +114,20 @@ func deleteTestPod() {
 	}
 }
 
+func deployCacheTestPod() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", cachetestPodPath)
+	if err != nil {
+		e2elog.Logf("failed to create cache test pod: %s", err)
+	}
+}
+
+func deleteCacheTestPod() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", cachetestPodPath)
+	if err != nil {
+		e2elog.Logf("failed to delete cache test pod: %s", err)
+	}
+}
+
 // func deleteTestPodForce() {
 // 	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
 // 	if err != nil {
@@ -141,6 +158,25 @@ func deletePVC() {
 func deletePVCAndTestPod() {
 	deleteTestPod()
 	deletePVC()
+}
+
+func deployCachePVC() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", cachepvcPath)
+	if err != nil {
+		e2elog.Logf("failed to create cache pvc: %s", err)
+	}
+}
+
+func deleteCachePVC() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", cachepvcPath)
+	if err != nil {
+		e2elog.Logf("failed to delete cache pvc: %s", err)
+	}
+}
+
+func deleteCachePVCAndCacheTestPod() {
+	deleteCacheTestPod()
+	deleteCachePVC()
 }
 
 func deployTestPodWithMultiPvcs() {
@@ -254,6 +290,23 @@ func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 	})
 	if err != nil {
 		return fmt.Errorf("failed to wait for test pod ready: %w", err)
+	}
+	return nil
+}
+
+func waitForCacheTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
+	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+		pod, err := c.CoreV1().Pods(nameSpace).Get(ctx, cachetestPodName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		if string(pod.Status.Phase) == "Running" {
+			return true, nil
+		}
+		return false, nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to wait for cache test pod ready: %w", err)
 	}
 	return nil
 }
