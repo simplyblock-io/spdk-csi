@@ -521,6 +521,7 @@ func checkCachingNodes(timeout time.Duration) error {
 
 		out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
 		if err != nil {
+			fmt.Println("this is the cause of the error")
 			e2elog.Logf("failed %s", err)
 			return false, err
 		}

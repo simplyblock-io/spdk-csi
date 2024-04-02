@@ -38,9 +38,7 @@ jobs:
       run: |
         mkdir -p "${HOME}/.kube"
         echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode >  ${HOME}/.kube/config
-    - name: Test this command 
-      run: | 
-        kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'
+
     - name: Update ConfigMap
       run: |
         sed -i "s/\"uuid\": \".*\"/\"uuid\": \"${{ github.event.inputs.uuid }}\"/" $GITHUB_WORKSPACE/deploy/kubernetes/config-map.yaml
