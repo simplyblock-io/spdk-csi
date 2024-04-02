@@ -487,8 +487,7 @@ func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout tim
 }
 
 func executeKubectlCommand(command string) (string, error) {
-	cmd := exec.Command("kubectl", strings.Split(command, " ")...)
-	out, err := cmd.CombinedOutput()
+	out, err := exec.Command("bash", "-c", command).Output()
 	if err != nil {
 		return "", fmt.Errorf("error executing kubectl command: %v, output: %s", err, string(out))
 	}
@@ -498,7 +497,7 @@ func executeKubectlCommand(command string) (string, error) {
 func checkCachingNodes(timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		fmt.Println("-- caching nodes --")
-		out, err := executeKubectlCommand("get nodes -l type=cache")
+		out, err := executeKubectlCommand("kubectl get nodes -l type=cache")
 		if err != nil {
 			e2elog.Logf("failed %s", err)
 			return false, err
@@ -512,14 +511,14 @@ func checkCachingNodes(timeout time.Duration) error {
 		// 	return false, err
 		// }
 
-		out, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
+		out, err = executeKubectlCommand("kubectl wait --timeout=3m --for=condition=ready pod -l app=caching-node")
 		if err != nil {
 			e2elog.Logf("failed %s", err)
 			return false, err
 		}
 		fmt.Println(out)
 
-		out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
+		out, err = executeKubectlCommand("kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
 		if err != nil {
 			fmt.Println("this is the cause of the error")
 			e2elog.Logf("failed %s", err)
