@@ -7,12 +7,13 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
+var _ = ginkgo.BeforeSuite(func() {
+	deployCachenode()
+	checkCachingNodes()
+})
+
 var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
-	ginkgo.BeforeSuite(func() {
-		deployCachenode()
-		checkCachingNodes()
-	})
 	ginkgo.BeforeEach(func() {
 		deployConfigs()
 		deployCsi()
