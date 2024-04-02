@@ -41,6 +41,9 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	})
 	framework.ExpectNoError(err, "set watch on namespace :%s", nameSpace)
 
+	deployCachenode()
+	checkCachingNodes()
+
 	return []byte{}
 }, func(_ []byte) {})
 
