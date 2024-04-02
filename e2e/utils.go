@@ -505,7 +505,7 @@ func checkCachingNodes(timeout time.Duration) error {
 		}
 		fmt.Println(out)
 
-		deployCachenode()
+		//deployCachenode()
 		// _, err = executeKubectlCommand("apply -f caching-node.yaml")
 		// if err != nil {
 		// 	e2elog.Logf("failed %s", err)
