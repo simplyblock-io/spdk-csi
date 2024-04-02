@@ -495,39 +495,50 @@ func executeKubectlCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func checkCachingNodes() {
-	fmt.Println("-- caching nodes --")
-	out, err := executeKubectlCommand("get nodes -l type=cache")
-	if err != nil {
-		e2elog.Logf("failed %s", err)
-	}
-	fmt.Println(out)
-
-	_, err = executeKubectlCommand("apply -f caching-node.yaml")
-	if err != nil {
-		e2elog.Logf("failed %s", err)
-	}
-
-	_, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
-	if err != nil {
-		e2elog.Logf("failed %s", err)
-	}
-
-	out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
-	if err != nil {
-		e2elog.Logf("failed %s", err)
-	}
-	nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
-	for _, node := range nodeIPs {
-		fmt.Printf("Adding caching node: %s\n", node)
-
-		curlCommand := fmt.Sprintf("curl --location \"http://%s/cachingnode/\" --header \"Content-Type: application/json\" --header \"Authorization: %s %s\" --data '{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}'", MGMT_IP, CLUSTER_ID, CLUSTER_SECRET, CLUSTER_ID, node)
-		fmt.Printf("Here is the  curlCommand: %s\n", curlCommand)
-		_, err = executeKubectlCommand(curlCommand)
-		fmt.Printf("I Have executed this curlCommand successfully: %s\n", curlCommand)
+func checkCachingNodes(timeout time.Duration) error {
+	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+		fmt.Println("-- caching nodes --")
+		out, err := executeKubectlCommand("get nodes -l type=cache")
 		if err != nil {
 			e2elog.Logf("failed %s", err)
+			return false, err
 		}
-	}
+		fmt.Println(out)
 
+		_, err = executeKubectlCommand("apply -f caching-node.yaml")
+		if err != nil {
+			e2elog.Logf("failed %s", err)
+			return false, err
+		}
+
+		_, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
+		if err != nil {
+			e2elog.Logf("failed %s", err)
+			return false, err
+		}
+
+		out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
+		if err != nil {
+			e2elog.Logf("failed %s", err)
+			return false, err
+		}
+		nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
+		for _, node := range nodeIPs {
+			fmt.Printf("Adding caching node: %s\n", node)
+
+			curlCommand := fmt.Sprintf("curl --location \"http://%s/cachingnode/\" --header \"Content-Type: application/json\" --header \"Authorization: %s %s\" --data '{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}'", MGMT_IP, CLUSTER_ID, CLUSTER_SECRET, CLUSTER_ID, node)
+			fmt.Printf("Here is the  curlCommand: %s\n", curlCommand)
+			_, err = executeKubectlCommand(curlCommand)
+			fmt.Printf("I Have executed this curlCommand successfully: %s\n", curlCommand)
+			if err != nil {
+				e2elog.Logf("failed %s", err)
+				return false, err
+			}
+		}
+		return true, nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create cache node %w", err)
+	}
+	return nil
 }

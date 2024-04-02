@@ -19,7 +19,10 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 		deployCsi()
 
 		deployCachenode()
-		checkCachingNodes()
+		err := checkCachingNodes(5 * time.Minute)
+		if err != nil {
+			ginkgo.Fail(err.Error())
+		}
 	})
 
 	ginkgo.AfterEach(func() {
