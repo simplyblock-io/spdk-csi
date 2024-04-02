@@ -9,6 +9,10 @@ import (
 
 var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
+	ginkgo.BeforeSuite(func() {
+		deployCachenode()
+		checkCachingNodes()
+	})
 	ginkgo.BeforeEach(func() {
 		deployConfigs()
 		deployCsi()

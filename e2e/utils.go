@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -29,6 +30,7 @@ const (
 	controllerPath           = yamlDir + "controller.yaml"
 	nodePath                 = yamlDir + "node.yaml"
 	storageClassPath         = yamlDir + "storageclass.yaml"
+	cachingnodePath          = yamlDir + "caching-node.yaml"
 	pvcPath                  = "pvc.yaml"
 	cachepvcPath             = "pvc-cache.yaml"
 	testPodPath              = "testpod.yaml"
@@ -41,6 +43,10 @@ const (
 	nodeDsName        = "spdkcsi-node"
 	testPodName       = "spdkcsi-test"
 	cachetestPodName  = "spdkcsi-cache-test"
+
+	MGMT_IP        = ""
+	CLUSTER_ID     = ""
+	CLUSTER_SECRET = ""
 )
 
 var ctx = context.TODO()
@@ -77,6 +83,13 @@ var csiYamls = []string{
 	controllerPath,
 	nodePath,
 	storageClassPath,
+}
+
+func deployCachenode() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", cachingnodePath)
+	if err != nil {
+		e2elog.Logf("failed to create %s: %s", cachingnodePath, err)
+	}
 }
 
 func deployCsi() {
@@ -471,4 +484,48 @@ func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout tim
 		return fmt.Errorf("failed to verify dynamic PV creation for PVC %s: %w", pvcName, err)
 	}
 	return nil
+}
+
+func executeKubectlCommand(command string) (string, error) {
+	cmd := exec.Command("kubectl", strings.Split(command, " ")...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("error executing kubectl command: %v, output: %s", err, string(out))
+	}
+	return string(out), nil
+}
+
+func checkCachingNodes() {
+	fmt.Println("-- caching nodes --")
+	out, err := executeKubectlCommand("get nodes -l type=cache")
+	if err != nil {
+		e2elog.Logf("failed %s", err)
+	}
+	fmt.Println(out)
+
+	_, err = executeKubectlCommand("apply -f caching-node.yaml")
+	if err != nil {
+		e2elog.Logf("failed %s", err)
+	}
+
+	_, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
+	if err != nil {
+		e2elog.Logf("failed %s", err)
+	}
+
+	out, err = executeKubectlCommand("get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
+	if err != nil {
+		e2elog.Logf("failed %s", err)
+	}
+	nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
+	for _, node := range nodeIPs {
+		fmt.Printf("Adding caching node: %s\n", node)
+
+		curlCommand := fmt.Sprintf("curl --location \"http://%s/cachingnode/\" --header \"Content-Type: application/json\" --header \"Authorization: %s %s\" --data '{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}'", MGMT_IP, CLUSTER_ID, CLUSTER_SECRET, CLUSTER_ID, node)
+		_, err = executeKubectlCommand(curlCommand)
+		if err != nil {
+			e2elog.Logf("failed %s", err)
+		}
+	}
+
 }
