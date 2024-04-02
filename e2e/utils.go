@@ -505,11 +505,12 @@ func checkCachingNodes(timeout time.Duration) error {
 		}
 		fmt.Println(out)
 
-		_, err = executeKubectlCommand("apply -f caching-node.yaml")
-		if err != nil {
-			e2elog.Logf("failed %s", err)
-			return false, err
-		}
+		deployCachenode()
+		// _, err = executeKubectlCommand("apply -f caching-node.yaml")
+		// if err != nil {
+		// 	e2elog.Logf("failed %s", err)
+		// 	return false, err
+		// }
 
 		_, err = executeKubectlCommand("wait --timeout=3m --for=condition=ready pod -l app=caching-node")
 		if err != nil {
