@@ -320,3 +320,11 @@ and "Teardown" above to prepare the SPDK storage node, deploy SPDKCSI driver, an
 Please join [SPDK community](https://spdk.io/community/) for communication and contribution.
 
 Project progress is tracked in [Trello board](https://trello.com/b/nBujJzya/kubernetes-integration).
+
+
+## Installation using helm
+
+helm install spdk-csi ./ \
+    --set csiConfig.simplybk.uuid=0be539c6-d91e-40e1-89fd-299cbac61bdb \
+    --set csiConfig.simplybk.ip=13.59.233.28 \
+    --set csiSecret.simplybk.secret=FJMix1BQAJItLs822ljF
