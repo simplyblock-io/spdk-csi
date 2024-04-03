@@ -24,6 +24,7 @@ const (
 	driverPath               = yamlDir + "driver.yaml"
 	secretPath               = yamlDir + "secret.yaml"
 	configmapPath            = yamlDir + "config-map.yaml"
+	nodeserverConfigmapPath  = yamlDir + "nodeserver-config-map.yaml"
 	controllerRbacPath       = yamlDir + "controller-rbac.yaml"
 	nodeRbacPath             = yamlDir + "node-rbac.yaml"
 	controllerPath           = yamlDir + "controller.yaml"
@@ -80,6 +81,7 @@ var csiYamls = []string{
 	nodeRbacPath,
 	controllerPath,
 	nodePath,
+	nodeserverConfigmapPath,
 	storageClassPath,
 	cachingnodePath,
 	jobPath,

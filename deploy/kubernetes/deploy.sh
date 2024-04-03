@@ -2,9 +2,9 @@
 
 set -ex
 
-CLUSTER_ID='67f704a0-4359-422a-9417-ed79d1cf1edc'
-MGMT_IP='34.200.226.58'
-CLUSTER_SECRET='nRPkQEAm07Uw6SlpSNIb'
+CLUSTER_ID='cf50c029-212f-4c01-8e80-fcd3947ff7c3'
+MGMT_IP='44.203.108.107'
+CLUSTER_SECRET='ziVjCH713s4sjZPTZK30'
 
 # list in creation order
 files=(driver config-map nodeserver-config-map secret controller-rbac node-rbac controller node storageclass caching-node)
