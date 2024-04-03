@@ -44,10 +44,6 @@ const (
 	nodeDsName        = "spdkcsi-node"
 	testPodName       = "spdkcsi-test"
 	cachetestPodName  = "spdkcsi-cache-test"
-
-	MGMT_IP        = ""
-	CLUSTER_ID     = ""
-	CLUSTER_SECRET = ""
 )
 
 var ctx = context.TODO()
