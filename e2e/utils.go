@@ -83,6 +83,7 @@ var csiYamls = []string{
 	controllerPath,
 	nodePath,
 	storageClassPath,
+
 }
 
 func deployCachenode() {
@@ -486,64 +487,64 @@ func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout tim
 	return nil
 }
 
-func executeKubectlCommand(command string) (string, error) {
-	out, err := exec.Command("bash", "-c", command).Output()
-	if err != nil {
-		return "", fmt.Errorf("error executing kubectl command: %v, output: %s", err, string(out))
-	}
-	return string(out), nil
-}
+// func executeKubectlCommand(command string) (string, error) {
+// 	out, err := exec.Command("bash", "-c", command).Output()
+// 	if err != nil {
+// 		return "", fmt.Errorf("error executing kubectl command: %v, output: %s", err, string(out))
+// 	}
+// 	return string(out), nil
+// }
 
-func checkCachingNodes(timeout time.Duration) error {
-	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
-		fmt.Println("-- caching nodes --")
-		out, err := executeKubectlCommand("kubectl get nodes -l type=cache")
-		if err != nil {
-			e2elog.Logf("failed %s", err)
-			return false, err
-		}
-		fmt.Println(out)
+// func checkCachingNodes(timeout time.Duration) error {
+// 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+// 		fmt.Println("-- caching nodes --")
+// 		out, err := executeKubectlCommand("kubectl get nodes -l type=cache")
+// 		if err != nil {
+// 			e2elog.Logf("failed %s", err)
+// 			return false, err
+// 		}
+// 		fmt.Println(out)
 
-		//deployCachenode()
-		// _, err = executeKubectlCommand("apply -f caching-node.yaml")
-		// if err != nil {
-		// 	e2elog.Logf("failed %s", err)
-		// 	return false, err
-		// }
+// 		//deployCachenode()
+// 		// _, err = executeKubectlCommand("apply -f caching-node.yaml")
+// 		// if err != nil {
+// 		// 	e2elog.Logf("failed %s", err)
+// 		// 	return false, err
+// 		// }
 
-		out, err = executeKubectlCommand("kubectl wait --timeout=3m --for=condition=ready pod -l app=caching-node")
-		if err != nil {
-			e2elog.Logf("failed %s", err)
-			return false, err
-		}
-		fmt.Println(out)
+// 		out, err = executeKubectlCommand("kubectl wait --timeout=3m --for=condition=ready pod -l app=caching-node")
+// 		if err != nil {
+// 			e2elog.Logf("failed %s", err)
+// 			return false, err
+// 		}
+// 		fmt.Println(out)
 
-		out, err = executeKubectlCommand("kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
-		if err != nil {
-			fmt.Println("this is the cause of the error")
-			e2elog.Logf("failed %s", err)
-			return false, err
-		}
-		fmt.Println(out)
+// 		out, err = executeKubectlCommand("kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $(NF-3)}'")
+// 		if err != nil {
+// 			fmt.Println("this is the cause of the error")
+// 			e2elog.Logf("failed %s", err)
+// 			return false, err
+// 		}
+// 		fmt.Println(out)
 
-		nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
-		fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-		fmt.Println(nodeIPs)
-		for _, node := range nodeIPs {
-			fmt.Printf("Adding caching node: %s\n", node)
+// 		nodeIPs := strings.Split(strings.TrimSpace(out), "\n")
+// 		fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+// 		fmt.Println(nodeIPs)
+// 		// for _, node := range nodeIPs {
+// 		// 	fmt.Printf("Adding caching node: %s\n", node)
 
-			cmd := exec.Command("curl", "--location", fmt.Sprintf("http://%s/cachingnode/", MGMT_IP), "--header", "Content-Type: application/json", "--header", fmt.Sprintf("Authorization: %s %s", CLUSTER_ID, CLUSTER_SECRET), "--data", fmt.Sprintf("{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}", CLUSTER_ID, node))
-			_, err = cmd.CombinedOutput()
+// 		// 	cmd := exec.Command("curl", "--location", fmt.Sprintf("http://%s/cachingnode/", MGMT_IP), "--header", "Content-Type: application/json", "--header", fmt.Sprintf("Authorization: %s %s", CLUSTER_ID, CLUSTER_SECRET), "--data", fmt.Sprintf("{\"cluster_id\": \"%s\", \"node_ip\": \"%s:5000\", \"iface_name\": \"eth0\", \"spdk_mem\": \"2g\"}", CLUSTER_ID, node))
+// 		// 	_, err = cmd.CombinedOutput()
 
-			if err != nil {
-				e2elog.Logf("failed %s", err)
-				return false, err
-			}
-		}
-		return true, nil
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create cache node %w", err)
-	}
-	return nil
-}
+// 		// 	if err != nil {
+// 		// 		e2elog.Logf("failed %s", err)
+// 		// 		return false, err
+// 		// 	}
+// 		// }
+// 		return true, nil
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf("failed to create cache node %w", err)
+// 	}
+// 	return nil
+// }
