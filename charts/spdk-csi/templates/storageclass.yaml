@@ -11,15 +11,15 @@ metadata:
 provisioner: csi.spdk.io
 parameters:
   csi.storage.k8s.io/fstype: ext4
-  pool_name: testing1
-  qos_rw_iops: "0"
-  qos_rw_mbytes: "0"
-  qos_r_mbytes: "0"
-  qos_w_mbytes: "0"
-  compression: "False"
-  encryption: "False"
-  distr_ndcs: "1"
-  distr_npcs: "1"
+  pool_name: {{ .Values.logicalVolume.pool_name }}
+  qos_rw_iops: {{ .Values.logicalVolume.qos_rw_iops }}
+  qos_rw_mbytes: {{ .Values.logicalVolume.qos_rw_mbytes }}
+  qos_r_mbytes: {{ .Values.logicalVolume.qos_r_mbytes }}
+  qos_w_mbytes: {{ .Values.logicalVolume.qos_w_mbytes }}
+  compression: {{ .Values.logicalVolume.compression }}
+  encryption: {{ .Values.logicalVolume.encryption }}
+  distr_ndcs: {{ .Values.logicalVolume.distr_ndcs }}
+  distr_npcs: {{ .Values.logicalVolume.distr_npcs }}
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
@@ -32,16 +32,16 @@ metadata:
 provisioner: csi.spdk.io
 parameters:
   csi.storage.k8s.io/fstype: ext4
-  pool_name: testing1
   type: cache
-  qos_rw_iops: "0"
-  qos_rw_mbytes: "0"
-  qos_r_mbytes: "0"
-  qos_w_mbytes: "0"
-  compression: "False"
-  encryption: "False"
-  distr_ndcs: "1"
-  distr_npcs: "1"
+  pool_name: {{ .Values.logicalVolume.pool_name }}
+  qos_rw_iops: {{ .Values.logicalVolume.qos_rw_iops }}
+  qos_rw_mbytes: {{ .Values.logicalVolume.qos_rw_mbytes }}
+  qos_r_mbytes: {{ .Values.logicalVolume.qos_r_mbytes }}
+  qos_w_mbytes: {{ .Values.logicalVolume.qos_w_mbytes }}
+  compression: {{ .Values.logicalVolume.compression }}
+  encryption: {{ .Values.logicalVolume.encryption }}
+  distr_ndcs: {{ .Values.logicalVolume.distr_ndcs }}
+  distr_npcs: {{ .Values.logicalVolume.distr_npcs }}
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true

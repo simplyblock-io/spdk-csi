@@ -70,7 +70,7 @@ Build SPDK-CSI docker image.
 `spdkcsi` executable accepts several command line parameters.
 
 | Parameter      | Type   | Description               | Default           |
-| ---------      | ----   | -----------               | -------           |
+| -------------- | ------ | ------------------------- | ----------------- |
 | `--controller` | -      | enable controller service | -                 |
 | `--node`       | -      | enable node service       | -                 |
 | `--endpoint`   | string | communicate with sidecars | /tmp/spdkcsi.sock |
@@ -82,7 +82,7 @@ Build SPDK-CSI docker image.
 Example deployment files can be found in deploy/kubernetes directory.
 
 | File Name            | Usage                                      |
-| -------------------- | -----                                      |
+| -------------------- | ------------------------------------------ |
 | storageclass.yaml    | StorageClass of provisioner "csi.spdk.io"  |
 | controller.yaml      | StatefulSet running CSI Controller service |
 | node.yaml            | DaemonSet running CSI Node service         |
@@ -260,9 +260,9 @@ The diagram below provides a high-level view of the architecture:
 
 The CSI-Node-Pod's configuration file for xPU is dynamically attached by Kubernetes using a config map as below.
 
-| File Name                                       | Usage                            |
-| ----------------------------------------------- | -------------------------------  |
-| deploy/kubernetes/nodeserver-config-map.yaml    | SPDK xPU cluster configurations  |
+| File Name                                    | Usage                           |
+| -------------------------------------------- | ------------------------------- |
+| deploy/kubernetes/nodeserver-config-map.yaml | SPDK xPU cluster configurations |
 
 You can configure it using the parameters mentioned below.
 Multiple xPU nodes are supported, and each node's configuration includes the name, targetType, and targetAddr fields.
@@ -325,6 +325,8 @@ Project progress is tracked in [Trello board](https://trello.com/b/nBujJzya/kube
 ## Installation using helm
 
 helm install spdk-csi ./ \
-    --set csiConfig.simplybk.uuid=0be539c6-d91e-40e1-89fd-299cbac61bdb \
-    --set csiConfig.simplybk.ip=13.59.233.28 \
-    --set csiSecret.simplybk.secret=FJMix1BQAJItLs822ljF
+    --set csiConfig.simplybk.uuid=237e5717-35ff-4a2a-8248-2cbe52b5f25b \
+    --set csiConfig.simplybk.ip=3.144.201.84 \
+    --set csiSecret.simplybk.secret=ZIE2khrWBaZqw0Uha5RC \
+    --set logicalVolume.pool_name=testing1
+

@@ -61,6 +61,17 @@ csiSecret:
   simplybk:
     secret: 2BAbQTPEDi4o73VHymg2
 
+logicalVolume:
+  pool_name: testing1
+  qos_rw_iops: "0"
+  qos_rw_mbytes: "0"
+  qos_r_mbytes: "0"
+  qos_w_mbytes: "0"
+  compression: "False"
+  encryption: "False"
+  distr_ndcs: "1"
+  distr_npcs: "1"
+
 spdkdevCreateCommonds:
   /root/spdk/app/spdk_tgt/spdk_tgt > /tmp/spdk-tgt.log 2>&1 &
   echo wait 5s... && sleep 5s && cd /root/spdk/scripts &&
