@@ -2,9 +2,9 @@
 
 set -ex
 
-CLUSTER_ID='57811933-0e5f-45ff-ae57-8e4b3065a520'
-MGMT_IP='3.142.76.165'
-CLUSTER_SECRET='ivxe3GjP5bEay5o0UI1G'
+CLUSTER_ID='cf50c029-212f-4c01-8e80-fcd3947ff7c3'
+MGMT_IP='44.203.108.107'
+CLUSTER_SECRET='ziVjCH713s4sjZPTZK30'
 
 # list in creation order
 files=(driver config-map nodeserver-config-map secret controller-rbac node-rbac controller node storageclass caching-node)
@@ -52,7 +52,7 @@ for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $(N
 		"cluster_id": "'"${CLUSTER_ID}"'",
 		"node_ip": "'"${node}:5000"'",
 		"iface_name": "eth0",
-		"spdk_mem": 8589934592
+		"spdk_mem": "2g"
 	}
 	'
 done
