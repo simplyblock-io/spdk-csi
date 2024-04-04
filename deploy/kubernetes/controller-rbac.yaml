@@ -147,4 +147,39 @@ roleRef:
   name: spdkcsi-resizer-role
   apiGroup: rbac.authorization.k8s.io
 
+# external-health-monitor sidecar required roles
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: spdkcsi-health-monitor-role
+rules:
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch", "create", "patch"]
 
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: spdkcsi-health-monitor-binding
+subjects:
+- kind: ServiceAccount
+  name: spdkcsi-controller-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: spdkcsi-health-monitor-role
+  apiGroup: rbac.authorization.k8s.io

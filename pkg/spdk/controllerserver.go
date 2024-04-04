@@ -407,6 +407,83 @@ func NewsimplyBlockClient() (*util.NodeNVMf, error) {
 	return util.NewNVMf(config.Simplybk.UUID, config.Simplybk.IP, secret.Simplybk.Secret), nil
 }
 
+// func (cs *controllerServer) ListVolumes(_ context.Context, _ *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
+// 	volumes := []*csi.ListVolumesResponse_Entry{}
+
+// 	volumeIDs, err := cs.spdkNode.ListVolumes()
+// 	if err != nil {
+// 		klog.Errorf("failed to list volumes: %v", err)
+// 		return nil, status.Error(codes.Internal, err.Error())
+// 	}
+
+// 	for _, volumeID := range volumeIDs {
+// 		volumeInfo, err := cs.spdkNode.VolumeInfo(volumeID.UUID)
+// 		if err != nil {
+// 			klog.Errorf("failed to get volume info for volume %s: %v", volumeID.UUID, err)
+// 			return nil, status.Error(codes.NotFound, err.Error())
+// 		}
+// 		volume := &csi.Volume{
+// 			VolumeId:      volumeID.UUID,
+// 			VolumeContext: volumeInfo,
+// 		}
+
+// 		volumes = append(volumes, &csi.ListVolumesResponse_Entry{
+// 			Volume: volume,
+// 		})
+// 	}
+
+// 	return &csi.ListVolumesResponse{
+// 		Entries: volumes,
+// 	}, nil
+// }
+
+//	func (cs *controllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
+//		return nil, status.Error(codes.Unimplemented, "")
+//	}
+
+func (cs *controllerServer) ControllerGetVolume(_ context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
+	volumeID := req.GetVolumeId()
+	unlock := cs.volumeLocks.Lock(volumeID)
+	defer unlock()
+
+	spdkVol, err := getSPDKVol(volumeID)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
+	if err != nil {
+		klog.Errorf("failed to get spdkVol for %s: %v", volumeID, err)
+
+		return &csi.ControllerGetVolumeResponse{
+			Volume: &csi.Volume{
+				VolumeId: volumeID,
+			},
+			Status: &csi.ControllerGetVolumeResponse_VolumeStatus{
+				VolumeCondition: &csi.VolumeCondition{
+					Abnormal: true,
+					Message:  err.Error(),
+				},
+			},
+		}, nil
+	}
+
+	volume := &csi.Volume{
+		VolumeId:      spdkVol.lvolID,
+		VolumeContext: volumeInfo,
+	}
+
+	return &csi.ControllerGetVolumeResponse{
+		Volume: volume,
+		Status: &csi.ControllerGetVolumeResponse_VolumeStatus{
+			VolumeCondition: &csi.VolumeCondition{
+				Abnormal: false,
+				Message:  "",
+			},
+		},
+	}, nil
+}
+
 func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	server := controllerServer{
 		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
@@ -451,15 +528,3 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 
 	// return &server, nil
 }
-
-// func (cs *controllerServer) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-// 	return nil, status.Error(codes.Unimplemented, "")
-// }
-
-// func (cs *controllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-// 	return nil, status.Error(codes.Unimplemented, "")
-// }
-
-// func (cs *controllerServer) ControllerGetVolume(context.Context, *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
-// 	return nil, status.Error(codes.Unimplemented, "")
-// }
