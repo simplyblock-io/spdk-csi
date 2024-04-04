@@ -1,0 +1,19 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: spdkcsi-cache-test
+spec:
+  nodeSelector:
+    type: cache
+  containers:
+  - name: alpine
+    image: alpine:3
+    imagePullPolicy: "IfNotPresent"
+    command: ["sleep", "365d"]
+    volumeMounts:
+    - mountPath: "/spdkvol"
+      name: spdk-volume
+  volumes:
+  - name: spdk-volume
+    persistentVolumeClaim:
+      claimName: spdkcsi-cache-pvc

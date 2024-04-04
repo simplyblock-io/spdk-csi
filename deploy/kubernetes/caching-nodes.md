@@ -8,7 +8,7 @@ Caching nodes are a special kind of node that works as a cache with a local NVMe
 
 #### Step 0: Networking & tools
 
-Make sure that the Kubernetes worker nodes to be used for cache has access to the simplyblock storage cluster. If you are using terraform to deploy the cluster. Please attach `container-instance-sg` security group to all the instances. 
+Make sure that the Kubernetes worker nodes to be used for cache has access to the simplyblock storage cluster. If you are using terraform to deploy the cluster. Please attach `container-instance-sg` security group to all the instances.
 
 #### Step1: Install nvme cli tools
 
@@ -35,14 +35,14 @@ and restart kubelet
 sudo systemctl restart kubelet
 ```
 
-conform if huge pages are added to the cluster or not. 
+conform if huge pages are added to the cluster or not.
 ```
 kubectl describe node ip-10-0-2-184.us-east-2.compute.internal | grep hugepages-2Mi
 ```
 this output should show 8GB. This worker node can allocate 8GB of hugepages to pods which is required in case of SPDK pods.
 
 #### Step2: Mount the SSD to be used for caching
-If the instance comes with a default NVMe disk, it can be used. Or an additional EBS or SSD volume can be mounted. the disks can be viewed by running: 
+If the instance comes with a default NVMe disk, it can be used. Or an additional EBS or SSD volume can be mounted. the disks can be viewed by running:
 
 ```
 sudo yum install pciutils
@@ -83,7 +83,7 @@ for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $6}
 		"cluster_id": "'"${CLUSTER_ID}"'",
 		"node_ip": "'"${node}:5000"'",
 		"iface_name": "eth0",
-		"spdk_mem": 8589934592,
+		"spdk_mem": "4g",
 	}
 	'
 done

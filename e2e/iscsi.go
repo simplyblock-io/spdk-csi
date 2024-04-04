@@ -54,6 +54,16 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 				}
 			})
 
+			ginkgo.By("create a Cache PVC and bind it to a cache pod", func() {
+				deployCachePVC()
+				deployCacheTestPod()
+				defer deleteCachePVCAndCacheTestPod()
+				err := waitForCacheTestPodReady(f.ClientSet, 3*time.Minute)
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+			})
+
 			ginkgo.By("check data persistency after the pod is removed and recreated", func() {
 				deployPVC()
 				deployTestPod()
