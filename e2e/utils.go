@@ -48,62 +48,6 @@ const (
 
 var ctx = context.TODO()
 
-// func deployConfigs() {
-// 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", configmapPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to create config map %s", err)
-// 	}
-// 	_, err = framework.RunKubectl(nameSpace, "apply", "-f", secretPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to create secret: %s", err)
-// 	}
-// }
-
-// func deleteConfigs() {
-// 	// _, err := framework.RunKubectl(nameSpace, "delete", "configmap", "spdkcsi-cm")
-// 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", configmapPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to delete config map: %s", err)
-// 	}
-// 	_, err = framework.RunKubectl(nameSpace, "delete", "-f", secretPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to delete secret: %s", err)
-// 	}
-// }
-
-// var csiYamls = []string{
-// 	driverPath,
-// 	controllerRbacPath,
-// 	nodeRbacPath,
-// 	controllerPath,
-// 	nodePath,
-// 	nodeserverConfigmapPath,
-// 	storageClassPath,
-// 	cachingnodePath,
-// 	jobPath,
-// }
-
-// func deployCsi() {
-// 	for _, yamlName := range csiYamls {
-// 		_, err := framework.RunKubectl(nameSpace, "apply", "-f", yamlName)
-// 		if err != nil {
-// 			e2elog.Logf("failed to create %s: %s", yamlName, err)
-// 		}
-// 	}
-// }
-
-// func deleteCsi() {
-// 	cnt := len(csiYamls)
-// 	// delete objects in reverse order
-// 	for i := range csiYamls {
-// 		yamlName := csiYamls[cnt-1-i]
-// 		_, err := framework.RunKubectl(nameSpace, "delete", "-f", yamlName)
-// 		if err != nil {
-// 			e2elog.Logf("failed to delete %s: %s", yamlName, err)
-// 		}
-// 	}
-// }
-
 func deployTestPod() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodPath)
 	if err != nil {
