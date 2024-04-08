@@ -12,14 +12,14 @@ provisioner: csi.spdk.io
 parameters:
   csi.storage.k8s.io/fstype: ext4
   pool_name: {{ .Values.logicalVolume.pool_name }}
-  qos_rw_iops: {{ .Values.logicalVolume.qos_rw_iops }}
-  qos_rw_mbytes: {{ .Values.logicalVolume.qos_rw_mbytes }}
-  qos_r_mbytes: {{ .Values.logicalVolume.qos_r_mbytes }}
-  qos_w_mbytes: {{ .Values.logicalVolume.qos_w_mbytes }}
-  compression: {{ .Values.logicalVolume.compression }}
-  encryption: {{ .Values.logicalVolume.encryption }}
-  distr_ndcs: {{ .Values.logicalVolume.distr_ndcs }}
-  distr_npcs: {{ .Values.logicalVolume.distr_npcs }}
+  qos_rw_iops: "{{ .Values.logicalVolume.qos_rw_iops }}"
+  qos_rw_mbytes: "{{ .Values.logicalVolume.qos_rw_mbytes }}"
+  qos_r_mbytes: "{{ .Values.logicalVolume.qos_r_mbytes }}"
+  qos_w_mbytes: "{{ .Values.logicalVolume.qos_w_mbytes }}"
+  compression: "{{ .Values.logicalVolume.compression }}"
+  encryption: "{{ .Values.logicalVolume.encryption }}"
+  distr_ndcs: "{{ .Values.logicalVolume.distr_ndcs }}"
+  distr_npcs: "{{ .Values.logicalVolume.distr_npcs }}"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
@@ -33,15 +33,15 @@ provisioner: csi.spdk.io
 parameters:
   csi.storage.k8s.io/fstype: ext4
   type: cache
-  pool_name: {{ .Values.logicalVolume.pool_name }}
-  qos_rw_iops: {{ .Values.logicalVolume.qos_rw_iops }}
-  qos_rw_mbytes: {{ .Values.logicalVolume.qos_rw_mbytes }}
-  qos_r_mbytes: {{ .Values.logicalVolume.qos_r_mbytes }}
-  qos_w_mbytes: {{ .Values.logicalVolume.qos_w_mbytes }}
-  compression: {{ .Values.logicalVolume.compression }}
-  encryption: {{ .Values.logicalVolume.encryption }}
-  distr_ndcs: {{ .Values.logicalVolume.distr_ndcs }}
-  distr_npcs: {{ .Values.logicalVolume.distr_npcs }}
+  pool_name: "{{ .Values.logicalVolume.pool_name }}"
+  qos_rw_iops: "{{ .Values.logicalVolume.qos_rw_iops }}"
+  qos_rw_mbytes: "{{ .Values.logicalVolume.qos_rw_mbytes }}"
+  qos_r_mbytes: "{{ .Values.logicalVolume.qos_r_mbytes }}"
+  qos_w_mbytes: "{{ .Values.logicalVolume.qos_w_mbytes }}"
+  compression: "{{ .Values.logicalVolume.compression }}"
+  encryption: "{{ .Values.logicalVolume.encryption }}"
+  distr_ndcs: "{{ .Values.logicalVolume.distr_ndcs }}"
+  distr_npcs: "{{ .Values.logicalVolume.distr_npcs }}"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
