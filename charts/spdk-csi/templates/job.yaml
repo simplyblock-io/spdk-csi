@@ -37,8 +37,8 @@ spec:
       serviceAccountName: caching-node-service-account
       volumes:
         - name: script-config
-           configMap:
-             name: add-caching-node-script-cm
+          configMap:
+            name: add-caching-node-script-cm
       containers:
       - name: add-caching-node
         image: python:3.10
