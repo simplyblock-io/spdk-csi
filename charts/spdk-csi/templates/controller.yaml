@@ -58,6 +58,31 @@ spec:
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
+      - name: spdkcsi-resizer
+        image: "{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+        imagePullPolicy: {{ .Values.image.csiResizer.pullPolicy }}
+        args:
+          - "--v=5"
+          - "--csi-address=unix:///csi/csi-provisioner.sock"
+          - "--leader-election=false"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /csi
+      - name: spdkcsi-health-monitor
+        image: "{{ .Values.image.csiHealthMonitor.repository }}:{{ .Values.image.csiHealthMonitor.tag }}"
+        imagePullPolicy: {{ .Values.image.csiHealthMonitor.pullPolicy }}
+        args:
+          - "--v=5"
+          - "--csi-address=unix:///csi/csi-provisioner.sock"
+          - "--leader-election=false"
+         # - "--http-endpoint=:8081"
+        volumeMounts:
+          - name: socket-dir
+            mountPath:  /csi
+        ports:
+          - containerPort: 8080
+            name: http-endpoint
+            protocol: TCP
       - name: spdkcsi-controller
         image: "{{ .Values.image.spdkcsi.repository }}:{{ .Values.image.spdkcsi.tag }}"
         imagePullPolicy: {{ .Values.image.spdkcsi.pullPolicy }}
