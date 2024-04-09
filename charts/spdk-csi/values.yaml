@@ -23,7 +23,14 @@ image:
     repository: registry.k8s.io/sig-storage/csi-snapshotter
     tag: v6.2.2
     pullPolicy: Always
-
+  csiResizer:
+    repository: gcr.io/k8s-staging-sig-storage/csi-resizer
+    tag: v1.10.0
+    pullPolicy: Always
+  csiHealthMonitor:
+    repository: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller
+    tag: v0.10.0
+    pullPolicy: Always
 serviceAccount:
   # Specifies whether a serviceAccount should be created
   create: true
