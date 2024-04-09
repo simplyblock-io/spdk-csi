@@ -74,8 +74,8 @@ spec:
         args:
           - "--v=5"
           - "--csi-address=unix:///csi/csi-provisioner.sock"
-          #- "--leader-election"
-          - "--http-endpoint=:8080"
+          --"leader-election=false"
+         # - "--http-endpoint=:8080"
         volumeMounts:
           - name: socket-dir
             mountPath:  /csi
