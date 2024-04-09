@@ -9,15 +9,6 @@ import (
 
 var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
-	ginkgo.BeforeEach(func() {
-		deployConfigs()
-		deployCsi()
-	})
-
-	ginkgo.AfterEach(func() {
-		deleteCsi()
-		deleteConfigs()
-	})
 
 	ginkgo.Context("Test SPDK CSI ISCSI", func() {
 		ginkgo.It("Test SPDK CSI ISCSI", func() {

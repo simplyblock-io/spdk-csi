@@ -58,6 +58,31 @@ spec:
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
+      - name: spdkcsi-resizer
+        image: gcr.io/k8s-staging-sig-storage/csi-resizer:v1.10.0
+        imagePullPolicy: "IfNotPresent"
+        args:
+          - "--v=5"
+          - "--csi-address=unix:///csi/csi-provisioner.sock"
+          - "--leader-election=false"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /csi
+      - name: spdkcsi-health-monitor
+        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.10.0
+        imagePullPolicy: "IfNotPresent"
+        args:
+          - "--v=5"
+          - "--csi-address=unix:///csi/csi-provisioner.sock"
+          #- "--leader-election"
+          - "--http-endpoint=:8080"
+        volumeMounts:
+          - name: socket-dir
+            mountPath:  /csi
+        ports:
+          - containerPort: 8080
+            name: http-endpoint
+            protocol: TCP
       - name: spdkcsi-controller
         image: "{{ .Values.image.spdkcsi.repository }}:{{ .Values.image.spdkcsi.tag }}"
         imagePullPolicy: {{ .Values.image.spdkcsi.pullPolicy }}
