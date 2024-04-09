@@ -35,9 +35,14 @@ spec:
   template:
     spec:
       serviceAccountName: caching-node-service-account
+      volumes:
+        - name: script-config
+           configMap:
+             name: add-caching-node-script-cm
       containers:
       - name: add-caching-node
-        image: manoharbrm/add-caching-node-script:latest
+        image: python:3.10
+        command: ["python3", "/config/add_cn_script.py"]
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
@@ -49,5 +54,8 @@ spec:
             configMapKeyRef:
               name: spdkcsi-cm
               key: config.json
+        volumeMounts:
+            - name: script-config
+              mountPath: /config
       restartPolicy: Never
   backoffLimit: 4
