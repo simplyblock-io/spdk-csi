@@ -42,7 +42,9 @@ spec:
       containers:
       - name: add-caching-node
         image: python:3.10
-        command: ["python3", "/config/add_cn_script.py"]
+        command: ["/bin/sh", "-c"]
+        args:
+          - "pip install kubernetes && python3 /config/add_cn_script.py"
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
