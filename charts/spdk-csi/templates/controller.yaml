@@ -59,8 +59,8 @@ spec:
         - name: socket-dir
           mountPath: /csi
       - name: spdkcsi-resizer
-        image: gcr.io/k8s-staging-sig-storage/csi-resizer:v1.10.0
-        imagePullPolicy: "IfNotPresent"
+        image: "{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+        imagePullPolicy: {{ .Values.image.csiResizer.pullPolicy }}
         args:
           - "--v=5"
           - "--csi-address=unix:///csi/csi-provisioner.sock"
@@ -69,8 +69,8 @@ spec:
           - name: socket-dir
             mountPath: /csi
       - name: spdkcsi-health-monitor
-        image: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.10.0
-        imagePullPolicy: "IfNotPresent"
+        image: "{{ .Values.image.csiHealthMonitor.repository }}:{{ .Values.image.csiHealthMonitor.tag }}"
+        imagePullPolicy: {{ .Values.image.csiHealthMonitor.pullPolicy }}
         args:
           - "--v=5"
           - "--csi-address=unix:///csi/csi-provisioner.sock"
