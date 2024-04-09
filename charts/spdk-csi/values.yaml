@@ -4,7 +4,7 @@
 ---
 image:
   spdkcsi:
-    repository: manoharbrm/spdkcsi
+    repository: simplyblock/spdkcsi
     tag: latest
     pullPolicy: Always
   csiProvisioner:

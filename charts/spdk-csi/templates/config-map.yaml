@@ -15,3 +15,48 @@ data:
   config.json: |-
 {{ toJson .Values.csiConfig | indent 4 -}}
 {{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: add-caching-node-script-cm
+data:
+  add_cn_script.py: |
+    from kubernetes import client, config
+    import json, os, requests
+
+    config.load_incluster_config()
+
+    secret = json.loads(os.getenv("SPDKCSI_SECRET"))
+    cluster_secret = secret['simplybk']['secret']
+
+    cluster_config = json.loads(os.getenv("CLUSTER_CONFIG"))
+    cluster_uuid = cluster_config['simplybk']['uuid']
+    cluster_ip = cluster_config['simplybk']['ip']
+
+    label_selector = "app=caching-node"
+    api_instance = client.CoreV1Api()
+    pods = api_instance.list_pod_for_all_namespaces(label_selector=label_selector)
+
+    for pod in pods.items:
+        node_ip = pod.status.pod_ip
+        print(f"adding caching node: {node_ip}")
+
+        url = f"http://{cluster_ip}/cachingnode/"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"{cluster_uuid} {cluster_secret}"
+        }
+        data = json.dumps({
+            "cluster_id": cluster_uuid,
+            "node_ip": f"{node_ip}:5000",
+            "iface_name": "eth0",
+            "spdk_mem": "2g"
+        })
+
+        response = requests.post(url, headers=headers, data=data)
+        if response.status_code == 200:
+            print("Caching node added successfully.")
+        else:
+            print("Failed to add caching node.")
