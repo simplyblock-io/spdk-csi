@@ -45,15 +45,6 @@ jobs:
         mkdir -p "${HOME}/.kube"
         echo ${{ secrets.KUBE_CONFIG_DATA }} | base64 --decode >  ${HOME}/.kube/config
 
-    # - name: Update ConfigMap
-    #   run: |
-    #     sed -i "s/\"uuid\": \".*\"/\"uuid\": \"${{ github.event.inputs.uuid }}\"/" $GITHUB_WORKSPACE/deploy/kubernetes/config-map.yaml
-    #     sed -i "s/\"ip\": \".*\"/\"ip\": \"${{ github.event.inputs.ip }}\"/" $GITHUB_WORKSPACE/deploy/kubernetes/config-map.yaml
-
-    # - name: Update Secret
-    #   run: |
-    #     sed -i "s/\"secret\": \".*\"/\"secret\": \"${{ github.event.inputs.secret }}\"/" $GITHUB_WORKSPACE/deploy/kubernetes/secret.yaml
-
     - name: Install SPDK-CSI using Helm
       run: |
         cd spdk-csi/charts/spdk-csi
