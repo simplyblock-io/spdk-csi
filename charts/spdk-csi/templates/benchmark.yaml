@@ -1,0 +1,53 @@
+{{- $benchmarks := .Values.benchmarks }}
+{{- range $i := until (int $benchmarks) }}
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fio-benchmark-job-{{ $i }}
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: fio-benchmark
+        image: manoharbrm/benchmark:latest
+        imagePullPolicy: Always
+        env:
+        - name: directory
+          valueFrom:
+            configMapKeyRef:
+              name: fio-benchmarks-cm
+              key: directory
+        volumeMounts:
+        - mountPath: "/spdkvol"
+          name: benchmark-volume
+      volumes:
+      - name: benchmark-volume
+        persistentVolumeClaim:
+          claimName: spdkcsi-benchmark-pvc-{{ $i }}
+      restartPolicy: Never
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: spdkcsi-benchmark-pvc-{{ $i }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: spdkcsi-sc
+
+{{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fio-benchmarks-cm
+data:
+    directory: /spdkvol
