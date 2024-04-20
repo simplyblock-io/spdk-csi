@@ -325,8 +325,7 @@ Project progress is tracked in [Trello board](https://trello.com/b/nBujJzya/kube
 ## Installation using helm
 
 helm install spdk-csi ./ \
-    --set csiConfig.simplybk.uuid=237e5717-35ff-4a2a-8248-2cbe52b5f25b \
-    --set csiConfig.simplybk.ip=3.144.201.84 \
-    --set csiSecret.simplybk.secret=ZIE2khrWBaZqw0Uha5RC \
+    --set csiConfig.simplybk.uuid=2728b14c-55d5-4c8c-b50c-3ac9f52b99e9 \
+    --set csiConfig.simplybk.ip=44.211.93.77 \
+    --set csiSecret.simplybk.secret=9uTMglfFaQMai2GSVci8 \
     --set logicalVolume.pool_name=testing1
-
