@@ -216,16 +216,6 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return &vol, nil
 	}
 
-	// var sourceType, sourceID string
-	// volSource := req.GetVolumeContentSource()
-	// if volSource.GetSnapshot() != nil {
-	// 	sourceID = volSource.GetSnapshot().GetSnapshotId()
-	// 	sourceType = "snapshot"
-	// } else if volSource.GetVolume() != nil {
-	// 	sourceID = volSource.GetVolume().GetVolumeId()
-	// 	sourceType = "lvol"
-	// }
-
 	distrNdcsStr, ok := req.GetParameters()["distr_ndcs"]
 	if !ok {
 		distrNdcsStr = "1"
@@ -248,6 +238,19 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return nil, err
 	}
 
+	var compression bool
+	var encryption bool
+
+	if req.GetParameters()["compression"] == "true" ||
+		req.GetParameters()["compression"] == "True" {
+		compression = true
+	}
+
+	if req.GetParameters()["encryption"] == "true" ||
+		req.GetParameters()["encryption"] == "True" {
+		encryption = true
+	}
+
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -256,15 +259,15 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		MaxRWmBytes: req.GetParameters()["qos_rw_mbytes"],
 		MaxRmBytes:  req.GetParameters()["qos_r_mbytes"],
 		MaxWmBytes:  req.GetParameters()["qos_w_mbytes"],
-		Compression: req.GetParameters()["compression"],
-		Encryption:  req.GetParameters()["encryption"],
+		Compression: compression,
+		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
 	}
 
 	volumeID, err = cs.spdkNode.CreateVolume(&createVolReq)
 	if err != nil {
-		klog.Errorf("error simplyBlock volume: %v", err)
+		klog.Errorf("error creating simplyBlock volume: %v", err)
 		return nil, err
 	}
 	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
