@@ -194,28 +194,7 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 	return &csi.DeleteSnapshotResponse{}, nil
 }
 
-func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Volume, error) {
-	size := req.GetCapacityRange().GetRequiredBytes()
-	if size == 0 {
-		klog.Warningln("invalid volume size, resize to 1G")
-		size = 1024 * 1024 * 1024
-	}
-	sizeMiB := util.ToMiB(size)
-	vol := csi.Volume{
-		CapacityBytes: sizeMiB * 1024 * 1024,
-		VolumeContext: req.GetParameters(),
-		ContentSource: req.GetVolumeContentSource(),
-	}
-
-	klog.V(5).Info("provisioning volume from SDK node..")
-	poolName := req.GetParameters()["pool_name"]
-	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
-	if err == nil {
-		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-		klog.V(5).Info("volume already exists", vol.GetVolumeId())
-		return &vol, nil
-	}
-
+func prepareCreateVolumeReq(req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
 	distrNdcsStr, ok := req.GetParameters()["distr_ndcs"]
 	if !ok {
 		distrNdcsStr = "1"
@@ -254,7 +233,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
-		LvsName:     poolName,
+		LvsName:     req.GetParameters()["pool_name"],
 		MaxRWIOPS:   req.GetParameters()["qos_rw_iops"],
 		MaxRWmBytes: req.GetParameters()["qos_rw_mbytes"],
 		MaxRmBytes:  req.GetParameters()["qos_r_mbytes"],
@@ -264,8 +243,37 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
 	}
+	return &createVolReq, nil
+}
 
-	volumeID, err = cs.spdkNode.CreateVolume(&createVolReq)
+func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Volume, error) {
+	size := req.GetCapacityRange().GetRequiredBytes()
+	if size == 0 {
+		klog.Warningln("invalid volume size, resize to 1G")
+		size = 1024 * 1024 * 1024
+	}
+	sizeMiB := util.ToMiB(size)
+	vol := csi.Volume{
+		CapacityBytes: sizeMiB * 1024 * 1024,
+		VolumeContext: req.GetParameters(),
+		ContentSource: req.GetVolumeContentSource(),
+	}
+
+	klog.V(5).Info("provisioning volume from SDK node..")
+	poolName := req.GetParameters()["pool_name"]
+	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
+	if err == nil {
+		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+		klog.V(5).Info("volume already exists", vol.GetVolumeId())
+		return &vol, nil
+	}
+
+	createVolReq, err := prepareCreateVolumeReq(req, sizeMiB)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeID, err = cs.spdkNode.CreateVolume(createVolReq)
 	if err != nil {
 		klog.Errorf("error creating simplyBlock volume: %v", err)
 		return nil, err
