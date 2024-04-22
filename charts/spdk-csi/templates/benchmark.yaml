@@ -48,14 +48,6 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: fio-benchmarks-cm
-data:
-    directory: /spdkvol
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: fio-config
 data:
     fio.cfg: |
