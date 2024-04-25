@@ -7,11 +7,11 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
-var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
+var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 
-	ginkgo.Context("Test SPDK CSI ISCSI", func() {
-		ginkgo.It("Test SPDK CSI ISCSI", func() {
+	ginkgo.Context("Test SPDK CSI Dynamic Volume Provisioning", func() {
+		ginkgo.It("CSI driver components should function properly", func() {
 			ginkgo.By("checking controller statefulset is running", func() {
 				err := waitForControllerReady(f.ClientSet, 4*time.Minute)
 				if err != nil {
@@ -25,8 +25,10 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
+		})
 
-			ginkgo.By("create a PVC and verify dynamic PV", func() {
+		ginkgo.It("Test the flow for Dynamic volume provisioning", func() {
+			ginkgo.By("creating a PVC and verify dynamic PV", func() {
 				deployPVC()
 				defer deletePVC()
 				err := verifyDynamicPVCreation(f.ClientSet, "spdkcsi-pvc", 5*time.Minute)
@@ -35,7 +37,7 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 				}
 			})
 
-			ginkgo.By("create a PVC and bind it to a pod", func() {
+			ginkgo.By("creating a PVC and binding it to a pod", func() {
 				deployPVC()
 				deployTestPod()
 				defer deletePVCAndTestPod()
@@ -44,8 +46,10 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
+		})
 
-			ginkgo.By("create a Cache PVC and bind it to a cache pod", func() {
+		ginkgo.It("Test the flow for Caching nodes", func() {
+			ginkgo.By("creating a caching PVC and bind it to a pod", func() {
 				deployCachePVC()
 				deployCacheTestPod()
 				defer deleteCachePVCAndCacheTestPod()
@@ -70,8 +74,9 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
+		})
 
-			///////////////////////////////////////
+		ginkgo.It("Test multiple PVCs", func() {
 			ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
 				deployMultiPvcs()
 				deployTestPodWithMultiPvcs()
@@ -91,26 +96,11 @@ var _ = ginkgo.Describe("SPDKCSI-ISCSI", func() {
 					ginkgo.Fail(err.Error())
 				}
 
-				/* 				ginkgo.By("restart csi driver", func() {
-					//rolloutNodeServer()
-					//rolloutControllerServer()
-					err = waitForNodeServerReady(f.ClientSet, 3*time.Minute)
-					if err != nil {
-						ginkgo.Fail(err.Error())
-					}
-					err = waitForControllerReady(f.ClientSet, 4*time.Minute)
-					if err != nil {
-						ginkgo.Fail(err.Error())
-					}
-				}) */
-
 				err = checkDataPersistForMultiPvcs(f)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
 			})
-
-			//////////////////////////////////////
 		})
 	})
 })
