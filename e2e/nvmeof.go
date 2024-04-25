@@ -11,9 +11,7 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 
 	ginkgo.Context("Test SPDK CSI Dynamic Volume Provisioning", func() {
-
 		ginkgo.It("CSI driver components should function properly", func() {
-
 			ginkgo.By("checking controller statefulset is running", func() {
 				err := waitForControllerReady(f.ClientSet, 4*time.Minute)
 				if err != nil {
@@ -27,11 +25,9 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
-
 		})
 
 		ginkgo.It("Test the flow for Dynamic volume provisioning", func() {
-
 			ginkgo.By("creating a PVC and verify dynamic PV", func() {
 				deployPVC()
 				defer deletePVC()
@@ -50,11 +46,9 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
-
 		})
 
 		ginkgo.It("Test the flow for Caching nodes", func() {
-
 			ginkgo.By("creating a caching PVC and bind it to a pod", func() {
 				deployCachePVC()
 				deployCacheTestPod()
@@ -80,11 +74,9 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
-
 		})
 
 		ginkgo.It("Test multiple PVCs", func() {
-
 			ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
 				deployMultiPvcs()
 				deployTestPodWithMultiPvcs()
@@ -109,7 +101,6 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 					ginkgo.Fail(err.Error())
 				}
 			})
-
 		})
 	})
 })
