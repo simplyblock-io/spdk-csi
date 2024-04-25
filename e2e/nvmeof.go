@@ -53,7 +53,7 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 
 		})
 
-		ginkgo.It("Test the flow for Caching nodes", func () {
+		ginkgo.It("Test the flow for Caching nodes", func() {
 
 			ginkgo.By("creating a caching PVC and bind it to a pod", func() {
 				deployCachePVC()
@@ -83,7 +83,7 @@ var _ = ginkgo.Describe("SPDKCSI-NVMEOF", func() {
 
 		})
 
-		ginkgo.It("Test multiple PVCs", func () {
+		ginkgo.It("Test multiple PVCs", func() {
 
 			ginkgo.By("create multiple pvcs and a pod with multiple pvcs attached, and check data persistence after the pod is removed and recreated", func() {
 				deployMultiPvcs()
