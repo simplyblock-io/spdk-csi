@@ -32,12 +32,12 @@ const (
 	storageClassPath         = yamlDir + "storageclass.yaml"
 	cachingnodePath          = yamlDir + "caching-node.yaml"
 	jobPath                  = yamlDir + "job.yaml"
-	pvcPath                  = "pvc.yaml"
-	cachepvcPath             = "pvc-cache.yaml"
-	testPodPath              = "testpod.yaml"
-	cachetestPodPath         = "testpod-cache.yaml"
-	multiPvcsPath            = "multi-pvc.yaml"
-	testPodWithMultiPvcsPath = "testpod-multi-pvc.yaml"
+	pvcPath                  = "templates/pvc.yaml"
+	cachepvcPath             = "templates/pvc-cache.yaml"
+	testPodPath              = "templates/testpod.yaml"
+	cachetestPodPath         = "templates/testpod-cache.yaml"
+	multiPvcsPath            = "templates/multi-pvc.yaml"
+	testPodWithMultiPvcsPath = "templates/testpod-multi-pvc.yaml"
 
 	// controller statefulset and node daemonset names
 	controllerStsName = "spdkcsi-controller"
