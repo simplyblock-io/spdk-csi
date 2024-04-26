@@ -234,9 +234,9 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		encryption = true
 	}
 
-	pvcName, pvcNameSelected := req.Parameters["csi.storage.k8s.io/pvc/name"]
-	pvcNamespace, pvcNamespaceSelected := req.Parameters["csi.storage.k8s.io/pvc/namespace"]
-	
+	pvcName, pvcNameSelected := req.GetParameters()["csi.storage.k8s.io/pvc/name"]
+	pvcNamespace, pvcNamespaceSelected := req.GetParameters()["csi.storage.k8s.io/pvc/namespace"]
+
 	var cryptoKey1 string
 	var cryptoKey2 string
 
