@@ -29,6 +29,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/klog"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
 )
@@ -46,12 +50,12 @@ type spdkVolume struct {
 	poolName string
 }
 
-func (cs *controllerServer) CreateVolume(_ context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
+func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	volumeID := req.GetName()
 	unlock := cs.volumeLocks.Lock(volumeID)
 	defer unlock()
 
-	csiVolume, err := cs.createVolume(req)
+	csiVolume, err := cs.createVolume(ctx, req)
 	if err != nil {
 		klog.Errorf("failed to create volume, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
@@ -194,7 +198,7 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 	return &csi.DeleteSnapshotResponse{}, nil
 }
 
-func prepareCreateVolumeReq(req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
+func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
 	distrNdcsStr, ok := req.GetParameters()["distr_ndcs"]
 	if !ok {
 		distrNdcsStr = "1"
@@ -230,6 +234,19 @@ func prepareCreateVolumeReq(req *csi.CreateVolumeRequest, sizeMiB int64) (*util.
 		encryption = true
 	}
 
+	pvcName, pvcNameSelected := req.Parameters["csi.storage.k8s.io/pvc/name"]
+	pvcNamespace, pvcNamespaceSelected := req.Parameters["csi.storage.k8s.io/pvc/namespace"]
+	
+	var cryptoKey1 string
+	var cryptoKey2 string
+
+	if pvcNameSelected && pvcNamespaceSelected {
+		cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Failed to get crypto keys: %v", err)
+		}
+	}
+
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -242,11 +259,13 @@ func prepareCreateVolumeReq(req *csi.CreateVolumeRequest, sizeMiB int64) (*util.
 		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
+		CryptoKey1:  cryptoKey1,
+		CryptoKey2:  cryptoKey2,
 	}
 	return &createVolReq, nil
 }
 
-func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Volume, error) {
+func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.Volume, error) {
 	size := req.GetCapacityRange().GetRequiredBytes()
 	if size == 0 {
 		klog.Warningln("invalid volume size, resize to 1G")
@@ -268,7 +287,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return &vol, nil
 	}
 
-	createVolReq, err := prepareCreateVolumeReq(req, sizeMiB)
+	createVolReq, err := prepareCreateVolumeReq(ctx, req, sizeMiB)
 	if err != nil {
 		return nil, err
 	}
@@ -538,4 +557,40 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// }
 
 	// return &server, nil
+}
+
+func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey1, cryptoKey2 string, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return "", "", fmt.Errorf("could not get in-cluster config: %w", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return "", "", fmt.Errorf("could not create clientset: %w", err)
+	}
+
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(ctx, pvcName, metav1.GetOptions{})
+	if err != nil {
+		return "", "", fmt.Errorf("could not get PVC %s in namespace %s: %w", pvcName, pvcNamespace, err)
+	}
+
+	secretName := pvc.Annotations["simplybk/secret-name"]
+	secretNamespace := pvc.Annotations["simplybk/secret-namespace"]
+
+	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(ctx, secretName, metav1.GetOptions{})
+	if err != nil {
+		return "", "", fmt.Errorf("could not get secret %s in namespace %s: %w", secretName, secretNamespace, err)
+	}
+
+	key1, ok := secret.Data["crypto_key1"]
+	if !ok {
+		return "", "", fmt.Errorf("crypto_key1 not found in secret %s", secretName)
+	}
+	key2, ok := secret.Data["crypto_key2"]
+	if !ok {
+		return "", "", fmt.Errorf("crypto_key2 not found in secret %s", secretName)
+	}
+
+	return string(key1), string(key2), nil
 }
