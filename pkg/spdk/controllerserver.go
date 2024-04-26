@@ -202,7 +202,7 @@ func getIntParameter(params map[string]string, key string, defaultValue int) (in
 	if valueStr, exists := params[key]; exists {
 		value, err := strconv.Atoi(valueStr)
 		if err != nil {
-			return 0, fmt.Errorf("error converting %s: %v", key, err)
+			return 0, fmt.Errorf("error converting %s: %w", key, err)
 		}
 		return value, nil
 	}
