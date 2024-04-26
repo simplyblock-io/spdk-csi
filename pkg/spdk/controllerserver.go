@@ -198,44 +198,39 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 	return &csi.DeleteSnapshotResponse{}, nil
 }
 
+func getIntParameter(params map[string]string, key string, defaultValue int) (int, error) {
+	if valueStr, exists := params[key]; exists {
+		value, err := strconv.Atoi(valueStr)
+		if err != nil {
+			return 0, fmt.Errorf("error converting %s: %v", key, err)
+		}
+		return value, nil
+	}
+	return defaultValue, nil
+}
+
+func getBoolParameter(params map[string]string, key string) bool {
+	valueStr, exists := params[key]
+	return exists && (valueStr == "true" || valueStr == "True")
+}
+
 func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
-	distrNdcsStr, ok := req.GetParameters()["distr_ndcs"]
-	if !ok {
-		distrNdcsStr = "1"
-	}
+	params := req.GetParameters()
 
-	distrNpcsStr, ok := req.GetParameters()["distr_npcs"]
-	if !ok {
-		distrNpcsStr = "1"
-	}
-
-	distrNdcs, err := strconv.Atoi(distrNdcsStr)
+	distrNdcs, err := getIntParameter(params, "distr_ndcs", 1)
 	if err != nil {
-		klog.Errorf("Error converting distrNdcs: %v", err)
+		return nil, err
+	}
+	distrNpcs, err := getIntParameter(params, "distr_npcs", 1)
+	if err != nil {
 		return nil, err
 	}
 
-	distrNpcs, err := strconv.Atoi(distrNpcsStr)
-	if err != nil {
-		klog.Errorf("Error converting distrNpcs: %v", err)
-		return nil, err
-	}
+	compression := getBoolParameter(params, "compression")
+	encryption := getBoolParameter(params, "encryption")
 
-	var compression bool
-	var encryption bool
-
-	if req.GetParameters()["compression"] == "true" ||
-		req.GetParameters()["compression"] == "True" {
-		compression = true
-	}
-
-	if req.GetParameters()["encryption"] == "true" ||
-		req.GetParameters()["encryption"] == "True" {
-		encryption = true
-	}
-
-	pvcName, pvcNameSelected := req.GetParameters()["csi.storage.k8s.io/pvc/name"]
-	pvcNamespace, pvcNamespaceSelected := req.GetParameters()["csi.storage.k8s.io/pvc/namespace"]
+	pvcName, pvcNameSelected := params["csi.storage.k8s.io/pvc/name"]
+	pvcNamespace, pvcNamespaceSelected := params["csi.storage.k8s.io/pvc/namespace"]
 
 	var cryptoKey1 string
 	var cryptoKey2 string
@@ -250,11 +245,11 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
-		LvsName:     req.GetParameters()["pool_name"],
-		MaxRWIOPS:   req.GetParameters()["qos_rw_iops"],
-		MaxRWmBytes: req.GetParameters()["qos_rw_mbytes"],
-		MaxRmBytes:  req.GetParameters()["qos_r_mbytes"],
-		MaxWmBytes:  req.GetParameters()["qos_w_mbytes"],
+		LvsName:     params["pool_name"],
+		MaxRWIOPS:   params["qos_rw_iops"],
+		MaxRWmBytes: params["qos_rw_mbytes"],
+		MaxRmBytes:  params["qos_r_mbytes"],
+		MaxWmBytes:  params["qos_w_mbytes"],
 		Compression: compression,
 		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
