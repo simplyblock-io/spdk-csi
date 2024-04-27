@@ -247,10 +247,10 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 				return nil, fmt.Errorf("failed to get crypto keys: %w", err)
 			}
 			if cryptoKey1 == "" || cryptoKey2 == "" {
-				return nil, fmt.Errorf("encryption is requested but crypto keys are missing")
+				return nil, errors.New("encryption is requested but crypto keys are missing")
 			}
 		} else {
-			return nil, fmt.Errorf("encryption requested but PVC name or namespace is not provided")
+			return nil, errors.New("encryption requested but PVC name or namespace is not provided")
 		}
 	}
 
