@@ -240,6 +240,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 	var cryptoKey1 string
 	var cryptoKey2 string
 
+	//lint:ignore nestif 
 	if encryption {
 		if pvcNameSelected && pvcNamespaceSelected {
 			cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
