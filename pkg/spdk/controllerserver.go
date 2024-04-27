@@ -38,6 +38,11 @@ import (
 )
 
 // var errVolumeInCreation = status.Error(codes.Internal, "volume in creation")
+const (
+	CSIStorageBaseKey      = "csi.storage.k8s.io/pvc"
+	CSIStorageNameKey      = CSIStorageBaseKey + "/name"
+	CSIStorageNamespaceKey = CSIStorageBaseKey + "/namespace"
+)
 
 type controllerServer struct {
 	*csicommon.DefaultControllerServer
@@ -229,16 +234,23 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 	compression := getBoolParameter(params, "compression")
 	encryption := getBoolParameter(params, "encryption")
 
-	pvcName, pvcNameSelected := params["csi.storage.k8s.io/pvc/name"]
-	pvcNamespace, pvcNamespaceSelected := params["csi.storage.k8s.io/pvc/namespace"]
+	pvcName, pvcNameSelected := params[CSIStorageNameKey]
+	pvcNamespace, pvcNamespaceSelected := params[CSIStorageNamespaceKey]
 
 	var cryptoKey1 string
 	var cryptoKey2 string
 
-	if pvcNameSelected && pvcNamespaceSelected {
-		cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "Failed to get crypto keys: %v", err)
+	if encryption {
+		if pvcNameSelected && pvcNamespaceSelected {
+			cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get crypto keys: %w", err)
+			}
+			if cryptoKey1 == "" || cryptoKey2 == "" {
+				return nil, fmt.Errorf("encryption is requested but crypto keys are missing")
+			}
+		} else {
+			return nil, fmt.Errorf("encryption requested but PVC name or namespace is not provided")
 		}
 	}
 
