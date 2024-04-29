@@ -244,6 +244,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		if pvcNameSelected && pvcNamespaceSelected {
 			cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
 			if err != nil {
+				klog.Errorf("failed to get crypto keys: %v", err)
 				return nil, fmt.Errorf("failed to get crypto keys: %w", err)
 			}
 			if cryptoKey1 == "" || cryptoKey2 == "" {
@@ -569,16 +570,19 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey1, cryptoKey2 string, err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
+		klog.Errorf("failed to get in-cluster config: %v", err)
 		return "", "", fmt.Errorf("could not get in-cluster config: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		klog.Errorf("failed to create clientset: %v", err)
 		return "", "", fmt.Errorf("could not create clientset: %w", err)
 	}
 
 	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(ctx, pvcName, metav1.GetOptions{})
 	if err != nil {
+		klog.Errorf("failed to get PVC %s in namespace %s: %v", pvcName, pvcNamespace, err)
 		return "", "", fmt.Errorf("could not get PVC %s in namespace %s: %w", pvcName, pvcNamespace, err)
 	}
 
@@ -587,6 +591,7 @@ func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey
 
 	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
+		klog.Errorf("failed to get secret %s in namespace %s: %v", secretName, secretNamespace, err)
 		return "", "", fmt.Errorf("could not get secret %s in namespace %s: %w", secretName, secretNamespace, err)
 	}
 
