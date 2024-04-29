@@ -255,7 +255,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		}
 	}
 
-	klog.V(5).Info("encryption keys are: key1=%s, key2=%s", cryptoKey1, cryptoKey2)
+	klog.V(5).Info("encryption key is:", cryptoKey1)
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
