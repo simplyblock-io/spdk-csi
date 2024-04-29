@@ -250,12 +250,12 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 			if cryptoKey1 == "" || cryptoKey2 == "" {
 				return nil, errors.New("encryption is requested but crypto keys are missing")
 			}
-			klog.V(5).Info("encryption keys are: key1=%s, key2=%s", cryptoKey1, cryptoKey2)
 		} else {
 			return nil, errors.New("encryption requested but PVC name or namespace is not provided")
 		}
 	}
 
+	klog.V(5).Info("encryption keys are: key1=%s, key2=%s", cryptoKey1, cryptoKey2)
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
