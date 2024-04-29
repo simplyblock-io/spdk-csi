@@ -31,7 +31,7 @@ spec:
         - "--timeout=30s"
         - "--retry-interval-start=500ms"
         - "--leader-election=false"
-        - "--extra-create-metadata"
+        - "--extra-create-metadata=true"
         - "--feature-gates=Topology=true"
         volumeMounts:
         - name: socket-dir
