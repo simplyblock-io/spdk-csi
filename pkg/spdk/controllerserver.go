@@ -18,6 +18,7 @@ package spdk
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -257,7 +258,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 
 	klog.V(2).Infof("encryption key is: %s", cryptoKey1)
 	klog.V(7).Infof("encryption key is: %s", cryptoKey2)
-	
+
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -602,9 +603,20 @@ func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey
 	if !ok {
 		return "", "", fmt.Errorf("crypto_key1 not found in secret %s", secretName)
 	}
+
+	key1, err = b64.StdEncoding.DecodeString(string(key1))
+	if err != nil {
+		return "", "", fmt.Errorf("error decoding crypto_key1 %w", err)
+	}
+
 	key2, ok := secret.Data["crypto_key2"]
 	if !ok {
 		return "", "", fmt.Errorf("crypto_key2 not found in secret %s", secretName)
+	}
+
+	key2, err = b64.StdEncoding.DecodeString(string(key2))
+	if err != nil {
+		return "", "", fmt.Errorf("error decoding crypto_key2 %w", err)
 	}
 
 	return string(key1), string(key2), nil
