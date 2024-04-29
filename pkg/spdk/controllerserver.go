@@ -267,8 +267,8 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
-		CryptoKey1:  cryptoKey1,
-		CryptoKey2:  cryptoKey2,
+		CryptoKey1:  "7b3695268e2a6611a25ac4b1ee15f27f9bf6ea9783dada66a4a730ebf0492bfd",
+		CryptoKey2:  "78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c",
 	}
 	return &createVolReq, nil
 }
