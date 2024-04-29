@@ -234,8 +234,8 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 	compression := getBoolParameter(params, "compression")
 	encryption := getBoolParameter(params, "encryption")
 
-	pvcName, pvcNameSelected := req.Parameters[CSIStorageNameKey]
-	pvcNamespace, pvcNamespaceSelected := req.Parameters[CSIStorageNamespaceKey]
+	pvcName, pvcNameSelected := params[CSIStorageNameKey]
+	pvcNamespace, pvcNamespaceSelected := params[CSIStorageNamespaceKey]
 
 	var cryptoKey1 string
 	var cryptoKey2 string
