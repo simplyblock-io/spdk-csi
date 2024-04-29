@@ -255,9 +255,6 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		}
 	}
 
-	klog.V(2).Infof("encryption key is: %s", cryptoKey1)
-	klog.V(7).Infof("encryption key is: %s", cryptoKey2)
-
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -606,9 +603,6 @@ func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey
 	if !ok {
 		return "", "", fmt.Errorf("crypto_key2 not found in secret %s", secretName)
 	}
-
-	klog.V(2).Infof("crypto key is: %s", key1)
-	klog.V(7).Infof("crypto key is: %s", key2)
 
 	return strings.TrimSpace(string(key1)), strings.TrimSpace(string(key2)), nil
 }
