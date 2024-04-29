@@ -610,5 +610,5 @@ func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey
 	klog.V(2).Infof("crypto key is: %s", key1)
 	klog.V(7).Infof("crypto key is: %s", key2)
 
-	return string(key1), string(key2), nil
+	return strings.TrimSpace(string(key1)), strings.TrimSpace(string(key2)), nil
 }
