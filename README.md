@@ -335,7 +335,7 @@ helm install spdk-csi ./ \
 
 Simplyblock logical volumes supports encryption at rest by leveraging [crypro bdev](https://spdk.io/doc/bdev.html) module using SPDK Software Accel framework.
 
-The framework internally uses AES_XTS cipher which is used to sequence arbitary length of block data. This type of cipher is standardly used in backup software.
+The framework internally uses AES_XTS cipher which is used to sequence arbitrary length of block data. This type of cipher is standardly used in backup software.
 
 AES_XTS cipher requires 2 keys of length either 16 bytes of 32 bytes. The hex value of the key can be generated using the command.
 
