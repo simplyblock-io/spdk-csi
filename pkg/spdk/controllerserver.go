@@ -29,11 +29,20 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/klog"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
 )
 
 // var errVolumeInCreation = status.Error(codes.Internal, "volume in creation")
+const (
+	CSIStorageBaseKey      = "csi.storage.k8s.io/pvc"
+	CSIStorageNameKey      = CSIStorageBaseKey + "/name"
+	CSIStorageNamespaceKey = CSIStorageBaseKey + "/namespace"
+)
 
 type controllerServer struct {
 	*csicommon.DefaultControllerServer
@@ -46,12 +55,12 @@ type spdkVolume struct {
 	poolName string
 }
 
-func (cs *controllerServer) CreateVolume(_ context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
+func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	volumeID := req.GetName()
 	unlock := cs.volumeLocks.Lock(volumeID)
 	defer unlock()
 
-	csiVolume, err := cs.createVolume(req)
+	csiVolume, err := cs.createVolume(ctx, req)
 	if err != nil {
 		klog.Errorf("failed to create volume, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
@@ -194,59 +203,77 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 	return &csi.DeleteSnapshotResponse{}, nil
 }
 
-func prepareCreateVolumeReq(req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
-	distrNdcsStr, ok := req.GetParameters()["distr_ndcs"]
-	if !ok {
-		distrNdcsStr = "1"
+func getIntParameter(params map[string]string, key string, defaultValue int) (int, error) {
+	if valueStr, exists := params[key]; exists {
+		value, err := strconv.Atoi(valueStr)
+		if err != nil {
+			return 0, fmt.Errorf("error converting %s: %w", key, err)
+		}
+		return value, nil
 	}
+	return defaultValue, nil
+}
 
-	distrNpcsStr, ok := req.GetParameters()["distr_npcs"]
-	if !ok {
-		distrNpcsStr = "1"
-	}
+func getBoolParameter(params map[string]string, key string) bool {
+	valueStr, exists := params[key]
+	return exists && (valueStr == "true" || valueStr == "True")
+}
 
-	distrNdcs, err := strconv.Atoi(distrNdcsStr)
+func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, sizeMiB int64) (*util.CreateLVolData, error) {
+	params := req.GetParameters()
+
+	distrNdcs, err := getIntParameter(params, "distr_ndcs", 1)
 	if err != nil {
-		klog.Errorf("Error converting distrNdcs: %v", err)
+		return nil, err
+	}
+	distrNpcs, err := getIntParameter(params, "distr_npcs", 1)
+	if err != nil {
 		return nil, err
 	}
 
-	distrNpcs, err := strconv.Atoi(distrNpcsStr)
-	if err != nil {
-		klog.Errorf("Error converting distrNpcs: %v", err)
-		return nil, err
-	}
+	compression := getBoolParameter(params, "compression")
+	encryption := getBoolParameter(params, "encryption")
 
-	var compression bool
-	var encryption bool
+	pvcName, pvcNameSelected := params[CSIStorageNameKey]
+	pvcNamespace, pvcNamespaceSelected := params[CSIStorageNamespaceKey]
 
-	if req.GetParameters()["compression"] == "true" ||
-		req.GetParameters()["compression"] == "True" {
-		compression = true
-	}
+	var cryptoKey1 string
+	var cryptoKey2 string
 
-	if req.GetParameters()["encryption"] == "true" ||
-		req.GetParameters()["encryption"] == "True" {
-		encryption = true
+	if encryption {
+		if pvcNameSelected && pvcNamespaceSelected {
+			cryptoKey1, cryptoKey2, err = GetCryptoKeys(ctx, pvcName, pvcNamespace)
+			if err != nil {
+				klog.Errorf("failed to get crypto keys: %v", err)
+				return nil, fmt.Errorf("failed to get crypto keys: %w", err)
+			}
+			if cryptoKey1 == "" || cryptoKey2 == "" {
+				return nil, errors.New("encryption is requested but crypto keys are missing")
+			}
+		} else {
+			return nil, errors.New("encryption requested but PVC name or namespace is not provided")
+		}
 	}
 
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
-		LvsName:     req.GetParameters()["pool_name"],
-		MaxRWIOPS:   req.GetParameters()["qos_rw_iops"],
-		MaxRWmBytes: req.GetParameters()["qos_rw_mbytes"],
-		MaxRmBytes:  req.GetParameters()["qos_r_mbytes"],
-		MaxWmBytes:  req.GetParameters()["qos_w_mbytes"],
+		LvsName:     params["pool_name"],
+		MaxRWIOPS:   params["qos_rw_iops"],
+		MaxRWmBytes: params["qos_rw_mbytes"],
+		MaxRmBytes:  params["qos_r_mbytes"],
+		MaxWmBytes:  params["qos_w_mbytes"],
 		Compression: compression,
 		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
+		CryptoKey1:  cryptoKey1,
+		CryptoKey2:  cryptoKey2,
 	}
 	return &createVolReq, nil
 }
 
-func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Volume, error) {
+func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.Volume, error) {
 	size := req.GetCapacityRange().GetRequiredBytes()
 	if size == 0 {
 		klog.Warningln("invalid volume size, resize to 1G")
@@ -268,7 +295,7 @@ func (cs *controllerServer) createVolume(req *csi.CreateVolumeRequest) (*csi.Vol
 		return &vol, nil
 	}
 
-	createVolReq, err := prepareCreateVolumeReq(req, sizeMiB)
+	createVolReq, err := prepareCreateVolumeReq(ctx, req, sizeMiB)
 	if err != nil {
 		return nil, err
 	}
@@ -538,4 +565,44 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// }
 
 	// return &server, nil
+}
+
+func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey1, cryptoKey2 string, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		klog.Errorf("failed to get in-cluster config: %v", err)
+		return "", "", fmt.Errorf("could not get in-cluster config: %w", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		klog.Errorf("failed to create clientset: %v", err)
+		return "", "", fmt.Errorf("could not create clientset: %w", err)
+	}
+
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(ctx, pvcName, metav1.GetOptions{})
+	if err != nil {
+		klog.Errorf("failed to get PVC %s in namespace %s: %v", pvcName, pvcNamespace, err)
+		return "", "", fmt.Errorf("could not get PVC %s in namespace %s: %w", pvcName, pvcNamespace, err)
+	}
+
+	secretName := pvc.ObjectMeta.Annotations["simplybk/secret-name"]
+	secretNamespace := pvc.ObjectMeta.Annotations["simplybk/secret-namespace"]
+
+	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(ctx, secretName, metav1.GetOptions{})
+	if err != nil {
+		klog.Errorf("failed to get secret %s in namespace %s: %v", secretName, secretNamespace, err)
+		return "", "", fmt.Errorf("could not get secret %s in namespace %s: %w", secretName, secretNamespace, err)
+	}
+
+	key1, ok := secret.Data["crypto_key1"]
+	if !ok {
+		return "", "", fmt.Errorf("crypto_key1 not found in secret %s", secretName)
+	}
+	key2, ok := secret.Data["crypto_key2"]
+	if !ok {
+		return "", "", fmt.Errorf("crypto_key2 not found in secret %s", secretName)
+	}
+
+	return strings.TrimSpace(string(key1)), strings.TrimSpace(string(key2)), nil
 }

@@ -6,6 +6,10 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: spdkcsi-pvc
+  namespace: default
+  annotations:
+    simplybk/secret-name: simplyblock-pvc-keys
+    simplybk/secret-namespace: default
 spec:
   accessModes:
   - ReadWriteOnce
