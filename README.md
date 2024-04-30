@@ -355,7 +355,7 @@ data:
   crypto_key1: 7b3695268e2a6611a25ac4b1ee15f27f9bf6ea9783dada66a4a730ebf0492bfd
   crypto_key2: 78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c
 ```
-Then create a encryption parameter of the storageclass to `True`
+Then set the encryption parameter of the storageclass to `True`
 ```
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
