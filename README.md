@@ -343,7 +343,12 @@ for example to generate a 32 byte key
 ```
 openssl rand -hex 32
 ```
+encode the generated 32 byte key
+```
+echo -n '7b3695268e2a6611a25ac4b1ee15f27f9bf6ea9783dada66a4a730ebf0492bfd' | base64
 
+echo -n '78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c' | base64
+```
 After the keys are generated, an encrypted pvc can created by passing the generated keys `crypto_key1` and `crypto_key2` secret data
 ```
 apiVersion: v1
@@ -352,8 +357,8 @@ metadata:
   name: simplyblock-pvc-keys
   namespace: default
 data:
-  crypto_key1: 7b3695268e2a6611a25ac4b1ee15f27f9bf6ea9783dada66a4a730ebf0492bfd
-  crypto_key2: 78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c
+  crypto_key1: N2IzNjk1MjY4ZTJhNjYxMWEyNWFjNGIxZWUxNWYyN2Y5YmY2ZWE5NzgzZGFkYTY2YTRhNzMwZWJmMDQ5MmJmZA==
+  crypto_key2: Nzg1MDU2MzZjODEzM2Q5YmU0MmUzNDdmODI3ODViODFhODc5Y2Q4MTMzMDQ2ZjhmYzBiMzZmMTdiMDc4YWQwYw==
 ```
 Then set the encryption parameter of the storageclass to `True`
 ```
