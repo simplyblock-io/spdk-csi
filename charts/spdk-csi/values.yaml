@@ -68,8 +68,8 @@ csiSecret:
   simplybk:
     secret: 2BAbQTPEDi4o73VHymg2
   simplybkPvc:
-    crypto_key1: 7b3695268e2a6611a25ac4b1ee15f27f9bf6ea9783dada66a4a730ebf0492bfd
-    crypto_key2: 78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c
+    crypto_key1: N2IzNjk1MjY4ZTJhNjYxMWEyNWFjNGIxZWUxNWYyN2Y5YmY2ZWE5NzgzZGFkYTY2YTRhNzMwZWJmMDQ5MmJmZA==
+    crypto_key2: Nzg1MDU2MzZjODEzM2Q5YmU0MmUzNDdmODI3ODViODFhODc5Y2Q4MTMzMDQ2ZjhmYzBiMzZmMTdiMDc4YWQwYw==
 
 logicalVolume:
   pool_name: testing1
