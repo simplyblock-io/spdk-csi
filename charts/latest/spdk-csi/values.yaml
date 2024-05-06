@@ -31,6 +31,10 @@ image:
     repository: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller
     tag: v0.10.0
     pullPolicy: Always
+  simplyblock:
+    repository: simplyblock/simplyblock
+    tag: dev
+    pullPolicy: Always
 serviceAccount:
   # Specifies whether a serviceAccount should be created
   create: true

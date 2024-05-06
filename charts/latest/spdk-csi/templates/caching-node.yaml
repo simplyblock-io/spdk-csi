@@ -55,7 +55,7 @@ spec:
       hostNetwork: true
       containers:
       - name: c-node-api-container
-        image: simplyblock/simplyblock:dev
+        image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
         imagePullPolicy: "Always"
         command: ["python", "simplyblock_web/caching_node_app_k8s.py"]
         env:
