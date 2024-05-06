@@ -25,6 +25,7 @@ data:
   add_cn_script.py: |
     from kubernetes import client, config
     import json, os, requests
+    from time import sleep
 
     config.load_incluster_config()
 
@@ -32,6 +33,7 @@ data:
     cluster_secret = secret['simplybk']['secret']
 
     cluster_config = json.loads(os.getenv("CLUSTER_CONFIG"))
+    namespace = os.getenv("NAMESPACE", "default")
     cluster_uuid = cluster_config['simplybk']['uuid']
     cluster_ip = cluster_config['simplybk']['ip']
 
@@ -42,9 +44,9 @@ data:
     print(f"found len(pods.items) pods with label: app=caching-node")
     for pod in pods.items:
         node_ip = pod.status.pod_ip
-        print(f"adding caching node: {node_ip}")
+        print(f"adding caching node: {node_ip} in namespace: {namespace}")
 
-        url = f"http://{cluster_ip}/cachingnode/"
+        url = f"{cluster_ip}/cachingnode/"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"{cluster_uuid} {cluster_secret}"
@@ -53,16 +55,24 @@ data:
             "cluster_id": cluster_uuid,
             "node_ip": f"{node_ip}:5000",
             "iface_name": "eth0",
-            "spdk_mem": "2g"
+            "spdk_mem": "2g",
+            "namespace": namespace
         })
 
-        response = requests.post(url, headers=headers, data=data)
-        if response.status_code == 200:
-            print("Caching node added successfully.")
-        else:
-            print("Failed to add caching node.")
-            print(response.text)
-            exit(1)
+        requests.post(url, headers=headers, data=data)
+        url = f"{cluster_ip}/cachingnode/"
+
+        for i in range(12):
+          response = requests.get(url, headers=headers)
+          if response.status_code != 200:
+            print(f"failed to list caching nodes: response: {response.text}. response code: {response.status_code}")
+            sleep(10)
+          else:
+            for result in response.json()['results']:
+              if result['mgmt_ip'] == node_ip and result['status'] == "online":
+                print(f"successfully added caching node: {node_ip}")
+                break
+            sleep(10)
 
 ---
 apiVersion: v1
@@ -82,7 +92,7 @@ data:
     hostname = os.getenv('HOSTNAME')
     hostname = hostname.split(".")[0]
 
-    url = f'http://{cluster_ip}/cachingnode/recreate/{hostname}'
+    url = f'{cluster_ip}/cachingnode/recreate/{hostname}'
     headers = {
         'Authorization': f'{cluster_uuid} {cluster_secret}'
     }

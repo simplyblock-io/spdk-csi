@@ -4,13 +4,13 @@
 ---
 apiVersion: v1
 appVersion: latest
-description: CSI SPDK Driver for Kubernetes
+description: SimplyBlock CSI Driver for Kubernetes
 name: spdk-csi
-version: 0.1
+version: "0.1"
 keywords:
 - spdk
 - csi
 - spdk-csi
-home: https://github.com/spdk/spdk-csi
+home: https://github.com/simplyblock-io/spdk-csi
 sources:
-- https://github.com/spdk/spdk-csi/tree/master/charts/spdk-csi
+- https://github.com/simplyblock-io/spdk-csi/tree/master/charts/spdk-csi

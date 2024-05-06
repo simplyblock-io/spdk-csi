@@ -33,7 +33,7 @@ data:
     hostname = os.getenv('HOSTNAME')
     hostname = hostname.split(".")[0]
 
-    url = f'http://{cluster_ip}/cachingnode/recreate/{hostname}'
+    url = f'{cluster_ip}/cachingnode/recreate/{hostname}'
     headers = {
         'Authorization': f'{cluster_uuid} {cluster_secret}'
     }

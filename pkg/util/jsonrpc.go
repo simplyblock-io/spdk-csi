@@ -508,18 +508,13 @@ func (client *rpcClient) callSBCLI(method, path string, args interface{}) (inter
 		}
 	}
 
-	requestURL := fmt.Sprintf("http://%s/%s", client.ClusterIP, path)
+	requestURL := fmt.Sprintf("%s/%s", client.ClusterIP, path)
 	req, err := http.NewRequest(method, requestURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
 	}
 
 	authHeader := fmt.Sprintf("%s %s", client.ClusterID, client.ClusterSecret)
-	// klog.V(5).Infoln("requestURL", requestURL)
-	// klog.V(5).Infoln("client.ClusterIP", client.ClusterIP)
-	// klog.V(5).Infoln("path", path)
-	// klog.V(5).Infoln("authHeader", authHeader)
-	// klog.V(5).Infoln("body", string(data))
 
 	req.Header.Add("Authorization", authHeader)
 	req.Header.Add("cluster", client.ClusterID)
