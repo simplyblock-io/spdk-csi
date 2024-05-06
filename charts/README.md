@@ -20,8 +20,8 @@ A node can pre-allocate huge pages for multiple sizes.
 ## Install latest CSI Driver via `helm install`
 
 ```console
-cd charts
-helm install spdk-csi ./spdk-csi --namespace spdk-csi
+helm repo add spdk-csi https://raw.githubusercontent.com/simplyblock-io/spdk-csi/master/charts
+helm install spdk-csi spdk-csi/spdk-csi --namespace spdk-csi
 ```
 
 ## After installation succeeds, you can get a status of Chart
