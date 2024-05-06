@@ -192,4 +192,5 @@ linters:
   - noctx
   - godot
   - ginkgolinter
+  - nestif
   fast: false

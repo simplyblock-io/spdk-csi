@@ -191,6 +191,7 @@ func (client *rpcClient) lvStores() ([]LvStore, error) {
 func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
 	var lvolID string
 	klog.V(5).Info("params", params)
+
 	out, err := client.callSBCLI("POST", "/lvol", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
