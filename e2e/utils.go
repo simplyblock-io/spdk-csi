@@ -17,9 +17,7 @@ import (
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
 )
 
-var (
-	namespace string
-)
+var nameSpace string
 
 const (
 
@@ -53,9 +51,9 @@ const (
 var ctx = context.TODO()
 
 func init() {
-	namespace = os.Getenv("CSI_NAMESPACE")
-	if namespace == "" {
-		namespace = "default"
+	nameSpace = os.Getenv("CSI_NAMESPACE")
+	if nameSpace == "" {
+		nameSpace = "default"
 	}
 }
 
