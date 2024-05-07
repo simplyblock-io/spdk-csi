@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -16,8 +17,9 @@ import (
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
 )
 
+var nameSpace string
+
 const (
-	nameSpace = "default"
 
 	// deployment yaml files
 	yamlDir                  = "../deploy/kubernetes/"
@@ -47,6 +49,13 @@ const (
 )
 
 var ctx = context.TODO()
+
+func init() {
+	nameSpace = os.Getenv("CSI_NAMESPACE")
+	if nameSpace == "" {
+		nameSpace = "default"
+	}
+}
 
 func deployTestPod() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodPath)
@@ -293,7 +302,6 @@ func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
 	return nil
 }
 
-//nolint:unparam // Currently, "ns" always receives "nameSpace", skip this linter checking
 func execCommandInPod(f *framework.Framework, c, ns string, opt *metav1.ListOptions) (stdOut, stdErr string) {
 	podPot := getCommandInPodOpts(f, c, ns, opt)
 	stdOut, stdErr, err := f.ExecWithOptions(podPot)
