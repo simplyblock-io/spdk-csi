@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -16,8 +17,11 @@ import (
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
 )
 
+var (
+	namespace string
+)
+
 const (
-	nameSpace = "default"
 
 	// deployment yaml files
 	yamlDir                  = "../deploy/kubernetes/"
@@ -47,6 +51,13 @@ const (
 )
 
 var ctx = context.TODO()
+
+func init() {
+	namespace = os.Getenv("CSI_NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
+}
 
 func deployTestPod() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodPath)
