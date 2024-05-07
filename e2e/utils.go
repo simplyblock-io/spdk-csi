@@ -302,7 +302,6 @@ func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
 	return nil
 }
 
-//nolint:unparam // Currently, "ns" always receives "nameSpace", skip this linter checking
 func execCommandInPod(f *framework.Framework, c, ns string, opt *metav1.ListOptions) (stdOut, stdErr string) {
 	podPot := getCommandInPodOpts(f, c, ns, opt)
 	stdOut, stdErr, err := f.ExecWithOptions(podPot)
