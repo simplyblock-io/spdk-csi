@@ -33,7 +33,7 @@ image:
     pullPolicy: Always
   simplyblock:
     repository: simplyblock/simplyblock
-    tag: dev
+    tag: release_v1
     pullPolicy: Always
 serviceAccount:
   # Specifies whether a serviceAccount should be created
