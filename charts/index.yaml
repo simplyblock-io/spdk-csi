@@ -5,7 +5,7 @@ entries:
     appVersion: v0.1.0
     created: "2024-01-16T12:54:43.811609006Z"
     description: SPDK CSI Driver for SimplyBLock
-    digest: 76318db925481599962d59f8c5962bf0103e315d7e7da12638316b8cdea6f513
+    digest: 72152d66d4368a94e55a3fbd675aac95aa6aeb916b4d3c40c205106cfefe3cd8
     name: spdk-csi
     urls:
     - https://github.com/simplyblock-io/spdk-csi/raw/master/charts/v0.1.0/spdk-csi-v0.1.0.tgz
