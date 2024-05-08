@@ -35,7 +35,7 @@ helm install -n spdk-csi --create-namespace spdk-csi spdk-csi/spdk-csi \
 ## After installation succeeds, you can get a status of Chart
 
 ```console
-helm status "spdk-csi"
+helm status "spdk-csi" --namespace "spdk-csi"
 ```
 
 ## Delete Chart
