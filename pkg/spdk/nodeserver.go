@@ -319,6 +319,10 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	}
 
 	fsType := req.GetVolumeCapability().GetMount().GetFsType()
+	// if fsType is not specified, use ext4 as default
+	if fsType == "" {
+		fsType = "ext4"
+	}
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
 	switch req.GetVolumeCapability().GetAccessMode().GetMode() {
