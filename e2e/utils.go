@@ -458,7 +458,6 @@ func waitForPodRunning(ctx context.Context, c kubernetes.Interface, namespace, p
 }
 
 func createSimplePod(c kubernetes.Interface, nameSpace, podName, pvcClaimName string) error {
-	fmt.Println("Creating the pod spdk-csi-pod5")
 	volumeName := "spdk-csi-vol"
 	_, err := c.CoreV1().Pods(nameSpace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -522,6 +521,7 @@ func createPVC(c kubernetes.Interface, nameSpace, pvcName, storageClassName stri
 func createFioWorkloadPod(c kubernetes.Interface, nameSpace, podName, configMapName, pvcClaimName string) error {
 	// create a pod with the storage class
 	// RUN fio workload on this pod
+	volumeName := "spdk-csi-vol"
 	_, err := c.CoreV1().Pods(nameSpace).Create(ctx, &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: podName,
@@ -537,7 +537,7 @@ func createFioWorkloadPod(c kubernetes.Interface, nameSpace, podName, configMapN
 					},
 					VolumeMounts: []corev1.VolumeMount{
 						{
-							Name:      "spdk-csi-vol",
+							Name:      volumeName,
 							MountPath: "/spdkvol",
 						},
 						{
@@ -549,7 +549,7 @@ func createFioWorkloadPod(c kubernetes.Interface, nameSpace, podName, configMapN
 			},
 			Volumes: []corev1.Volume{
 				{
-					Name: "spdk-csi-vol",
+					Name: volumeName,
 					VolumeSource: corev1.VolumeSource{
 						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 							ClaimName: pvcClaimName,
@@ -595,7 +595,7 @@ func createFioConfigMap(c kubernetes.Interface, nameSpace, configMapName string)
 				readwrite=randrw
 				bs=4K,8K,16K,32K,64K,128K,256K
 				nrfiles=4
-				size=5G
+				size=4G
 				verify=md5
 				numjobs=3
 				directory=/spdkvol`,
