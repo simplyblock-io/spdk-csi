@@ -90,7 +90,7 @@ type initiatorNVMf struct {
 type initiatorCache struct {
 	lvol   string
 	model  string
-	client RpcClient
+	client RPCClient
 }
 
 type cachingNodeList struct {

@@ -132,11 +132,11 @@ type BDev struct {
 	} `json:"driver_specific,omitempty"`
 }
 
-type RpcClient struct {
+type RPCClient struct {
 	ClusterID     string
 	ClusterIP     string
 	ClusterSecret string
-	HttpClient    *http.Client
+	HTTPClient    *http.Client
 }
 
 type CSIPoolsResp struct {
@@ -171,11 +171,11 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-func (client *RpcClient) info() string {
+func (client *RPCClient) info() string {
 	return client.ClusterID
 }
 
-func (client *RpcClient) lvStores() ([]LvStore, error) {
+func (client *RPCClient) lvStores() ([]LvStore, error) {
 	var result []CSIPoolsResp
 
 	out, err := client.CallSBCLI("GET", "csi/get_pools", nil)
@@ -201,7 +201,7 @@ func (client *RpcClient) lvStores() ([]LvStore, error) {
 }
 
 // createVolume create a logical volume with simplyblock storage
-func (client *RpcClient) createVolume(params *CreateLVolData) (string, error) {
+func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 	var lvolID string
 	klog.V(5).Info("params", params)
 
@@ -221,7 +221,7 @@ func (client *RpcClient) createVolume(params *CreateLVolData) (string, error) {
 }
 
 // get a volume and return a BDev,, lvsName/lvolName
-func (client *RpcClient) getVolume(lvolID string) (*BDev, error) {
+func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 	out, err := client.CallSBCLI("GET", "csi/get_volume_info/"+lvolID, nil)
 	if err != nil {
@@ -238,7 +238,7 @@ func (client *RpcClient) getVolume(lvolID string) (*BDev, error) {
 	return &result[0], err
 }
 
-func (client *RpcClient) listVolumes() ([]*BDev, error) {
+func (client *RPCClient) listVolumes() ([]*BDev, error) {
 	var results []*BDev
 
 	out, err := client.CallSBCLI("GET", "/lvol", nil)
@@ -253,7 +253,7 @@ func (client *RpcClient) listVolumes() ([]*BDev, error) {
 }
 
 // get a volume and return a BDev
-func (client *RpcClient) getVolumeInfo(lvolID string) (map[string]string, error) {
+func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error) {
 	var result []*LvolConnectResp
 
 	out, err := client.CallSBCLI("GET", "/lvol/connect/"+lvolID, nil)
@@ -296,7 +296,7 @@ func (client *RpcClient) getVolumeInfo(lvolID string) (map[string]string, error)
 	}, nil
 }
 
-func (client *RpcClient) deleteVolume(lvolID string) error {
+func (client *RPCClient) deleteVolume(lvolID string) error {
 	_, err := client.CallSBCLI("DELETE", "csi/delete_lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -305,7 +305,7 @@ func (client *RpcClient) deleteVolume(lvolID string) error {
 	return err
 }
 
-func (client *RpcClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
+func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
 		NewSize: newSize,
@@ -322,7 +322,7 @@ func (client *RpcClient) resizeVolume(lvolID string, newSize int64) (bool, error
 	return result, nil
 }
 
-func (client *RpcClient) listSnapshots() ([]*SnapshotResp, error) {
+func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
 	out, err := client.CallSBCLI("GET", "csi/list_snapshots", nil)
@@ -336,7 +336,7 @@ func (client *RpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	return results, nil
 }
 
-func (client *RpcClient) deleteSnapshot(snapshotID string) error {
+func (client *RPCClient) deleteSnapshot(snapshotID string) error {
 	_, err := client.CallSBCLI("DELETE", "csi/delete_snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
@@ -346,7 +346,7 @@ func (client *RpcClient) deleteSnapshot(snapshotID string) error {
 	return err
 }
 
-func (client *RpcClient) snapshot(lvolID, snapShotName, poolName string) (string, error) {
+func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string, error) {
 	params := struct {
 		LvolName     string `json:"lvol_id"`
 		SnapShotName string `json:"snapshot_name"`
@@ -365,7 +365,7 @@ func (client *RpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 	return snapshotID, err
 }
 
-func (client *RpcClient) CallSBCLI(method, path string, args interface{}) (interface{}, error) {
+func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (interface{}, error) {
 	data := []byte(`{}`)
 	var err error
 
@@ -389,7 +389,7 @@ func (client *RpcClient) CallSBCLI(method, path string, args interface{}) (inter
 	req.Header.Add("secret", client.ClusterSecret)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := client.HttpClient.Do(req)
+	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
 	}

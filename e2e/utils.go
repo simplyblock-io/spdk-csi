@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,16 +11,17 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega" //nolint
-	"github.com/spdk/spdk-csi/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
+
+	"github.com/spdk/spdk-csi/pkg/util"
 )
 
 var nameSpace string
@@ -51,6 +53,7 @@ const (
 	nodeDsName        = "spdkcsi-node"
 	testPodName       = "spdkcsi-test"
 	cachetestPodName  = "spdkcsi-cache-test"
+	PodStatusRunning  = "Running"
 )
 
 var ctx = context.TODO()
@@ -201,7 +204,7 @@ func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 		if err != nil {
 			return false, err
 		}
-		if string(pod.Status.Phase) == "Running" {
+		if string(pod.Status.Phase) == PodStatusRunning {
 			return true, nil
 		}
 		return false, nil
@@ -218,7 +221,7 @@ func waitForCacheTestPodReady(c kubernetes.Interface, timeout time.Duration) err
 		if err != nil {
 			return false, err
 		}
-		if string(pod.Status.Phase) == "Running" {
+		if string(pod.Status.Phase) == PodStatusRunning {
 			return true, nil
 		}
 		return false, nil
@@ -233,7 +236,7 @@ func waitForTestPodGone(c kubernetes.Interface) error {
 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		_, err := c.CoreV1().Pods(nameSpace).Get(ctx, testPodName, metav1.GetOptions{})
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8serrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, err
@@ -250,7 +253,7 @@ func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		_, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8serrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, err
@@ -410,12 +413,12 @@ type StorageNode struct {
 }
 
 func (s SimplyBlock) getStoragenode() (string, error) {
-	var rpcClient util.RpcClient
+	var rpcClient util.RPCClient
 	rpcClient.ClusterID = s.UUID
 	rpcClient.ClusterIP = s.IP
 	rpcClient.ClusterSecret = s.Secret
 
-	rpcClient.HttpClient = &http.Client{Timeout: 10 * time.Second}
+	rpcClient.HTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 	// get the list of storage nodes
 	out, err := rpcClient.CallSBCLI("GET", "/storagenode", nil)
@@ -423,11 +426,16 @@ func (s SimplyBlock) getStoragenode() (string, error) {
 		return "", err
 	}
 
+	// TODO: get a random storage node
 	storageNodes, ok := out.([]interface{})[0].(map[string]interface{})
 	if !ok {
-		return "", err
+		return "", errors.New("failed to get storage node from simplyblock api")
 	}
-	return storageNodes["hostname"].(string), nil
+	sn, ok := storageNodes["hostname"].(string)
+	if !ok {
+		return "", errors.New("failed to get storage node from simplyblock api")
+	}
+	return sn, nil
 }
 
 func waitForPodRunning(ctx context.Context, c kubernetes.Interface, namespace, podName string, timeout time.Duration) error {
@@ -446,13 +454,13 @@ func waitForPodRunning(ctx context.Context, c kubernetes.Interface, namespace, p
 		case <-ticker.C:
 			pod, err := c.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
 			if err != nil {
-				return fmt.Errorf("failed to get pod %s: %v", podName, err)
+				return fmt.Errorf("failed to get pod %s: %w", podName, err)
 			}
-			if pod.Status.Phase == "Running" {
-				return nil // Pod is running
+			if pod.Status.Phase == PodStatusRunning {
+				return nil
 			}
 			// Optionally, handle other statuses, e.g., Failed or Unknown
-			fmt.Printf("Current status of pod %s is %s\n", podName, pod.Status.Phase)
+			// fmt.Printf("Current status of pod %s is %s\n", podName, pod.Status.Phase)
 		}
 	}
 }
@@ -602,7 +610,7 @@ func createFioConfigMap(c kubernetes.Interface, nameSpace, configMapName string)
 		},
 	}, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	return nil
 }
@@ -644,7 +652,10 @@ func getStorageNode(c kubernetes.Interface) (string, error) {
 	}
 	value := cm.Data["config.json"]
 	var creds simplyblockCreds
-	json.Unmarshal([]byte(value), &creds)
+	err = json.Unmarshal([]byte(value), &creds)
+	if err != nil {
+		return "", err
+	}
 
 	// use k8s client go to get the value of the secret spdkcsi-secret
 	secret, err := c.CoreV1().Secrets(nameSpace).Get(ctx, "spdkcsi-secret", metav1.GetOptions{})
@@ -652,7 +663,10 @@ func getStorageNode(c kubernetes.Interface) (string, error) {
 		return "", err
 	}
 	value = string(secret.Data["secret.json"])
-	json.Unmarshal([]byte(value), &creds)
+	err = json.Unmarshal([]byte(value), &creds)
+	if err != nil {
+		return "", err
+	}
 
 	s := creds.Simplyblock
 	sn, err := s.getStoragenode()

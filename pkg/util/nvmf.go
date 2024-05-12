@@ -25,7 +25,7 @@ import (
 )
 
 type NodeNVMf struct {
-	client *RpcClient
+	client *RPCClient
 
 	clusterID     string
 	clusterIP     string
@@ -35,11 +35,11 @@ type NodeNVMf struct {
 // func newNVMf(client *rpcClient, targetType, targetAddr string) *nodeNVMf {
 // config.Simplybk.Uuid, config.Simplybk.Ip, secret.Simplybk.Secret
 func NewNVMf(clusterID, clusterIP, clusterSecret string) *NodeNVMf {
-	client := RpcClient{
+	client := RPCClient{
 		ClusterID:     clusterID,
 		ClusterIP:     clusterIP,
 		ClusterSecret: clusterSecret,
-		HttpClient:    &http.Client{Timeout: cfgRPCTimeoutSeconds * time.Second},
+		HTTPClient:    &http.Client{Timeout: cfgRPCTimeoutSeconds * time.Second},
 	}
 	return &NodeNVMf{
 		client:        &client,
