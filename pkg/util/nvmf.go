@@ -53,9 +53,9 @@ func (node *NodeNVMf) Info() string {
 	return node.client.info()
 }
 
-// func (node *NodeNVMf) LvStores() ([]LvStore, error) {
-// 	return node.client.lvStores()
-// }
+func (node *NodeNVMf) LvStores() ([]LvStore, error) {
+	return node.client.lvStores()
+}
 
 // VolumeInfo returns a string:string map containing information necessary
 // for CSI node(initiator) to connect to this target and identify the disk.

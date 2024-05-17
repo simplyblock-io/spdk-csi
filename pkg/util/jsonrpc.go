@@ -162,30 +162,30 @@ type CSIPoolsResp struct {
 	UUID          string `json:"uuid"`
 }
 
-// func (client *rpcClient) lvStores() ([]LvStore, error) {
-// 	var result []CSIPoolsResp
+func (client *rpcClient) lvStores() ([]LvStore, error) {
+	var result []CSIPoolsResp
 
-// 	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
+	if err != nil {
+		return nil, err
+	}
 
-// 	result, ok := out.([]CSIPoolsResp)
-// 	if !ok {
-// 		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
-// 	}
+	result, ok := out.([]CSIPoolsResp)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
+	}
 
-// 	lvs := make([]LvStore, len(result))
-// 	for i := range result {
-// 		r := &result[i]
-// 		lvs[i].Name = r.Name
-// 		lvs[i].UUID = r.UUID
-// 		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
-// 		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
-// 	}
+	lvs := make([]LvStore, len(result))
+	for i := range result {
+		r := &result[i]
+		lvs[i].Name = r.Name
+		lvs[i].UUID = r.UUID
+		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
+		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
+	}
 
-// 	return lvs, nil
-// }
+	return lvs, nil
+}
 
 // createVolume create a logical volume with simplyblock storage
 func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
