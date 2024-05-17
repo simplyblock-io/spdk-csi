@@ -75,7 +75,7 @@ import (
 // report errors if possible.
 type SpdkNode interface {
 	Info() string
-	LvStores() ([]LvStore, error)
+	//LvStores() ([]LvStore, error)
 	VolumeInfo(lvolID string) (map[string]string, error)
 	CreateVolume(lvolName, lvsName string, sizeMiB int64) (string, error)
 	GetVolume(lvolName, lvsName string) (string, error)
@@ -162,30 +162,30 @@ type CSIPoolsResp struct {
 	UUID          string `json:"uuid"`
 }
 
-func (client *rpcClient) lvStores() ([]LvStore, error) {
-	var result []CSIPoolsResp
+// func (client *rpcClient) lvStores() ([]LvStore, error) {
+// 	var result []CSIPoolsResp
 
-	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
-	if err != nil {
-		return nil, err
-	}
+// 	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	result, ok := out.([]CSIPoolsResp)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
-	}
+// 	result, ok := out.([]CSIPoolsResp)
+// 	if !ok {
+// 		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
+// 	}
 
-	lvs := make([]LvStore, len(result))
-	for i := range result {
-		r := &result[i]
-		lvs[i].Name = r.Name
-		lvs[i].UUID = r.UUID
-		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
-		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
-	}
+// 	lvs := make([]LvStore, len(result))
+// 	for i := range result {
+// 		r := &result[i]
+// 		lvs[i].Name = r.Name
+// 		lvs[i].UUID = r.UUID
+// 		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
+// 		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
+// 	}
 
-	return lvs, nil
-}
+// 	return lvs, nil
+// }
 
 // createVolume create a logical volume with simplyblock storage
 func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
@@ -307,7 +307,7 @@ func (client *rpcClient) getVolumeInfo(lvolID string) (map[string]string, error)
 // }
 
 func (client *rpcClient) deleteVolume(lvolID string) error {
-	_, err := client.callSBCLI("DELETE", "csi/delete_lvol/"+lvolID, nil)
+	_, err := client.callSBCLI("DELETE", "/lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}
@@ -317,16 +317,16 @@ func (client *rpcClient) deleteVolume(lvolID string) error {
 
 type ResizeVolReq struct {
 	LvolID  string `json:"lvol_id"`
-	NewSize int64  `json:"new_size"`
+	NewSize int64  `json:"size"`
 }
 
-func (client *rpcClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
+func (client *rpcClient) resizeVolume(lvolID string, Size int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
-		NewSize: newSize,
+		NewSize: Size,
 	}
 	var result bool
-	out, err := client.callSBCLI("POST", "csi/resize_lvol", &params)
+	out, err := client.callSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -350,7 +350,7 @@ type SnapshotResp struct {
 func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.callSBCLI("GET", "csi/list_snapshots", nil)
+	out, err := client.callSBCLI("GET", "snapshot/list_snapshots", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE", "csi/delete_snapshot/%s"+snapshotID, nil)
+	_, err := client.callSBCLI("DELETE", "snapshot/delete_snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -382,7 +382,7 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.callSBCLI("POST", "csi/create_snapshot", &params)
+	out, err := client.callSBCLI("POST", "snapshot/create_snapshot", &params)
 	snapshotID, ok := out.(string)
 	if !ok {
 		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
