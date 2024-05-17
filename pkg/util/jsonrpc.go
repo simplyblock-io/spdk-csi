@@ -350,7 +350,7 @@ type SnapshotResp struct {
 func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.callSBCLI("GET", "snapshot/list_snapshots", nil)
+	out, err := client.callSBCLI("GET", "/snapshot/list_snapshots", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE", "snapshot/delete_snapshot/%s"+snapshotID, nil)
+	_, err := client.callSBCLI("DELETE", "/snapshot/delete_snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -382,7 +382,7 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.callSBCLI("POST", "snapshot/create_snapshot", &params)
+	out, err := client.callSBCLI("POST", "/snapshot/create_snapshot", &params)
 	snapshotID, ok := out.(string)
 	if !ok {
 		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
