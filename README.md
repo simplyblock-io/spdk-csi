@@ -125,16 +125,10 @@ Follow [deploy/spdk/README](deploy/spdk/README.md) to deploy SPDK storage servic
     ......                                              ......
   ```
 
-2. Install snapshot controller and CRD
+2. Install snapshot CRD
 
   ```bash
-    SNAPSHOT_VERSION="v3.0.3" ./scripts/install-snapshot.sh install
-
-    # Check status
-    $ kubectl get pod snapshot-controller-0
-    NAME                    READY   STATUS    RESTARTS   AGE
-    snapshot-controller-0   1/1     Running   0          6m14s
-  ```
+    ./scripts/install-snapshot.sh install spdk-csi
 
 3. Deploy SPDK-CSI services
   ```bash
