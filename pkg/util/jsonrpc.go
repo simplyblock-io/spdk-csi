@@ -75,7 +75,7 @@ import (
 // report errors if possible.
 type SpdkNode interface {
 	Info() string
-	//LvStores() ([]LvStore, error)
+	LvStores() ([]LvStore, error)
 	VolumeInfo(lvolID string) (map[string]string, error)
 	CreateVolume(lvolName, lvsName string, sizeMiB int64) (string, error)
 	GetVolume(lvolName, lvsName string) (string, error)
@@ -320,10 +320,10 @@ type ResizeVolReq struct {
 	NewSize int64  `json:"size"`
 }
 
-func (client *rpcClient) resizeVolume(lvolID string, Size int64) (bool, error) {
+func (client *rpcClient) resizeVolume(lvolID string, size int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
-		NewSize: Size,
+		NewSize: size,
 	}
 	var result bool
 	out, err := client.callSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
