@@ -165,7 +165,7 @@ type CSIPoolsResp struct {
 func (client *rpcClient) lvStores() ([]LvStore, error) {
 	var result []CSIPoolsResp
 
-	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
+	out, err := client.callSBCLI("GET", "/pool/get_pools", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
-	out, err := client.callSBCLI("GET", "csi/get_volume_info/"+lvolID, nil)
+	out, err := client.callSBCLI("GET", "/lvol/get_volume_info/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
