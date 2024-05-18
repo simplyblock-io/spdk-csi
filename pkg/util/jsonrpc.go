@@ -509,6 +509,7 @@ func (client *rpcClient) callSBCLI(method, path string, args interface{}) (inter
 	}
 
 	requestURL := fmt.Sprintf("%s/%s", client.ClusterIP, path)
+	klog.Infof("Calling Simplyblock API: Method: %s: RequestURL: %s: Body: %s\n", method, requestURL, string(data))
 	req, err := http.NewRequest(method, requestURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
