@@ -2,29 +2,17 @@
 
 ## About
 
-This repo contains SPDK CSI ([Container Storage Interface](https://github.com/container-storage-interface/))
+This repo contains Simplyblock CSI ([Container Storage Interface](https://github.com/container-storage-interface/))
 plugin for Kubernetes.
 
-SPDK CSI plugin brings SPDK to Kubernetes. It provisions SPDK logical volumes on storage node dynamically
-and enables Pods to access SPDK storage backend through NVMe-oF or iSCSI.
+Simplyblock CSI plugin brings high performance block storage to Kubernetes. It provisions SPDK logical volumes on storage node dynamically and enables Pods to access SPDK storage backend through NVMe-oF .
 
-Please see [SPDK CSI Design Document](https://docs.google.com/document/d/1aLi6SkNBp__wjG7YkrZu7DdhoftAquZiWiIOMy3hskY/)
+Most parts of the CSI driver are vey much similar to the original [SPDK CSI Design Document](https://docs.google.com/document/d/1aLi6SkNBp__wjG7YkrZu7DdhoftAquZiWiIOMy3hskY/)
 for detailed introduction.
-
-## Supported platforms
-
-This plugin conforms to [CSI Spec v1.6.0](https://github.com/container-storage-interface/spec/blob/v1.6.0/spec.md).
-It is currently developed and tested only on Kubernetes.
-
-This plugin supports `x86_64` and `Arm64` architectures.
-
-## Project status
-
-Status: **Beta**
 
 ## Prerequisites
 
-SPDK-CSI is currently developed and tested with `Go 1.19`, `Docker 20.10` and `Kubernetes 1.25.0` on `Ubuntu 22.04`.
+SPDK-CSI is currently developed and tested with `Go 1.19`, `Docker 20.10` and `Kubernetes 1.25.0` on `AmazonLinux2`.
 
 Minimal requirement: Go 1.19+, Docker 18.03+ and Kubernetes 1.13+.
 
@@ -353,7 +341,7 @@ After the keys are generated, an encrypted pvc can created by passing the genera
 ```
 apiVersion: v1
 Kind: Secret
-metadata: 
+metadata:
   name: simplyblock-pvc-keys
   namespace: default
 data:
