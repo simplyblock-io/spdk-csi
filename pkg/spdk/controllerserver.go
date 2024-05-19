@@ -143,23 +143,28 @@ func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *c
 
 func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
 	volumeID := req.GetSourceVolumeId()
+	klog.Infof("CreateSnapshot : volumeID=%s", volumeID)
 	unlock := cs.volumeLocks.Lock(volumeID)
 	defer unlock()
 
 	snapshotName := req.GetName()
+	klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
 		klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
 		return nil, err
 	}
 	poolName := req.GetParameters()["pool_name"]
+	klog.Infof("CreateSnapshot : poolName=%s", poolName)
 	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 	if err != nil {
 		klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	volInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
+	klog.Infof("CreateSnapshot : volInfo=%s", volInfo)
 	if err != nil {
 		klog.Errorf("failed to get volume info, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
@@ -177,6 +182,8 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 		CreationTime:   creationTime,
 		ReadyToUse:     true,
 	}
+
+	klog.Infof("CreateSnapshot : snapshotData=%s", snapshotData)
 
 	return &csi.CreateSnapshotResponse{
 		Snapshot: &snapshotData,
