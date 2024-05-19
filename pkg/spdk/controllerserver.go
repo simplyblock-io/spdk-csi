@@ -183,8 +183,6 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 		ReadyToUse:     true,
 	}
 
-	klog.Infof("CreateSnapshot : snapshotData=%s", snapshotData)
-
 	return &csi.CreateSnapshotResponse{
 		Snapshot: &snapshotData,
 	}, nil
