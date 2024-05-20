@@ -52,7 +52,7 @@ If you want to delete the namespace, use this command
 kubectl delete namespace spdk-csi
 ```
 
-## latest chart configuration
+## driver parameters
 
 The following table lists the configurable parameters of the latest Simplyblock CSI Driver chart and default values.
 
@@ -65,9 +65,9 @@ The following table lists the configurable parameters of the latest Simplyblock 
 | `image.csiProvisioner.repository`      | csi-provisioner docker image                                                                                             | `registry.k8s.io/sig-storage/csi-provisioner`                           |
 | `image.csiProvisioner.tag`             | csi-provisioner docker image tag                                                                                         | `v4.0.1`                                                                |
 | `image.csiProvisioner.pullPolicy`      | csi-provisioner image pull policy                                                                                        | `Always`                                                                |
-| `image.csiAttacher.repository`         | csiAttacher docker image                                                                                                 | `gcr.io/k8s-staging-sig-storage/csi-attacher`                           |
-| `image.csiAttacher.tag`                | csiAttacher docker image tag                                                                                             | `v4.5.1`                                                                |
-| `image.csiAttacher.pullPolicy`         | csiAttacher image pull policy                                                                                            | `Always`                                                                |
+| `image.csiAttacher.repository`         | csi-attacher docker image                                                                                                 | `gcr.io/k8s-staging-sig-storage/csi-attacher`                           |
+| `image.csiAttacher.tag`                | csi-attacher docker image tag                                                                                             | `v4.5.1`                                                                |
+| `image.csiAttacher.pullPolicy`         | csi-attacher image pull policy                                                                                            | `Always`                                                                |
 | `image.nodeDriverRegistrar.repository` | csi-node-driver-registrar docker image                                                                                   | `registry.k8s.io/sig-storage/csi-node-driver-registrar`                 |
 | `image.nodeDriverRegistrar.tag`        | csi-node-driver-registrar docker image tag                                                                               | `v2.10.1`                                                               |
 | `image.nodeDriverRegistrar.pullPolicy` | csi-node-driver-registrar image pull policy                                                                              | `Always`                                                                |
@@ -84,12 +84,12 @@ The following table lists the configurable parameters of the latest Simplyblock 
 | `image.simplyblock.tag`                | simplyblock spdk docker image tag                                                                                        | `release_v1`                                                            |
 | `image.simplyblock.pullPolicy`         | csi-snapshotter image pull policy                                                                                        | `Always`                                                                |
 | `serviceAccount.create`                | whether to create service account of spdkcsi-controller                                                                  | `true`                                                                  |
-| `rbac.create`                          | whether create rbac of spdkcsi-controller                                                                                | `true`                                                                  |
+| `rbac.create`                          | whether to create rbac of spdkcsi-controller                                                                                | `true`                                                                  |
 | `controller.replicas`                  | replica number of spdkcsi-controller                                                                                     | `1`                                                                     |
 | `storageClass.create`                  | create storageclass                                                                                                      | `true`                                                                  |  |
 | `externallyManagedConfigmap.create`    | Specifies whether a externallyManagedConfigmap should be created                                                         | `true`                                                                  |  |
 | `externallyManagedSecret.create`       | Specifies whether a externallyManagedSecret should be created                                                            | `true`                                                                  |  |
-| `csiConfig.simplybk.uuid`              | the UUID of the cluster on which the volumes are created                                                                 | ``                                                                      |  |
+| `csiConfig.simplybk.uuid`              | the simplyblock cluster UUID on which the volumes are provisioned                                                                 | ``                                                                      |  |
 | `csiConfig.simplybk.ip`                | the HTTPS API Gateway endpoint connected to the management node                                                          | `https://o5ls1ykzbb.execute-api.eu-central-1.amazonaws.com`             |  |
 | `csiSecret.simplybk.secret`            | the cluster secret associated with the cluster                                                                           | ``                                                                      |  |
 | `csiSecret.simplybkPvc.crypto_key1`    | if an encrypted PVC is to be created, value of `crypto_key1`                                                             | ``                                                                      |  |
