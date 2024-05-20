@@ -4,20 +4,28 @@ set -ex
 
 # This script installs snapshot CRDs
 
-SNAPSHOT_VERSION=${SNAPSHOT_VERSION:-"v7.0.0"}
+SNAPSHOT_VERSION=${SNAPSHOT_VERSION:-"v7.0.1"}
 
 SNAPSHOTTER_URL="https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOT_VERSION}"
+
+# controller
+SNAPSHOT_RBAC="${SNAPSHOTTER_URL}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+SNAPSHOT_CONTROLLER="${SNAPSHOTTER_URL}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
 
 # snapshot CRDs
 SNAPSHOTCLASS="${SNAPSHOTTER_URL}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
 VOLUME_SNAPSHOT_CONTENT="${SNAPSHOTTER_URL}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
 VOLUME_SNAPSHOT="${SNAPSHOTTER_URL}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
 
+
 function install_snapshot_crds() {
     local namespace=$1
     if [ -z "${namespace}" ]; then
         namespace="default"
     fi
+
+    kubectl apply -f "${SNAPSHOT_RBAC}" -n "${namespace}"
+    kubectl apply -f "${SNAPSHOT_CONTROLLER}" -n "${namespace}"
 
     kubectl apply -f "${SNAPSHOTCLASS}" -n "${namespace}"
     kubectl apply -f "${VOLUME_SNAPSHOT_CONTENT}" -n "${namespace}"
