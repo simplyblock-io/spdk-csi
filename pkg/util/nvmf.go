@@ -74,7 +74,7 @@ type CreateLVolData struct {
 	LvsName     string `json:"pool"`
 	Compression bool   `json:"comp"`
 	Encryption  bool   `json:"crypto"`
-	Snapshot    bool   `json:"snap"`
+	Snapshot    bool   `json:"snapshot"`
 	MaxRWIOPS   string `json:"max_rw_iops"`
 	MaxRWmBytes string `json:"max_rw_mbytes"`
 	MaxRmBytes  string `json:"max_r_mbytes"`
