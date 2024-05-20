@@ -58,6 +58,9 @@ spdkdev:
 storageclass:
   create: true
 
+snapshotclass:
+  create: true
+
 controller:
   replicas: 1
 
