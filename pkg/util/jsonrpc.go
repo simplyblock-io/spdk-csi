@@ -210,7 +210,7 @@ func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
 
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
-	var result []BDev
+	var result []*BDev
 	out, err := client.callSBCLI("GET", "/lvol/get_volume_info/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
@@ -219,11 +219,11 @@ func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 		return nil, err
 	}
 
-	result, ok := out.([]BDev)
+	result, ok := out.([]*BDev)
 	if !ok {
 		return nil, fmt.Errorf("failed to convert the response to []BDev type. Interface: %v", out)
 	}
-	return &result[0], err
+	return result[0], err
 }
 
 func (client *rpcClient) listVolumes() ([]*BDev, error) {
