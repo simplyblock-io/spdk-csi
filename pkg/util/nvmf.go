@@ -19,6 +19,7 @@ package util
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"k8s.io/klog"
@@ -109,7 +110,8 @@ func (node *NodeNVMf) GetVolumeSize(lvolID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	size := fmt.Sprintf("%d", lvol.LvolSize)
+
+	size := strconv.FormatInt(lvol.LvolSize, 10)
 	return size, err
 }
 
