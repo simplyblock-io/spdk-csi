@@ -109,7 +109,8 @@ func (node *NodeNVMf) GetVolumeSize(lvolID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(lvol.LvolSize), err
+	size := fmt.Sprintf("%d", lvol.LvolSize)
+	return size, err
 }
 
 func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
