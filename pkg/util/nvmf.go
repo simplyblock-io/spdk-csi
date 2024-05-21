@@ -104,6 +104,14 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
+func (node *NodeNVMf) GetVolumeSize(lvolID string) (string, error) {
+	lvol, err := node.client.getVolume(lvolID)
+	if err != nil {
+		return "", err
+	}
+	return string(lvol.LvolSize), err
+}
+
 func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
 }

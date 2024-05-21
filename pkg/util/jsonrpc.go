@@ -100,6 +100,7 @@ type BDev struct {
 	UUID           string `json:"uuid"`
 	BlockSize      int64  `json:"block_size"`
 	NumBlocks      int64  `json:"num_blocks"`
+	LvolSize       int64  `json:"lvolSize"`
 	DriverSpecific *struct {
 		Lvol struct {
 			LvolStoreUUID string `json:"lvol_store_uuid"`

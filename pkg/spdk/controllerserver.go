@@ -163,15 +163,15 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	volInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
-	klog.Infof("CreateSnapshot : volInfo=%s", volInfo)
+	volSize, err := cs.spdkNode.GetVolumeSize(spdkVol.lvolID)
+	klog.Infof("CreateSnapshot : volSize=%s", volSize)
 	if err != nil {
 		klog.Errorf("failed to get volume info, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	size, err := strconv.ParseInt(volInfo["size"], 10, 64)
+	size, err := strconv.ParseInt(volSize, 10, 64)
 	if err != nil {
-		klog.Errorf("failed to parse volume size, size: %s err: %v", volInfo["size"], err)
+		klog.Errorf("failed to parse volume size, size: %s err: %v", volSize, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	creationTime := timestamppb.Now()
