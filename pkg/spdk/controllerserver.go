@@ -313,7 +313,7 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 		return nil, err
 	}
 	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-	klog.V(5).Info("successfully created volume from SimplyBlock with Volume ID: ", vol.GetVolumeId())
+	klog.V(5).Info("successfully created volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
 
 	return &vol, nil
 }
