@@ -1,4 +1,4 @@
-# Simplyblock CSI Driver from Kubernetes
+# Simplyblock CSI Driver for Kubernetes
 
 This repo contains Simplyblock CSI ([Container Storage Interface](https://github.com/container-storage-interface/))
 plugin for Kubernetes.
@@ -6,7 +6,6 @@ plugin for Kubernetes.
 Simplyblock CSI plugin brings high performance block storage to Kubernetes. It provisions SPDK logical volumes on storage node dynamically and enables Pods to access SPDK storage backend through NVMe-oF .
 
 Most parts of the CSI driver are vey much similar to the original [SPDK CSI Design Document](https://docs.google.com/document/d/1aLi6SkNBp__wjG7YkrZu7DdhoftAquZiWiIOMy3hskY/)
-for detailed introduction.
 
 ### Project status: Beta
 

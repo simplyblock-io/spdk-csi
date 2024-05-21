@@ -15,7 +15,7 @@ sudo modprobe nvme-tcp
 
 #### the worker nodes should be able to contact simplyblock storage node
 
-Since SPDK uses remove nvme connection, make sure that there is network connectivity between the simplyblock storage node and the kubernetes worker nodes.
+Since SPDK uses remote nvme connection, make sure that there is network connectivity between the simplyblock storage node and the kubernetes worker nodes.
 
 If not, we get errors like this during VolumeStage step.
 
