@@ -92,6 +92,7 @@ logicalVolume:
   qos_rw_mbytes: "0"
   qos_r_mbytes: "0"
   qos_w_mbytes: "0"
+  max_size: "0"
   compression: "False"
   encryption: "False"
   snapshot: "False"

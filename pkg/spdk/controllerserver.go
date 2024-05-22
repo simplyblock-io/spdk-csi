@@ -269,6 +269,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		MaxRWmBytes: params["qos_rw_mbytes"],
 		MaxRmBytes:  params["qos_r_mbytes"],
 		MaxWmBytes:  params["qos_w_mbytes"],
+		MaxSize:     params["max_size"],
 		Compression: compression,
 		Encryption:  encryption,
 		Snapshot:    snapshot,
