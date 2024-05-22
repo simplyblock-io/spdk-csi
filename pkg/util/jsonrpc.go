@@ -218,7 +218,6 @@ func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 		}
 		return nil, err
 	}
-
 	b, err := json.Marshal(out)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal the response: %w", err)
@@ -396,7 +395,6 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 	}
 	var snapshotID string
 	out, err := client.callSBCLI("POST", "/snapshot/create_snapshot", &params)
-
 	if err != nil {
 		return "", err
 	}
