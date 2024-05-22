@@ -223,7 +223,10 @@ func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
-	json.Unmarshal(b, &result)
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return nil, err
+	}
 	return &result[0], err
 }
 
@@ -238,7 +241,10 @@ func (client *rpcClient) listVolumes() ([]*BDev, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
-	json.Unmarshal(b, &results)
+	err = json.Unmarshal(b, &results)
+	if err != nil {
+		return nil, err
+	}
 	return results, nil
 }
 
@@ -361,7 +367,10 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
-	json.Unmarshal(b, &results)
+	err = json.Unmarshal(b, &results)
+	if err != nil {
+		return nil, err
+	}
 	return results, nil
 }
 
@@ -395,7 +404,10 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal the response: %w", err)
 	}
-	json.Unmarshal(b, &snapshotID)
+	err = json.Unmarshal(b, &snapshotID)
+	if err != nil {
+		return "", err
+	}
 	return snapshotID, err
 }
 
