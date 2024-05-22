@@ -80,7 +80,7 @@ type CreateLVolData struct {
 	MaxRWmBytes string `json:"max_rw_mbytes"`
 	MaxRmBytes  string `json:"max_r_mbytes"`
 	MaxWmBytes  string `json:"max_w_mbytes"`
-	MaxSize     string  `json:"max_size"`
+	MaxSize     string `json:"max_size"`
 	DistNdcs    int    `json:"distr_ndcs"`
 	DistNpcs    int    `json:"distr_npcs"`
 	CryptoKey1  string `json:"crypto_key1"`
