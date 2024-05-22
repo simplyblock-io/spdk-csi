@@ -219,10 +219,11 @@ func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 		return nil, err
 	}
 
-	result, ok := out.([]BDev)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []BDev type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
+	json.Unmarshal(b, &result)
 	return &result[0], err
 }
 
@@ -233,10 +234,11 @@ func (client *rpcClient) listVolumes() ([]*BDev, error) {
 	if err != nil {
 		return nil, err
 	}
-	results, ok := out.([]*BDev)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
+	json.Unmarshal(b, &results)
 	return results, nil
 }
 
@@ -355,10 +357,11 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	results, ok := out.([]*SnapshotResp)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
 	}
+	json.Unmarshal(b, &results)
 	return results, nil
 }
 
@@ -384,10 +387,15 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 	}
 	var snapshotID string
 	out, err := client.callSBCLI("POST", "/snapshot/create_snapshot", &params)
-	snapshotID, ok := out.(string)
-	if !ok {
-		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+
+	if err != nil {
+		return "", err
 	}
+	b, err := json.Marshal(out)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	json.Unmarshal(b, &snapshotID)
 	return snapshotID, err
 }
 
