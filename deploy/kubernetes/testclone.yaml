@@ -1,16 +1,17 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: snapshot-clone
+  name: spdkcsi-pvc-clone
 spec:
   storageClassName: spdkcsi-sc
   dataSource:
-    name: spdk-snapshot
-    kind: VolumeSnapshot
-    apiGroup: snapshot.storage.k8s.io
+    name: spdkcsi-pvc
+    kind: PersistentVolumeClaim
+    apiGroup: ""
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-
+    
