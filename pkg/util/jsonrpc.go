@@ -96,11 +96,9 @@ type LvStore struct {
 
 // BDev SPDK block device
 type BDev struct {
-	Name      string `json:"name"`
-	UUID      string `json:"uuid"`
-	BlockSize int64  `json:"block_size"`
-	NumBlocks int64  `json:"num_blocks"`
-	LvolSize  int64  `json:"lvol_size"`
+	Name     string `json:"lvol_name"`
+	UUID     string `json:"uuid"`
+	LvolSize int64  `json:"size"`
 }
 
 // errors deserve special care
@@ -206,7 +204,7 @@ func (client *rpcClient) createVolume(params *CreateLVolData) (string, error) {
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *rpcClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
-	out, err := client.callSBCLI("GET", "/lvol/get_volume_info/"+lvolID, nil)
+	out, err := client.callSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
