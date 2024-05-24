@@ -17,7 +17,7 @@ const (
 var _ = ginko.Describe("CSI Driver tests", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginko.Context("Control Plane: delete second lvol while the first lvol has IO running", func() {
-		ginko.It("if a node has lvol with IO running, adding and deleting an lvol from the same node should work", func() {
+		ginko.It("if a node has lvol with IO running, adding and deleting an new lvol from the same node should work", func() {
 			// get nodes from the cluster and pick a random node
 			// TODO: defer does not work if the tests were called using ctrl-c. Handle this case
 			ginko.By("run a pod with fio and add and delete an lvol from the same node", func() {

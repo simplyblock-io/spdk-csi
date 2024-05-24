@@ -2,6 +2,8 @@
 # Copyright (c) Arm Limited and Contributors
 # Copyright (c) Intel Corporation
 ---
+driverName: csi.spdk.io
+
 image:
   spdkcsi:
     repository: simplyblock/spdkcsi
@@ -9,27 +11,27 @@ image:
     pullPolicy: Always
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
-    tag: v3.5.0
+    tag: v4.0.1
     pullPolicy: Always
   csiAttacher:
     repository: gcr.io/k8s-staging-sig-storage/csi-attacher
-    tag: v3.5.0
+    tag: v4.5.1
     pullPolicy: Always
   nodeDriverRegistrar:
     repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-    tag: v2.8.0
+    tag: v2.10.1
     pullPolicy: Always
   csiSnapshotter:
     repository: registry.k8s.io/sig-storage/csi-snapshotter
-    tag: v6.2.2
+    tag: v7.0.2
     pullPolicy: Always
   csiResizer:
     repository: gcr.io/k8s-staging-sig-storage/csi-resizer
-    tag: v1.10.0
+    tag: v1.10.1
     pullPolicy: Always
   csiHealthMonitor:
     repository: gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller
-    tag: v0.10.0
+    tag: v0.11.0
     pullPolicy: Always
   simplyblock:
     repository: simplyblock/simplyblock
@@ -43,6 +45,12 @@ rbac:
   # Specifies whether RBAC resources should be created
   create: true
 
+controller:
+  replicas: 1
+
+storageclass:
+  create: true
+
 externallyManagedConfigmap:
   # Specifies whether a externallyManagedConfigmap should be created
   create: true
@@ -51,21 +59,11 @@ externallyManagedSecret:
   # Specifies whether a externallyManagedSecret should be created
   create: true
 
-spdkdev:
-  # Specifies whether a spdkdev should be created
-  create: false
-
-storageclass:
-  create: true
-
-controller:
-  replicas: 1
-
 # Configuration for the CSI to connect to the cluster
 csiConfig:
   simplybk:
     uuid: 963c9d0a-4506-43c3-a722-0b7c8b157038
-    ip: 13.58.2.30
+    ip: https://o5ls1ykzbb.execute-api.eu-central-1.amazonaws.com
 
 # Configuration for the csiSecret
 csiSecret:
@@ -86,13 +84,4 @@ logicalVolume:
   distr_ndcs: "1"
   distr_npcs: "1"
 
-spdkdevCreateCommonds:
-  /root/spdk/app/spdk_tgt/spdk_tgt > /tmp/spdk-tgt.log 2>&1 &
-  echo wait 5s... && sleep 5s && cd /root/spdk/scripts &&
-  ./rpc.py bdev_malloc_create -b Malloc0 1024 4096 &&
-  ./rpc.py bdev_lvol_create_lvstore Malloc0 lvs0 &&
-  ./rpc_http_proxy.py 127.0.0.1 9009 spdkcsiuser spdkcsipass
-
-driverName: csi.spdk.io
-
-benchmarks: 2
+benchmarks: 0
