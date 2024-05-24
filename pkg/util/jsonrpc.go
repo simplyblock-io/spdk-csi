@@ -96,16 +96,11 @@ type LvStore struct {
 
 // BDev SPDK block device
 type BDev struct {
-	Name           string `json:"name"`
-	UUID           string `json:"uuid"`
-	BlockSize      int64  `json:"block_size"`
-	NumBlocks      int64  `json:"num_blocks"`
-	LvolSize       int64  `json:"lvol_size"`
-	DriverSpecific *struct {
-		Lvol struct {
-			LvolStoreUUID string `json:"lvol_store_uuid"`
-		} `json:"lvol"`
-	} `json:"driver_specific,omitempty"`
+	Name      string `json:"name"`
+	UUID      string `json:"uuid"`
+	BlockSize int64  `json:"block_size"`
+	NumBlocks int64  `json:"num_blocks"`
+	LvolSize  int64  `json:"lvol_size"`
 }
 
 // errors deserve special care
@@ -358,7 +353,7 @@ type SnapshotResp struct {
 func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.callSBCLI("GET", "/snapshot/list_snapshots", nil)
+	out, err := client.callSBCLI("GET", "/snapshot", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +369,7 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE", "/snapshot/delete_snapshot/%s"+snapshotID, nil)
+	_, err := client.callSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -394,7 +389,7 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.callSBCLI("POST", "/snapshot/create_snapshot", &params)
+	out, err := client.callSBCLI("POST", "/snapshot", &params)
 	if err != nil {
 		return "", err
 	}
