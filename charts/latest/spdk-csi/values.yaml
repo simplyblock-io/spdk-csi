@@ -94,3 +94,5 @@ spdkdevCreateCommonds:
   ./rpc_http_proxy.py 127.0.0.1 9009 spdkcsiuser spdkcsipass
 
 driverName: csi.spdk.io
+
+benchmarks: 2
