@@ -15,7 +15,7 @@ spec:
   resources:
     requests:
       storage: 256Mi
-  storageClassName: spdkcsi-sc
+  storageClassName: spdk-fio-hostid
 
 ---
 kind: Pod

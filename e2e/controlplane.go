@@ -12,6 +12,11 @@ import (
 const (
 	Size5GB          = 5 * 1024 * 1024 * 1024
 	StorageclassName = "spdk-fio-hostid"
+	configMapname    = "fio-config"
+	pvcName1         = "spdk-fio-pvc1"
+	podName1         = "spdk-fio-pod1"
+	pvcName2         = "spdk-fio-pvc2"
+	podName2         = "spdk-fio-pod2"
 )
 
 // TODO: use ctx.Before and ctx.After to cleanup the resources
@@ -19,114 +24,108 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 	f := framework.NewDefaultFramework("spdkcsi")
 	ginko.Context("Control Plane: delete second lvol while the first lvol has IO running", func() {
 		ginko.It("if a node has lvol with IO running, adding and deleting an new lvol from the same node should work", func() {
-			// get nodes from the cluster and pick a random node
-			// TODO: defer does not work if the tests were called using ctrl-c. Handle this case
 			ginko.By("run a pod with fio and add and delete an lvol from the same node", func() {
 				c := f.ClientSet
 				sn, err := getStorageNode(c)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					fmt.Printf("Error when getStorageNode %s \n", err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// create a new storage class
-				// Problem: is this SC causing the issue?
-				// or is the issue with lvol add or delete
+				fmt.Println("creating pvc on storage node: ", sn)
 				err = createstorageClassWithHostID(c, StorageclassName, sn)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					fmt.Printf("error when creating storage class: %s \n", err.Error())
 				}
 
-				// create a configmap
-				configMapname := "fio-config"
 				err = createFioConfigMap(c, nameSpace, configMapname)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					fmt.Printf("Error when creating Configmap: %s \n", err.Error())
 				}
 
-				// create a pvc with the storage class
-				pvcName := "spdk-fio-pvc4"
-				// fmt.Printf("creating pvc: %s \n", pvcName)
-
-				err = createPVC(c, nameSpace, pvcName, StorageclassName, Size5GB)
+				fmt.Printf("creating pvc: %s \n", pvcName1)
+				err = createPVC(c, nameSpace, pvcName1, StorageclassName, Size5GB)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// create a pod with the storage class
-				podName := "spdk-fio-pod4"
-				// fmt.Printf("creating pod: %s \n", podName)
-				err = createFioWorkloadPod(c, nameSpace, podName, configMapname, pvcName)
+				fmt.Printf("creating pod: %s \n", podName1)
+				err = createFioWorkloadPod(c, nameSpace, podName1, configMapname, pvcName1)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
+				// delete the pod, pvc, storageclass and configmap at the end
 				defer func() {
 					err2 := c.CoreV1().ConfigMaps(nameSpace).Delete(ctx, configMapname, metav1.DeleteOptions{})
 					if err2 != nil {
-						fmt.Println(err.Error())
-						// ginko.Fail(err2.Error())
+						fmt.Println("Failed to delete configMap: ", err.Error())
+						ginko.Fail(err2.Error())
 					}
-					err2 = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName, metav1.DeleteOptions{})
+					err2 = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName1, metav1.DeleteOptions{})
 					if err2 != nil {
-						fmt.Println(err.Error())
-						// ginko.Fail(err2.Error())
+						fmt.Println("failed to delete PVC", err.Error())
 					}
-					err2 = c.CoreV1().Pods(nameSpace).Delete(ctx, podName, metav1.DeleteOptions{})
+					err2 = c.CoreV1().Pods(nameSpace).Delete(ctx, podName1, metav1.DeleteOptions{})
 					if err2 != nil {
-						fmt.Println(err.Error())
-						// ginko.Fail(err2.Error())
+						fmt.Println("Failed to delete pod", err.Error())
+					}
+					err2 = c.StorageV1().StorageClasses().Delete(ctx, StorageclassName, metav1.DeleteOptions{})
+					if err2 != nil {
+						fmt.Println("Failed to delete storageclass", err.Error())
 					}
 				}()
 
-				// add and delete an lvol from the same node
-				// TODO: cleanup the variables
-				pvcName2 := "spdk-fio-pvc5"
-				podName2 := "spdk-fio-pod5"
-
-				// fmt.Printf("creating pvc: %s \n", pvcName2)
+				fmt.Printf("creating pvc %s on storage node: %s \n", pvcName2, sn)
 				err = createPVC(c, nameSpace, pvcName2, StorageclassName, Size5GB)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// fmt.Printf("creating pod: %s \n", podName2)
+				fmt.Printf("creating pod: %s \n", podName2)
 				err = createSimplePod(c, nameSpace, podName2, pvcName2)
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// fmt.Printf("deleting pod: %s \n", podName2)
+				fmt.Printf("deleting pod: %s \n", podName2)
 				err = c.CoreV1().Pods(nameSpace).Delete(ctx, podName2, metav1.DeleteOptions{})
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// fmt.Printf("deleting pvc: %s \n", pvcName2)
+				fmt.Printf("deleting pvc: %s \n", pvcName2)
 				err = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName2, metav1.DeleteOptions{})
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
 
-				// fmt.Println("waiting for 10 secs")
+				// delete the pvc and pod at the end
+				// doing this just in case of any failure
+				defer func() {
+					err2 := c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName2, metav1.DeleteOptions{})
+					if err2 != nil {
+						fmt.Println("failed to delete PVC", err.Error())
+					}
+					err = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName2, metav1.DeleteOptions{})
+					if err != nil {
+						fmt.Println("failed to pod", err.Error())
+					}
+				}()
+
+				fmt.Println("waiting for 10 secs")
 				time.Sleep(10 * time.Second)
-				// fio should not stop on spd-csi-pod4
-				// fmt.Println("checking for pod spdk-fio-pod4 status")
-				_, err = c.CoreV1().Pods(nameSpace).Get(ctx, podName, metav1.GetOptions{})
+				// fio should not stop on
+				pod, err := c.CoreV1().Pods(nameSpace).Get(ctx, podName1, metav1.GetOptions{})
 				if err != nil {
-					fmt.Println(err.Error())
-					// ginko.Fail(err.Error())
+					ginko.Fail(err.Error())
 				}
-				// fixme: this should be in running mode
-				// fmt.Printf("pod status: %s \n", pod.Status.Phase)
+
+				if pod.Status.Phase != "Running" {
+					ginko.Fail("pod is not running")
+				} else {
+					fmt.Println("pod is still running")
+				}
 			})
 		})
 	})

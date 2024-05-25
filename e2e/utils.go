@@ -580,7 +580,7 @@ func createFioWorkloadPod(c kubernetes.Interface, nameSpace, podName, configMapN
 	if err != nil {
 		return err
 	}
-	err = waitForPodRunning(ctx, c, nameSpace, podName, 5*time.Minute)
+	err = waitForPodRunning(ctx, c, nameSpace, podName, 1*time.Minute)
 	if err != nil {
 		return err
 	}
