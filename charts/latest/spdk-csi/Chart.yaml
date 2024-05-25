@@ -4,9 +4,9 @@
 ---
 apiVersion: v1
 appVersion: latest
-description: SimplyBlock CSI Driver for Kubernetes
+description: Simplyblock CSI Driver for Kubernetes
 name: spdk-csi
-version: "0.1"
+version: "v0.1.1"
 keywords:
 - spdk
 - csi
