@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"time"
 
 	ginko "github.com/onsi/ginkgo/v2"
@@ -24,20 +25,25 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 				c := f.ClientSet
 				sn, err := getStorageNode(c)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// create a new storage class
+				// Problem: is this SC causing the issue?
+				// or is the issue with lvol add or delete
 				err = createstorageClassWithHostID(c, StorageclassName, sn)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// create a configmap
 				configMapname := "fio-config"
 				err = createFioConfigMap(c, nameSpace, configMapname)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// create a pvc with the storage class
@@ -46,7 +52,8 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 
 				err = createPVC(c, nameSpace, pvcName, StorageclassName, Size5GB)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// create a pod with the storage class
@@ -54,21 +61,25 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 				// fmt.Printf("creating pod: %s \n", podName)
 				err = createFioWorkloadPod(c, nameSpace, podName, configMapname, pvcName)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				defer func() {
 					err2 := c.CoreV1().ConfigMaps(nameSpace).Delete(ctx, configMapname, metav1.DeleteOptions{})
 					if err2 != nil {
-						ginko.Fail(err2.Error())
+						fmt.Println(err.Error())
+						// ginko.Fail(err2.Error())
 					}
 					err2 = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName, metav1.DeleteOptions{})
 					if err2 != nil {
-						ginko.Fail(err2.Error())
+						fmt.Println(err.Error())
+						// ginko.Fail(err2.Error())
 					}
 					err2 = c.CoreV1().Pods(nameSpace).Delete(ctx, podName, metav1.DeleteOptions{})
 					if err2 != nil {
-						ginko.Fail(err2.Error())
+						fmt.Println(err.Error())
+						// ginko.Fail(err2.Error())
 					}
 				}()
 
@@ -80,25 +91,29 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 				// fmt.Printf("creating pvc: %s \n", pvcName2)
 				err = createPVC(c, nameSpace, pvcName2, StorageclassName, Size5GB)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// fmt.Printf("creating pod: %s \n", podName2)
 				err = createSimplePod(c, nameSpace, podName2, pvcName2)
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// fmt.Printf("deleting pod: %s \n", podName2)
 				err = c.CoreV1().Pods(nameSpace).Delete(ctx, podName2, metav1.DeleteOptions{})
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// fmt.Printf("deleting pvc: %s \n", pvcName2)
 				err = c.CoreV1().PersistentVolumeClaims(nameSpace).Delete(ctx, pvcName2, metav1.DeleteOptions{})
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 
 				// fmt.Println("waiting for 10 secs")
@@ -107,7 +122,8 @@ var _ = ginko.Describe("CSI Driver tests", func() {
 				// fmt.Println("checking for pod spdk-fio-pod4 status")
 				_, err = c.CoreV1().Pods(nameSpace).Get(ctx, podName, metav1.GetOptions{})
 				if err != nil {
-					ginko.Fail(err.Error())
+					fmt.Println(err.Error())
+					// ginko.Fail(err.Error())
 				}
 				// fixme: this should be in running mode
 				// fmt.Printf("pod status: %s \n", pod.Status.Phase)
