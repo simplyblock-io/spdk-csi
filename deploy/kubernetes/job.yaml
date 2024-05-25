@@ -1,21 +1,21 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pod-listing-role-binding
+  name: simplyblock-pod-listing-role-binding
 subjects:
 - kind: ServiceAccount
   name: caching-node-service-account
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: pod-listing-role
+  name: simplyblock-pod-listing-role
   apiGroup: rbac.authorization.k8s.io
 
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pod-listing-role
+  name: simplyblock-pod-listing-role
 rules:
 - apiGroups: [""]
   resources: ["pods"]
@@ -35,16 +35,9 @@ spec:
   template:
     spec:
       serviceAccountName: caching-node-service-account
-      volumes:
-        - name: script-config
-          configMap:
-            name: add-caching-node-script-cm
       containers:
       - name: add-caching-node
-        image: python:3.10
-        command: ["/bin/sh", "-c"]
-        args:
-          - "pip install kubernetes && python3 /config/add_cn_script.py"
+        image: manoharbrm/add-caching-node-script:latest
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
@@ -56,8 +49,5 @@ spec:
             configMapKeyRef:
               name: spdkcsi-cm
               key: config.json
-        volumeMounts:
-            - name: script-config
-              mountPath: /config
       restartPolicy: Never
   backoffLimit: 4
