@@ -58,40 +58,6 @@ kubectl label nodes ip-10-0-4-118.us-east-2.compute.internal ip-10-0-4-176.us-ea
 ```
 Now the nodes are ready to deploy caching nodes.
 
-
-### Driver deployment
-
-During driver deployment, we will be deploying the caching nodes on all the nodes tagged with `type=cache`
-```
-kubectl apply -f caching-node.yaml
-```
-
-Once the caching nodes agents are deployed, we add the caching node simplyblock cluster
-
-```
-MGMT_IP=3.16.54.133
-CLUSTER_ID=8d4aee39-3c4f-4c4b-8cef-08502327f2a3
-CLUSTER_SECRET=GhbS1fwU8WSiABazTZUb
-
-for node in $(kubectl get pods -l app=caching-node -owide | awk 'NR>1 {print $6}'); do
-	echo "adding caching node: $node"
-
-	curl --location "http://${MGMT_IP}/cachingnode/" \
-		--header "Content-Type: application/json" \
-		--header "Authorization: ${CLUSTER_ID} ${CLUSTER_SECRET}" \
-		--data '{
-		"cluster_id": "'"${CLUSTER_ID}"'",
-		"node_ip": "'"${node}:5000"'",
-		"iface_name": "eth0",
-		"spdk_mem": "4g",
-	}
-	'
-done
-```
-
-These steps are already added to `./deploy.sh` script.
-
-
 ### StorageClass
 
 If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: cache`.
