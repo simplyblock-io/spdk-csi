@@ -41,7 +41,7 @@ data:
     api_instance = client.CoreV1Api()
     pods = api_instance.list_pod_for_all_namespaces(label_selector=label_selector)
 
-    print(f"found len(pods.items) pods with label: app=caching-node")
+    print(f"found {len(pods.items)} pods with label: app=caching-node")
     for pod in pods.items:
         node_ip = pod.status.pod_ip
         print(f"adding caching node: {node_ip} in namespace: {namespace}")
