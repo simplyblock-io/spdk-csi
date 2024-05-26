@@ -46,7 +46,7 @@ spdkcsi:
 
 # static code check, text lint
 # lint: golangci yamllint shellcheck mdl codespell
-lint: golangci 
+lint: golangci
 
 .PHONY: golangci
 golangci: $(GOLANGCI_BIN)
@@ -102,7 +102,7 @@ test: mod-check unit-test
 
 .PHONY: mod-check
 mod-check:
-	@echo === runnng go mod verify
+	@echo === running go mod verify
 	@go mod verify
 
 .PHONY: unit-test
