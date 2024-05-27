@@ -313,9 +313,9 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
-		clonedVolume, err := cs.handleVolumeContentSource(req, poolName, &vol)
-		if err != nil {
-			return nil, err
+		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol)
+		if clonedErr != nil {
+			return nil, clonedErr
 		}
 		if clonedVolume != nil {
 			return clonedVolume, nil
