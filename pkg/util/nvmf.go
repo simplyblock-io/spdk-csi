@@ -26,7 +26,7 @@ import (
 )
 
 type NodeNVMf struct {
-	client *rpcClient
+	client *RPCClient
 
 	clusterID     string
 	clusterIP     string
@@ -36,11 +36,11 @@ type NodeNVMf struct {
 // func newNVMf(client *rpcClient, targetType, targetAddr string) *nodeNVMf {
 // config.Simplybk.Uuid, config.Simplybk.Ip, secret.Simplybk.Secret
 func NewNVMf(clusterID, clusterIP, clusterSecret string) *NodeNVMf {
-	client := rpcClient{
+	client := RPCClient{
 		ClusterID:     clusterID,
 		ClusterIP:     clusterIP,
 		ClusterSecret: clusterSecret,
-		httpClient:    &http.Client{Timeout: cfgRPCTimeoutSeconds * time.Second},
+		HTTPClient:    &http.Client{Timeout: cfgRPCTimeoutSeconds * time.Second},
 	}
 	return &NodeNVMf{
 		client:        &client,
@@ -69,6 +69,7 @@ func (node *NodeNVMf) VolumeInfo(lvolID string) (map[string]string, error) {
 	return lvol, nil
 }
 
+// CreateLVolData is the data structure for creating a logical volume
 type CreateLVolData struct {
 	LvolName    string `json:"name"`
 	Size        string `json:"size"`
@@ -85,6 +86,7 @@ type CreateLVolData struct {
 	DistNpcs    int    `json:"distr_npcs"`
 	CryptoKey1  string `json:"crypto_key1"`
 	CryptoKey2  string `json:"crypto_key2"`
+	HostNode    string `json:"host_id"`
 }
 
 // CreateVolume creates a logical volume and returns volume ID
@@ -120,14 +122,12 @@ func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
 }
 
-// func (node *NodeNVMf) isVolumeCreated(lvolID string) (bool, error) {
-// 	return node.client.isVolumeCreated(lvolID)
-// }
-
+// ResizeVolume resizes a volume
 func (node *NodeNVMf) ResizeVolume(lvolID string, newSize int64) (bool, error) {
 	return node.client.resizeVolume(lvolID, newSize)
 }
 
+// ListSnapshots returns a list of snapshots
 func (node *NodeNVMf) ListSnapshots() ([]*SnapshotResp, error) {
 	return node.client.listSnapshots()
 }
@@ -150,6 +150,7 @@ func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName, poolName string) (str
 	return snapshotID, nil
 }
 
+// DeleteVolume deletes a volume
 func (node *NodeNVMf) DeleteVolume(lvolID string) error {
 	err := node.client.deleteVolume(lvolID)
 	if err != nil {
@@ -159,6 +160,7 @@ func (node *NodeNVMf) DeleteVolume(lvolID string) error {
 	return nil
 }
 
+// DeleteSnapshot deletes a snapshot
 func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 	err := node.client.deleteSnapshot(snapshotID)
 	if err != nil {
@@ -171,46 +173,10 @@ func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 // PublishVolume exports a volume through NVMf target
 func (node *NodeNVMf) PublishVolume(lvolID string) error {
 	_, err := node.client.callSBCLI("GET", "/lvol/publish_volume/"+lvolID, nil)
+
 	if err != nil {
 		return err
 	}
-	// exists, err := node.isVolumeCreated(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
-	// if !exists {
-	// 	return ErrVolumeDeleted
-	// }
-	// published, err := node.isVolumePublished(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
-	// if published {
-	// 	return nil
-	// }
-
-	// err = node.createTransport()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = node.createSubsystem(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// _, err = node.subsystemAddNs(lvolID)
-	// if err != nil {
-	// 	node.deleteSubsystem(lvolID) //nolint:errcheck // we can do few
-	// 	return err
-	// }
-
-	// err = node.subsystemAddListener(lvolID)
-	// if err != nil {
-	// 	node.subsystemRemoveNs(lvolID) //nolint:errcheck // ditto
-	// 	node.deleteSubsystem(lvolID)   //nolint:errcheck // ditto
-	// 	return err
-	// }
 
 	klog.V(5).Infof("volume published: %s", lvolID)
 	return nil
@@ -238,30 +204,7 @@ func (node *NodeNVMf) UnpublishVolume(lvolID string) error {
 	if err != nil {
 		return err
 	}
-	// exists, err := node.isVolumeCreated(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
-	// if !exists {
-	// 	return ErrVolumeDeleted
-	// }
-	// published, err := node.isVolumePublished(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
-	// if !published {
-	// 	// already unpublished
-	// 	return nil
-	// }
-	// err = node.subsystemRemoveNs(lvolID)
-	// if err != nil {
-	// 	// we should try deleting subsystem even if we fail here
-	// 	klog.Errorf("failed to remove namespace(nqn=%s): %s", node.getVolumeNqn(lvolID), err)
-	// }
-	// err = node.deleteSubsystem(lvolID)
-	// if err != nil {
-	// 	return err
-	// }
+
 	klog.V(5).Infof("volume unpublished: %s", lvolID)
 	return nil
 }

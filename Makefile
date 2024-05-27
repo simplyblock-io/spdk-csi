@@ -46,7 +46,7 @@ spdkcsi:
 
 # static code check, text lint
 # lint: golangci yamllint shellcheck mdl codespell
-lint: golangci 
+lint: golangci
 
 .PHONY: golangci
 golangci: $(GOLANGCI_BIN)
