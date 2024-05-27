@@ -306,11 +306,12 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
 		volumeSource := req.GetVolumeContentSource()
-		if _, ok := volumeSource.GetType().(*csi.VolumeContentSource_Snapshot); ok {
+		switch volumeSource.GetType().(type) {
+		case *csi.VolumeContentSource_Snapshot:
 			// if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
 			// 	vol.ParentSnapID = snapshot.GetSnapshotId()
 			// }
-		} else if _, ok := volumeSource.GetType().(*csi.VolumeContentSource_Volume); ok {
+		case *csi.VolumeContentSource_Volume:
 			if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
 				srcVolumeID := srcVolume.GetVolumeId()
 
@@ -332,17 +333,17 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 				}
 
 				klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
-				volumeID, cloneErr := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
-				if cloneErr != nil {
-					klog.Errorf("error creating simplyBlock volume: %v", cloneErr)
-					return nil, cloneErr
+				volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+				if err != nil {
+					klog.Errorf("error creating simplyBlock volume: %v", err)
+					return nil, err
 				}
 				vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
 				klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
 
 				return &vol, nil
 			}
-		} else {
+		default:
 			err = status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
 			return nil, err
 		}
