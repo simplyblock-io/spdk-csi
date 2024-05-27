@@ -281,12 +281,12 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 	return &createVolReq, nil
 }
 
-func (cs *controllerServer) getExistingVolume(name, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+func (cs *controllerServer) getExistingVolume(name, poolName string, vol csi.Volume) (*csi.Volume, error) {
 	volumeID, err := cs.spdkNode.GetVolume(name, poolName)
 	if err == nil {
 		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
 		klog.V(5).Info("volume already exists", vol.GetVolumeId())
-		return vol, nil
+		return &vol, nil
 	}
 	return nil, err
 }
@@ -306,14 +306,14 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	klog.V(5).Info("provisioning volume from SDK node..")
 	poolName := req.GetParameters()["pool_name"]
-	existingVolume, err := cs.getExistingVolume(req.GetName(), poolName, &vol)
+	existingVolume, err := cs.getExistingVolume(req.GetName(), poolName, vol)
 	if err == nil {
 		return existingVolume, nil
 	}
 
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
-		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol)
+		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, vol)
 		if clonedErr != nil {
 			return nil, clonedErr
 		}
@@ -595,7 +595,7 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// return &server, nil
 }
 
-func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol csi.Volume) (*csi.Volume, error) {
 	volumeSource := req.GetVolumeContentSource()
 	switch volumeSource.GetType().(type) {
 	case *csi.VolumeContentSource_Snapshot:
@@ -632,7 +632,7 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 			vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
 			klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
 
-			return vol, nil
+			return &vol, nil
 		}
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
