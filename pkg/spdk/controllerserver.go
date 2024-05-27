@@ -599,9 +599,20 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 	volumeSource := req.GetVolumeContentSource()
 	switch volumeSource.GetType().(type) {
 	case *csi.VolumeContentSource_Snapshot:
-		// if snapshot := source.GetSnapshot(); snapshot != nil {
-		// 	vol.ParentSnapID = snapshot.GetSnapshotId()
-		// }
+		if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
+			snapshotID := snapshot.GetSnapshotId()
+			klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+			snapshotName := req.GetName()
+			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+			if err != nil {
+				klog.Errorf("error creating simplyBlock volume: %v", err)
+				return nil, err
+			}
+			vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+			klog.V(5).Info("successfully Restored Snapshot from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+			return vol, nil
+		}
 	case *csi.VolumeContentSource_Volume:
 		if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
 			srcVolumeID := srcVolume.GetVolumeId()
