@@ -173,11 +173,9 @@ func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 // PublishVolume exports a volume through NVMf target
 func (node *NodeNVMf) PublishVolume(lvolID string) error {
 	_, err := node.client.CallSBCLI("GET", "/lvol/publish_volume/"+lvolID, nil)
-
 	if err != nil {
 		return err
 	}
-
 	klog.V(5).Infof("volume published: %s", lvolID)
 	return nil
 }
