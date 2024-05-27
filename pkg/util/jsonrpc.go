@@ -76,8 +76,8 @@ import (
 
 // errors deserve special care
 var (
-	ErrJSONNoSpaceLeft   = errors.New("json: No space left")
-	ErrJSONNoSuchDevice  = errors.New("json: No such device")
+	ErrJSONNoSpaceLeft  = errors.New("json: No space left")
+	ErrJSONNoSuchDevice = errors.New("json: No such device")
 
 	// internal errors
 	ErrVolumeDeleted     = errors.New("volume deleted")
