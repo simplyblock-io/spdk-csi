@@ -78,11 +78,9 @@ import (
 var (
 	ErrJSONNoSpaceLeft   = errors.New("json: No space left")
 	ErrJSONNoSuchDevice  = errors.New("json: No such device")
-	ErrInvalidParameters = errors.New("json: Invalid parameters")
 
 	// internal errors
 	ErrVolumeDeleted     = errors.New("volume deleted")
-	ErrVolumePublished   = errors.New("volume already published")
 	ErrVolumeUnpublished = errors.New("volume not published")
 )
 
@@ -160,10 +158,6 @@ type SnapshotResp struct {
 type ResizeVolReq struct {
 	LvolID  string `json:"lvol_id"`
 	NewSize int64  `json:"new_size"`
-}
-
-type CreateVolResp struct {
-	LVols []string `json:"lvols"`
 }
 
 type Error struct {
