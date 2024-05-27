@@ -111,7 +111,7 @@ func (cache *initiatorCache) Connect() (string, error) {
 	hostname = strings.Split(hostname, ".")[0]
 	klog.Info("hostname: ", hostname)
 
-	out, err := cache.client.CallSBCLI("GET", "/cachingnode", nil)
+	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
 	if err != nil {
 		klog.Error(err)
 		return "", err
@@ -140,7 +140,7 @@ func (cache *initiatorCache) Connect() (string, error) {
 			LvolID: cache.lvol,
 		}
 		klog.Info("connecting caching node: ", cnode.Hostname, " with lvol: ", cache.lvol)
-		resp, err = cache.client.CallSBCLI("PUT", "/cachingnode/connect/"+cnode.UUID, req)
+		resp, err = cache.client.callSBCLI("PUT", "/cachingnode/connect/"+cnode.UUID, req)
 		if err != nil {
 			klog.Error("caching node connect error:", err)
 			return "", err
@@ -176,7 +176,7 @@ func (cache *initiatorCache) Disconnect() error {
 	hostname = strings.Split(hostname, ".")[0]
 	klog.Info("hostname: ", hostname)
 
-	out, err := cache.client.CallSBCLI("GET", "/cachingnode", nil)
+	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
 	if err != nil {
 		klog.Error(err)
 		return err
@@ -202,7 +202,7 @@ func (cache *initiatorCache) Disconnect() error {
 		req := LVolCachingNodeConnect{
 			LvolID: cache.lvol,
 		}
-		resp, err := cache.client.CallSBCLI("PUT", "/cachingnode/disconnect/"+cnode.UUID, req)
+		resp, err := cache.client.callSBCLI("PUT", "/cachingnode/disconnect/"+cnode.UUID, req)
 		if err != nil {
 			klog.Error("caching node disconnect error:", err)
 			return err

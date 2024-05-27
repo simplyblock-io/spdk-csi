@@ -167,7 +167,7 @@ func (client *RPCClient) info() string {
 func (client *RPCClient) lvStores() ([]LvStore, error) {
 	var result []CSIPoolsResp
 
-	out, err := client.CallSBCLI("GET", "/pool/get_pools", nil)
+	out, err := client.callSBCLI("GET", "/pool/get_pools", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 	var lvolID string
 	klog.V(5).Info("params", params)
 
-	out, err := client.CallSBCLI("POST", "/lvol", &params)
+	out, err := client.callSBCLI("POST", "/lvol", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
@@ -213,7 +213,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 
-	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
+	out, err := client.callSBCLI("GET", "/lvol/"+lvolID, nil)
 
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
@@ -235,7 +235,7 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 func (client *RPCClient) listVolumes() ([]*BDev, error) {
 	var results []*BDev
 
-	out, err := client.CallSBCLI("GET", "/lvol", nil)
+	out, err := client.callSBCLI("GET", "/lvol", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func (client *RPCClient) listVolumes() ([]*BDev, error) {
 func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error) {
 	var result []*LvolConnectResp
 
-	out, err := client.CallSBCLI("GET", "/lvol/connect/"+lvolID, nil)
+	out, err := client.callSBCLI("GET", "/lvol/connect/"+lvolID, nil)
 	if err != nil {
 		klog.Error(err)
 		if errorMatches(err, ErrJSONNoSuchDevice) {
@@ -306,7 +306,7 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 // }
 
 func (client *RPCClient) deleteVolume(lvolID string) error {
-	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
+	_, err := client.callSBCLI("DELETE", "/lvol/"+lvolID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -327,7 +327,7 @@ func (client *RPCClient) resizeVolume(lvolID string, size int64) (bool, error) {
 	}
 	var result bool
 
-	out, err := client.CallSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
+	out, err := client.callSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -347,7 +347,7 @@ func (client *RPCClient) cloneSnapshot(snapshotID, cloneName string) (string, er
 		CloneName:  cloneName,
 	}
 	var lvolID string
-	out, err := client.CallSBCLI("POST", "/snapshot/clone", &params)
+	out, err := client.callSBCLI("POST", "/snapshot/clone", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
@@ -365,7 +365,7 @@ func (client *RPCClient) cloneSnapshot(snapshotID, cloneName string) (string, er
 func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.CallSBCLI("GET", "/snapshot", nil)
+	out, err := client.callSBCLI("GET", "/snapshot", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +381,7 @@ func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *RPCClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
+	_, err := client.callSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -401,7 +401,7 @@ func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.CallSBCLI("POST", "/snapshot", &params)
+	out, err := client.callSBCLI("POST", "/snapshot", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
@@ -416,7 +416,7 @@ func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string
 	return snapshotID, err
 }
 
-func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (interface{}, error) {
+func (client *RPCClient) callSBCLI(method, path string, args interface{}) (interface{}, error) {
 	data := []byte(`{}`)
 	var err error
 
