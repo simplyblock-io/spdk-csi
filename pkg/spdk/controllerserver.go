@@ -305,7 +305,7 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
-		volumeSource := req.VolumeContentSource
+		volumeSource := req.GetVolumeContentSource()
 		switch volumeSource.Type.(type) {
 		case *csi.VolumeContentSource_Snapshot:
 			// if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
@@ -319,11 +319,7 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 				snapshotName := req.GetName()
 				klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
-				spdkVol, err := getSPDKVol(srcVolumeId)
-				if err != nil {
-					klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
-					return nil, err
-				}
+				spdkVol, _ := getSPDKVol(srcVolumeId)
 				klog.Infof("CreateSnapshot : poolName=%s", poolName)
 				snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
 				klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)

@@ -348,17 +348,12 @@ type SnapshotResp struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-type SnapshotCloneReq struct {
-	SnapshotId string `json:"snapshot_id"`
-	CloneName  string `json:"clone_name"`
-}
-
 func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, error) {
 	params := struct {
-		SnapshotId string `json:"snapshot_id"`
+		SnapshotID string `json:"snapshot_id"`
 		CloneName  string `json:"clone_name"`
 	}{
-		SnapshotId: snapshotID,
+		SnapshotID: snapshotID,
 		CloneName:  cloneName,
 	}
 	var lvolID string
