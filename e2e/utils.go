@@ -421,7 +421,7 @@ func (s SimplyBlock) getStoragenode() (string, error) {
 	rpcClient.HTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 	// get the list of storage nodes
-	out, err := rpcClient.callSBCLI("GET", "/storagenode", nil)
+	out, err := rpcClient.CallSBCLI("GET", "/storagenode", nil)
 	if err != nil {
 		return "", err
 	}
