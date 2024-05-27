@@ -167,7 +167,7 @@ func (client *RPCClient) info() string {
 func (client *RPCClient) lvStores() ([]LvStore, error) {
 	var result []CSIPoolsResp
 
-	out, err := client.callSBCLI("GET", "/pool/get_pools", nil)
+	out, err := client.CallSBCLI("GET", "/pool/get_pools", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 
-	out, err := client.callSBCLI("GET", "/lvol/"+lvolID, nil)
+	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
