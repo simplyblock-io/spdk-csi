@@ -21,7 +21,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
 
-	"github.com/spdk/spdk-csi/pkg/util"
+	"github.com/spdk/simplyblock-io/pkg/util"
 )
 
 var nameSpace string
@@ -421,7 +421,7 @@ func (s SimplyBlock) getStoragenode() (string, error) {
 	rpcClient.HTTPClient = &http.Client{Timeout: 10 * time.Second}
 
 	// get the list of storage nodes
-	out, err := rpcClient.CallSBCLI("GET", "/storagenode", nil)
+	out, err := rpcClient.callSBCLI("GET", "/storagenode", nil)
 	if err != nil {
 		return "", err
 	}
