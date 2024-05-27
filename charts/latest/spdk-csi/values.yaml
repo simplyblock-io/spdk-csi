@@ -84,3 +84,4 @@ logicalVolume:
   distr_ndcs: "1"
   distr_npcs: "1"
 
+benchmarks: 0

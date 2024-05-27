@@ -2,19 +2,26 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	. "github.com/onsi/gomega" //nolint
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	storagev1 "k8s.io/api/storage/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2elog "k8s.io/kubernetes/test/e2e/framework/log"
+
+	"github.com/spdk/spdk-csi/pkg/util"
 )
 
 var nameSpace string
@@ -46,6 +53,7 @@ const (
 	nodeDsName        = "spdkcsi-node"
 	testPodName       = "spdkcsi-test"
 	cachetestPodName  = "spdkcsi-cache-test"
+	PodStatusRunning  = "Running"
 )
 
 var ctx = context.TODO()
@@ -84,19 +92,6 @@ func deleteCacheTestPod() {
 		e2elog.Logf("failed to delete cache test pod: %s", err)
 	}
 }
-
-// func deleteTestPodForce() {
-// 	_, err := framework.RunKubectl(nameSpace, "delete", "--force", "-f", testPodPath)
-// 	if err != nil {
-// 		e2elog.Logf("failed to delete test pod: %s", err)
-// 	}
-// }
-
-// func deleteTestPodWithTimeout(timeout time.Duration) error {
-// 	_, err := framework.NewKubectlCommand(nameSpace, "delete", "-f", testPodPath).
-// 		WithTimeout(time.After(timeout)).Exec()
-// 	return err
-// }
 
 func deployPVC() {
 	_, err := framework.RunKubectl(nameSpace, "apply", "-f", pvcPath)
@@ -169,22 +164,6 @@ func deleteMultiPvcsAndTestPodWithMultiPvcs() {
 	deleteMultiPvcs()
 }
 
-// rolloutNodeServer Use the delete corresponding pod to simulate a rollout. In this way, when the function returns,
-// the state of the NodeServer has definitely changed, which is convenient for subsequent state detection.
-/* func rolloutNodeServer() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+nodeDsName)
-	if err != nil {
-		e2elog.Logf("failed to rollout node server: %s", err)
-	}
-}
-
-func rolloutControllerServer() {
-	_, err := framework.RunKubectl(nameSpace, "delete", "pod", "-l", "app="+controllerStsName)
-	if err != nil {
-		e2elog.Logf("failed to rollout controller server: %s", err)
-	}
-} */
-
 func waitForControllerReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		sts, err := c.AppsV1().StatefulSets(nameSpace).Get(ctx, controllerStsName, metav1.GetOptions{})
@@ -219,28 +198,13 @@ func waitForNodeServerReady(c kubernetes.Interface, timeout time.Duration) error
 	return nil
 }
 
-// func verifyNodeServerLog(expLogList []string) error {
-// 	log, err := framework.RunKubectl(nameSpace, "logs", "-l", "app=spdkcsi-node", "-c", "spdkcsi-node", "--tail", "-1")
-// 	if err != nil {
-// 		return fmt.Errorf("failed to obtain the log from node server: %w", err)
-// 	}
-
-// 	for _, expLog := range expLogList {
-// 		if !strings.Contains(log, expLog) {
-// 			return fmt.Errorf("failed to catch the log about %s", expLog)
-// 		}
-// 	}
-
-// 	return nil
-// }
-
 func waitForTestPodReady(c kubernetes.Interface, timeout time.Duration) error {
 	err := wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
 		pod, err := c.CoreV1().Pods(nameSpace).Get(ctx, testPodName, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
-		if string(pod.Status.Phase) == "Running" {
+		if string(pod.Status.Phase) == PodStatusRunning {
 			return true, nil
 		}
 		return false, nil
@@ -257,7 +221,7 @@ func waitForCacheTestPodReady(c kubernetes.Interface, timeout time.Duration) err
 		if err != nil {
 			return false, err
 		}
-		if string(pod.Status.Phase) == "Running" {
+		if string(pod.Status.Phase) == PodStatusRunning {
 			return true, nil
 		}
 		return false, nil
@@ -272,7 +236,7 @@ func waitForTestPodGone(c kubernetes.Interface) error {
 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		_, err := c.CoreV1().Pods(nameSpace).Get(ctx, testPodName, metav1.GetOptions{})
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8serrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, err
@@ -289,7 +253,7 @@ func waitForPvcGone(c kubernetes.Interface, pvcName string) error {
 	err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		_, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Get(ctx, pvcName, metav1.GetOptions{})
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8serrors.IsNotFound(err) {
 				return true, nil
 			}
 			return false, err
@@ -427,4 +391,287 @@ func verifyDynamicPVCreation(c kubernetes.Interface, pvcName string, timeout tim
 		return fmt.Errorf("failed to verify dynamic PV creation for PVC %s: %w", pvcName, err)
 	}
 	return nil
+}
+
+type simplyblockCreds struct {
+	Simplyblock SimplyBlock `json:"simplybk"`
+}
+
+type SimplyBlock struct {
+	IP     string `json:"ip"`
+	UUID   string `json:"uuid"`
+	Secret string `json:"secret"`
+}
+
+type StorageNodes struct {
+	Nodes []StorageNode `json:"results"`
+}
+
+type StorageNode struct {
+	UUID        string `json:"id"`
+	APIendpoint string `json:"api_endpoint"`
+}
+
+func (s SimplyBlock) getStoragenode() (string, error) {
+	var rpcClient util.RPCClient
+	rpcClient.ClusterID = s.UUID
+	rpcClient.ClusterIP = s.IP
+	rpcClient.ClusterSecret = s.Secret
+
+	rpcClient.HTTPClient = &http.Client{Timeout: 10 * time.Second}
+
+	// get the list of storage nodes
+	out, err := rpcClient.CallSBCLI("GET", "/storagenode", nil)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: get a random storage node
+	storageNodes, ok := out.([]interface{})[0].(map[string]interface{})
+	if !ok {
+		return "", errors.New("failed to get storage node from simplyblock api")
+	}
+	sn, ok := storageNodes["hostname"].(string)
+	if !ok {
+		return "", errors.New("failed to get storage node from simplyblock api")
+	}
+	return sn, nil
+}
+
+func waitForPodRunning(ctx context.Context, c kubernetes.Interface, namespace, podName string, timeout time.Duration) error {
+	// Create a timeout context
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	// Polling interval
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting for pod %s to be running", podName)
+		case <-ticker.C:
+			pod, err := c.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to get pod %s: %w", podName, err)
+			}
+			if pod.Status.Phase == PodStatusRunning {
+				return nil
+			}
+			// Optionally, handle other statuses, e.g., Failed or Unknown
+			// fmt.Printf("Current status of pod %s is %s\n", podName, pod.Status.Phase)
+		}
+	}
+}
+
+func createSimplePod(c kubernetes.Interface, nameSpace, podName, pvcClaimName string) error {
+	volumeName := "spdk-csi-vol"
+	_, err := c.CoreV1().Pods(nameSpace).Create(ctx, &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: podName,
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "spdk-csi-container",
+					Image: "busybox:latest",
+					Command: []string{
+						"sleep",
+						"100000",
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      volumeName,
+							MountPath: "/spdkvol",
+						},
+					},
+				},
+			},
+			Volumes: []corev1.Volume{
+				{
+					Name: volumeName,
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: pvcClaimName,
+						},
+					},
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+
+	// wait for the pod to be running
+	return waitForPodRunning(ctx, c, nameSpace, podName, 5*time.Minute)
+}
+
+func createPVC(c kubernetes.Interface, nameSpace, pvcName, storageClassName string, size int64) error {
+	_, err := c.CoreV1().PersistentVolumeClaims(nameSpace).Create(ctx, &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: pvcName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: &storageClassName,
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: *resource.NewQuantity(size, resource.BinarySI), // 256Mi
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	return err
+}
+
+func createFioWorkloadPod(c kubernetes.Interface, nameSpace, podName, configMapName, pvcClaimName string) error {
+	// create a pod with the storage class
+	// RUN fio workload on this pod
+	volumeName := "spdk-csi-vol"
+	_, err := c.CoreV1().Pods(nameSpace).Create(ctx, &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: podName,
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "spdk-csi-container",
+					Image: "manoharbrm/fio:latest",
+					Command: []string{
+						"fio",
+						"/fio/fio.cfg",
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      volumeName,
+							MountPath: "/spdkvol",
+						},
+						{
+							Name:      configMapName,
+							MountPath: "/fio",
+						},
+					},
+				},
+			},
+			Volumes: []corev1.Volume{
+				{
+					Name: volumeName,
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: pvcClaimName,
+						},
+					},
+				},
+				{
+					Name: configMapName,
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: configMapName,
+							},
+						},
+					},
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+	err = waitForPodRunning(ctx, c, nameSpace, podName, 1*time.Minute)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createFioConfigMap(c kubernetes.Interface, nameSpace, configMapName string) error {
+	_, err := c.CoreV1().ConfigMaps(nameSpace).Create(ctx, &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: configMapName,
+		},
+		Data: map[string]string{
+			"fio.cfg": `
+				[test]
+				ioengine=aiolib
+				direct=1
+				iodepth=4
+				time_based=1
+				runtime=1000
+				readwrite=randrw
+				bs=4K,8K,16K,32K,64K,128K,256K
+				nrfiles=4
+				size=4G
+				verify=md5
+				numjobs=3
+				directory=/spdkvol`,
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createstorageClassWithHostID(c kubernetes.Interface, storageClassName, hostID string) error {
+	allowVolumeExpansion := true
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: storageClassName,
+		},
+		Provisioner: "csi.spdk.io",
+		Parameters: map[string]string{
+			"hostID":                    hostID,
+			"pool_name":                 "testing1",
+			"distr_ndcs":                "1",
+			"distr_npcs":                "1",
+			"qos_rw_iops":               "0",
+			"qos_rw_mbytes":             "0",
+			"qos_r_mbytes":              "0",
+			"qos_w_mbytes":              "0",
+			"compression":               "False",
+			"encryption":                "False",
+			"csi.storage.k8s.io/fstype": "ext4",
+		},
+		AllowVolumeExpansion: &allowVolumeExpansion,
+	}
+
+	_, err := c.StorageV1().StorageClasses().Create(ctx, storageClass, metav1.CreateOptions{})
+	return err
+}
+
+func getStorageNode(c kubernetes.Interface) (string, error) {
+	// get the credentials from the configmap
+	// get the storage node from the simplyblock api
+	// return the storage node
+	cm, err := c.CoreV1().ConfigMaps(nameSpace).Get(ctx, "spdkcsi-cm", metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	value := cm.Data["config.json"]
+	var creds simplyblockCreds
+	err = json.Unmarshal([]byte(value), &creds)
+	if err != nil {
+		return "", err
+	}
+
+	// use k8s client go to get the value of the secret spdkcsi-secret
+	secret, err := c.CoreV1().Secrets(nameSpace).Get(ctx, "spdkcsi-secret", metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	value = string(secret.Data["secret.json"])
+	err = json.Unmarshal([]byte(value), &creds)
+	if err != nil {
+		return "", err
+	}
+
+	s := creds.Simplyblock
+	sn, err := s.getStoragenode()
+	if err != nil {
+		return "", err
+	}
+	return sn, nil
 }
