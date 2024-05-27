@@ -313,15 +313,19 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 			// }
 		case *csi.VolumeContentSource_Volume:
 			if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
-				srcVolumeId := srcVolume.GetVolumeId()
+				srcVolumeID := srcVolume.GetVolumeId()
 
-				klog.Infof("srcVolumeId=%s", srcVolumeId)
+				klog.Infof("srcVolumeID=%s", srcVolumeID)
 
 				snapshotName := req.GetName()
 				klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
-				spdkVol, _ := getSPDKVol(srcVolumeId)
+				spdkVol, err = getSPDKVol(srcVolumeID)
+				if err != nil {
+					klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
+					return nil, err
+				}
 				klog.Infof("CreateSnapshot : poolName=%s", poolName)
-				snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+				snapshotID, err = cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
 				klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 				if err != nil {
 					klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
