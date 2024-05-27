@@ -359,17 +359,17 @@ func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, er
 	var lvolID string
 	out, err := client.callSBCLI("POST", "/snapshot/clone", &params)
 	if err != nil {
+		if errorMatches(err, ErrJSONNoSpaceLeft) {
+			err = ErrJSONNoSpaceLeft // may happen in concurrency
+		}
 		return "", err
 	}
-	b, err := json.Marshal(out)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal the response: %w", err)
+
+	lvolID, ok := out.(string)
+	if !ok {
+		return "", fmt.Errorf("failed to convert the response to string type. Interface: %v", out)
 	}
-	err = json.Unmarshal(b, &lvolID)
-	if err != nil {
-		return "", err
-	}
-	return snapshotID, err
+	return lvolID, err
 }
 
 func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
@@ -413,15 +413,15 @@ func (client *rpcClient) snapshot(lvolID, snapShotName, poolName string) (string
 	var snapshotID string
 	out, err := client.callSBCLI("POST", "/snapshot", &params)
 	if err != nil {
+		if errorMatches(err, ErrJSONNoSpaceLeft) {
+			err = ErrJSONNoSpaceLeft // may happen in concurrency
+		}
 		return "", err
 	}
-	b, err := json.Marshal(out)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal the response: %w", err)
-	}
-	err = json.Unmarshal(b, &snapshotID)
-	if err != nil {
-		return "", err
+
+	snapshotID, ok := out.(string)
+	if !ok {
+		return "", fmt.Errorf("failed to convert the response to string type. Interface: %v", out)
 	}
 	return snapshotID, err
 }
