@@ -319,24 +319,24 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 				snapshotName := req.GetName()
 				klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
-				spdkVol, err = getSPDKVol(srcVolumeID)
-				if err != nil {
-					klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
-					return nil, err
+				spdkVol, volErr := getSPDKVol(srcVolumeID)
+				if volErr != nil {
+					klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, volErr)
+					return nil, volErr
 				}
 				klog.Infof("CreateSnapshot : poolName=%s", poolName)
-				snapshotID, err = cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+				snapshotID, snapErr := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
 				klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
-				if err != nil {
-					klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
-					return nil, status.Error(codes.Internal, err.Error())
+				if snapErr != nil {
+					klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, snapErr)
+					return nil, status.Error(codes.Internal, snapErr.Error())
 				}
 
 				klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
-				volumeID, err = cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
-				if err != nil {
-					klog.Errorf("error creating simplyBlock volume: %v", err)
-					return nil, err
+				volumeID, cloneErr := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+				if cloneErr != nil {
+					klog.Errorf("error creating simplyBlock volume: %v", cloneErr)
+					return nil, cloneErr
 				}
 				vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
 				klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
