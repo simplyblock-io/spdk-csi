@@ -348,6 +348,35 @@ type SnapshotResp struct {
 	CreatedAt  string `json:"created_at"`
 }
 
+type SnapshotCloneReq struct {
+	SnapshotId string `json:"snapshot_id"`
+	CloneName  string `json:"clone_name"`
+}
+
+func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, error) {
+	params := struct {
+		SnapshotId string `json:"snapshot_id"`
+		CloneName  string `json:"clone_name"`
+	}{
+		SnapshotId: snapshotID,
+		CloneName:  cloneName,
+	}
+	var lvolID string
+	out, err := client.callSBCLI("POST", "/snapshot/clone", &params)
+	if err != nil {
+		return "", err
+	}
+	b, err := json.Marshal(out)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	err = json.Unmarshal(b, &lvolID)
+	if err != nil {
+		return "", err
+	}
+	return snapshotID, err
+}
+
 func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 

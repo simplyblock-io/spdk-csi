@@ -303,6 +303,58 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 		return &vol, nil
 	}
 
+	//////////////////////////////////////////
+	if req.GetVolumeContentSource() != nil {
+		volumeSource := req.VolumeContentSource
+		switch volumeSource.Type.(type) {
+		case *csi.VolumeContentSource_Snapshot:
+			// if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
+			// 	vol.ParentSnapID = snapshot.GetSnapshotId()
+			// }
+		case *csi.VolumeContentSource_Volume:
+			if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
+				srcVolumeId := srcVolume.GetVolumeId()
+
+				klog.Infof("srcVolumeId=%s", srcVolumeId)
+
+				snapshotName := req.GetName()
+				klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
+				spdkVol, err := getSPDKVol(srcVolumeId)
+				if err != nil {
+					klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
+					return nil, err
+				}
+				klog.Infof("CreateSnapshot : poolName=%s", poolName)
+				snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+				klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+				if err != nil {
+					klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
+					return nil, status.Error(codes.Internal, err.Error())
+				}
+
+				klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
+				volumeID, err = cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+				if err != nil {
+					klog.Errorf("error creating simplyBlock volume: %v", err)
+					return nil, err
+				}
+				vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+				klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+				return &vol, nil
+			}
+		default:
+			err = status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
+		}
+
+		if err != nil {
+			klog.V(5).Infof("VolumeSource error: %v", err)
+			return nil, err
+		}
+		return &vol, nil
+	}
+	//////////////////////////////////////////////////////////////
+
 	createVolReq, err := prepareCreateVolumeReq(ctx, req, sizeMiB)
 	if err != nil {
 		return nil, err

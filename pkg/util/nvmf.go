@@ -132,6 +132,15 @@ func (node *NodeNVMf) ListSnapshots() ([]*SnapshotResp, error) {
 	return node.client.listSnapshots()
 }
 
+func (node *NodeNVMf) CloneSnapshot(snapshotID, cloneName string) (string, error) {
+	lvolID, err := node.client.cloneSnapshot(snapshotID, cloneName)
+	if err != nil {
+		return "", err
+	}
+	klog.V(5).Infof("snapshot cloned: %s", lvolID)
+	return lvolID, nil
+}
+
 func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName, poolName string) (string, error) {
 	snapshotID, err := node.client.snapshot(lvolID, snapshotName, poolName)
 	if err != nil {
