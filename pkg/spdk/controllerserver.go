@@ -306,12 +306,11 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
 		volumeSource := req.GetVolumeContentSource()
-		switch volumeSource.Type.(type) {
-		case *csi.VolumeContentSource_Snapshot:
+		if _, ok := volumeSource.GetType().(*csi.VolumeContentSource_Snapshot); ok {
 			// if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
 			// 	vol.ParentSnapID = snapshot.GetSnapshotId()
 			// }
-		case *csi.VolumeContentSource_Volume:
+		} else if _, ok := volumeSource.GetType().(*csi.VolumeContentSource_Volume); ok {
 			if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
 				srcVolumeID := srcVolume.GetVolumeId()
 
@@ -343,15 +342,10 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 				return &vol, nil
 			}
-		default:
+		} else {
 			err = status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
-		}
-
-		if err != nil {
-			klog.V(5).Infof("VolumeSource error: %v", err)
 			return nil, err
 		}
-		return &vol, nil
 	}
 	//////////////////////////////////////////////////////////////
 
