@@ -151,11 +151,6 @@ type SnapshotResp struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-type ResizeVolReq struct {
-	LvolID  string `json:"lvol_id"`
-	NewSize int64  `json:"new_size"`
-}
-
 type CreateVolResp struct {
 	LVols []string `json:"lvols"`
 }
@@ -219,7 +214,7 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 
 	out, err := client.callSBCLI("GET", "/lvol/"+lvolID, nil)
-  
+
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
@@ -310,8 +305,8 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 // 	return true, nil
 // }
 
-func (client *rpcClient) deleteVolume(lvolID string) error {
-	_, err := client.callSBCLI("DELETE", "/lvol/"+lvolID, nil)
+func (client *RPCClient) deleteVolume(lvolID string) error {
+	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -325,14 +320,14 @@ type ResizeVolReq struct {
 	NewSize int64  `json:"size"`
 }
 
-func (client *rpcClient) resizeVolume(lvolID string, size int64) (bool, error) {
+func (client *RPCClient) resizeVolume(lvolID string, size int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
 		NewSize: size,
 	}
 	var result bool
 
-	out, err := client.callSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
+	out, err := client.CallSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -343,17 +338,7 @@ func (client *rpcClient) resizeVolume(lvolID string, size int64) (bool, error) {
 	return result, nil
 }
 
-type SnapshotResp struct {
-	Name       string `json:"name"`
-	UUID       string `json:"uuid"`
-	Size       string `json:"size"`
-	PoolName   string `json:"pool_name"`
-	PoolID     string `json:"pool_id"`
-	SourceUUID string `json:"source_uuid"`
-	CreatedAt  string `json:"created_at"`
-}
-
-func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, error) {
+func (client *RPCClient) cloneSnapshot(snapshotID, cloneName string) (string, error) {
 	params := struct {
 		SnapshotID string `json:"snapshot_id"`
 		CloneName  string `json:"clone_name"`
@@ -362,7 +347,7 @@ func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, er
 		CloneName:  cloneName,
 	}
 	var lvolID string
-	out, err := client.callSBCLI("POST", "/snapshot/clone", &params)
+	out, err := client.CallSBCLI("POST", "/snapshot/clone", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
@@ -377,10 +362,10 @@ func (client *rpcClient) cloneSnapshot(snapshotID, cloneName string) (string, er
 	return lvolID, err
 }
 
-func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
+func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.callSBCLI("GET", "/snapshot", nil)
+	out, err := client.CallSBCLI("GET", "/snapshot", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -395,8 +380,8 @@ func (client *rpcClient) listSnapshots() ([]*SnapshotResp, error) {
 	return results, nil
 }
 
-func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
+func (client *RPCClient) deleteSnapshot(snapshotID string) error {
+	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
