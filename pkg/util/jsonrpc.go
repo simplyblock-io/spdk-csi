@@ -214,7 +214,6 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 
 	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
-
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
