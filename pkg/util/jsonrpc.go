@@ -223,6 +223,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
+
 	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
