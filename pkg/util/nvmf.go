@@ -156,7 +156,6 @@ func (node *NodeNVMf) PublishVolume(lvolID string) error {
 	if err != nil {
 		return err
 	}
-
 	klog.V(5).Infof("volume published: %s", lvolID)
 	return nil
 }
