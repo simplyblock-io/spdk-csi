@@ -24,6 +24,8 @@ import (
 	"k8s.io/klog"
 )
 
+const lvolPath = "/lvol/"
+
 type NodeNVMf struct {
 	client *RPCClient
 
@@ -152,7 +154,7 @@ func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 
 // PublishVolume exports a volume through NVMf target
 func (node *NodeNVMf) PublishVolume(lvolID string) error {
-	_, err := node.client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
+	_, err := node.client.CallSBCLI("GET", lvolPath+lvolID, nil)
 	if err != nil {
 		return err
 	}
@@ -163,7 +165,7 @@ func (node *NodeNVMf) PublishVolume(lvolID string) error {
 
 // UnpublishVolume unexports a volume through NVMf target
 func (node *NodeNVMf) UnpublishVolume(lvolID string) error {
-	_, err := node.client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
+	_, err := node.client.CallSBCLI("GET", lvolPath+lvolID, nil)
 
 	if err != nil {
 		return err
