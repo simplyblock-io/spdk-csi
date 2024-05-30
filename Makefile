@@ -102,7 +102,7 @@ test: mod-check unit-test
 
 .PHONY: mod-check
 mod-check:
-	@echo === runnng go mod verify
+	@echo === running go mod verify
 	@go mod verify
 
 .PHONY: unit-test
