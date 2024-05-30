@@ -224,7 +224,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
 
-	out, err := client.CallSBCLI("GET", lvolPath+lvolID, nil)
+	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
@@ -298,7 +298,7 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 }
 
 func (client *RPCClient) deleteVolume(lvolID string) error {
-	_, err := client.CallSBCLI("DELETE", lvolPath+lvolID, nil)
+	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}

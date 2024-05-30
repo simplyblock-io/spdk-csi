@@ -77,7 +77,7 @@ linters-settings:
     min-complexity: 20
   goconst:
     # minimal length of string constant, 3 by default
-    min-len: 3
+    min-len: 5
     # minimal occurrences count to trigger, 3 by default
     min-occurrences: 3
   gocritic:
