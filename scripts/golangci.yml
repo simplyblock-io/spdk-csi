@@ -76,10 +76,10 @@ linters-settings:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
     min-complexity: 20
   goconst:
-    # minimal length of string constant, 3 by default
-    min-len: 3
-    # minimal occurrences count to trigger, 3 by default
-    min-occurrences: 3
+    # minimal length of string constant, 5 by default
+    min-len: 5
+    # minimal occurrences count to trigger, 5 by default
+    min-occurrences: 5
   gocritic:
     # Which checks should be enabled; can't be combined with 'disabled-checks';
     # See https://go-critic.github.io/overview#checks-overview
