@@ -178,7 +178,7 @@ func (client *RPCClient) info() string {
 func (client *RPCClient) lvStores() ([]LvStore, error) {
 	var result []CSIPoolsResp
 
-	out, err := client.CallSBCLI("GET", "csi/get_pools", nil)
+	out, err := client.CallSBCLI("GET", "/pool/get_pools", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 // get a volume and return a BDev,, lvsName/lvolName
 func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 	var result []BDev
-	out, err := client.CallSBCLI("GET", "csi/get_volume_info/"+lvolID, nil)
+	out, err := client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSuchDevice) {
 			err = ErrJSONNoSuchDevice
@@ -297,7 +297,7 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 }
 
 func (client *RPCClient) deleteVolume(lvolID string) error {
-	_, err := client.CallSBCLI("DELETE", "csi/delete_lvol/"+lvolID, nil)
+	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}
@@ -311,7 +311,7 @@ func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error
 		NewSize: newSize,
 	}
 	var result bool
-	out, err := client.CallSBCLI("POST", "csi/resize_lvol", &params)
+	out, err := client.CallSBCLI("POST", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -325,7 +325,7 @@ func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error
 func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.CallSBCLI("GET", "csi/list_snapshots", nil)
+	out, err := client.CallSBCLI("GET", "/snapshot", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *RPCClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.CallSBCLI("DELETE", "csi/delete_snapshot/%s"+snapshotID, nil)
+	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -357,7 +357,7 @@ func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.CallSBCLI("POST", "csi/create_snapshot", &params)
+	out, err := client.CallSBCLI("POST", "/snapshot", &params)
 	snapshotID, ok := out.(string)
 	if !ok {
 		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
