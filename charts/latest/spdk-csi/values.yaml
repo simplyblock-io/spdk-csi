@@ -7,7 +7,7 @@ driverName: csi.spdk.io
 image:
   spdkcsi:
     repository: simplyblock/spdkcsi
-    tag: latest
+    tag: pr-43
     pullPolicy: Always
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
