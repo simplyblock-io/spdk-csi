@@ -164,6 +164,7 @@ func (node *NodeNVMf) PublishVolume(lvolID string) error {
 // UnpublishVolume unexports a volume through NVMf target
 func (node *NodeNVMf) UnpublishVolume(lvolID string) error {
 	_, err := node.client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
+
 	if err != nil {
 		return err
 	}
