@@ -60,12 +60,6 @@ func NewSpdkCsiInitiator(volumeContext map[string]string, spdkNode *NodeNVMf) (S
 			nqn:         volumeContext["nqn"],
 			model:       volumeContext["model"],
 		}, nil
-	case "iscsi":
-		return &initiatorISCSI{
-			targetAddr: volumeContext["targetAddr"],
-			targetPort: volumeContext["targetPort"],
-			iqn:        volumeContext["iqn"],
-		}, nil
 	case "cache":
 		return &initiatorCache{
 			lvol:   volumeContext["uuid"],
@@ -79,8 +73,6 @@ func NewSpdkCsiInitiator(volumeContext map[string]string, spdkNode *NodeNVMf) (S
 
 // NVMf initiator implementation
 type initiatorNVMf struct {
-	targetAddr  string
-	targetPort  string
 	targetType  string
 	connections []connectionInfo
 	nqn         string
@@ -90,7 +82,7 @@ type initiatorNVMf struct {
 type initiatorCache struct {
 	lvol   string
 	model  string
-	client rpcClient
+	client RPCClient
 }
 
 type cachingNodeList struct {
@@ -111,7 +103,7 @@ func (cache *initiatorCache) Connect() (string, error) {
 	hostname = strings.Split(hostname, ".")[0]
 	klog.Info("hostname: ", hostname)
 
-	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
+	out, err := cache.client.CallSBCLI("GET", "/cachingnode", nil)
 	if err != nil {
 		klog.Error(err)
 		return "", err
@@ -140,7 +132,7 @@ func (cache *initiatorCache) Connect() (string, error) {
 			LvolID: cache.lvol,
 		}
 		klog.Info("connecting caching node: ", cnode.Hostname, " with lvol: ", cache.lvol)
-		resp, err = cache.client.callSBCLI("PUT", "/cachingnode/connect/"+cnode.UUID, req)
+		resp, err = cache.client.CallSBCLI("PUT", "/cachingnode/connect/"+cnode.UUID, req)
 		if err != nil {
 			klog.Error("caching node connect error:", err)
 			return "", err
@@ -176,7 +168,7 @@ func (cache *initiatorCache) Disconnect() error {
 	hostname = strings.Split(hostname, ".")[0]
 	klog.Info("hostname: ", hostname)
 
-	out, err := cache.client.callSBCLI("GET", "/cachingnode", nil)
+	out, err := cache.client.CallSBCLI("GET", "/cachingnode", nil)
 	if err != nil {
 		klog.Error(err)
 		return err
@@ -202,7 +194,7 @@ func (cache *initiatorCache) Disconnect() error {
 		req := LVolCachingNodeConnect{
 			LvolID: cache.lvol,
 		}
-		resp, err := cache.client.callSBCLI("PUT", "/cachingnode/disconnect/"+cnode.UUID, req)
+		resp, err := cache.client.CallSBCLI("PUT", "/cachingnode/disconnect/"+cnode.UUID, req)
 		if err != nil {
 			klog.Error("caching node disconnect error:", err)
 			return err
@@ -264,48 +256,6 @@ func (nvmf *initiatorNVMf) Disconnect() error {
 	}
 
 	deviceGlob := fmt.Sprintf(DevDiskByID, nvmf.model)
-	return waitForDeviceGone(deviceGlob)
-}
-
-type initiatorISCSI struct {
-	targetAddr string
-	targetPort string
-	iqn        string
-}
-
-func (iscsi *initiatorISCSI) Connect() (string, error) {
-	// iscsiadm -m discovery -t sendtargets -p ip:port
-	target := iscsi.targetAddr + ":" + iscsi.targetPort
-	cmdLine := []string{"iscsiadm", "-m", "discovery", "-t", "sendtargets", "-p", target}
-	err := execWithTimeout(cmdLine, 40)
-	if err != nil {
-		klog.Errorf("command %v failed: %s", cmdLine, err)
-	}
-	// iscsiadm -m node -T "iqn" -p ip:port --login
-	cmdLine = []string{"iscsiadm", "-m", "node", "-T", iscsi.iqn, "-p", target, "--login"}
-	err = execWithTimeout(cmdLine, 40)
-	if err != nil {
-		klog.Errorf("command %v failed: %s", cmdLine, err)
-	}
-
-	deviceGlob := fmt.Sprintf("/dev/disk/by-path/*%s*", iscsi.iqn)
-	devicePath, err := waitForDeviceReady(deviceGlob, 20)
-	if err != nil {
-		return "", err
-	}
-	return devicePath, nil
-}
-
-func (iscsi *initiatorISCSI) Disconnect() error {
-	target := iscsi.targetAddr + ":" + iscsi.targetPort
-	// iscsiadm -m node -T "iqn" -p ip:port --logout
-	cmdLine := []string{"iscsiadm", "-m", "node", "-T", iscsi.iqn, "-p", target, "--logout"}
-	err := execWithTimeout(cmdLine, 40)
-	if err != nil {
-		klog.Errorf("command %v failed: %s", cmdLine, err)
-	}
-
-	deviceGlob := fmt.Sprintf("/dev/disk/by-path/*%s*", iscsi.iqn)
 	return waitForDeviceGone(deviceGlob)
 }
 
