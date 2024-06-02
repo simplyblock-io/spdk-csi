@@ -177,7 +177,7 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 	creationTime := timestamppb.Now()
 	snapshotData := csi.Snapshot{
 		SizeBytes:      size,
-		SnapshotId:     fmt.Sprintf("%s:%s", spdkVol.poolName, snapshotID),
+		SnapshotId:     snapshotID,
 		SourceVolumeId: spdkVol.lvolID,
 		CreationTime:   creationTime,
 		ReadyToUse:     true,

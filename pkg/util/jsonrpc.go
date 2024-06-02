@@ -396,7 +396,7 @@ func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.CallSBCLI("POST", "/lvol/create_snapshot", &params)
+	out, err := client.CallSBCLI("POST", "/snapshot", &params)
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
