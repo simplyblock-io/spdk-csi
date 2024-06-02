@@ -51,6 +51,10 @@ controller:
 storageclass:
   create: true
 
+
+snapshotclass:
+  create: true
+
 externallyManagedConfigmap:
   # Specifies whether a externallyManagedConfigmap should be created
   create: true
