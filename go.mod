@@ -1,17 +1,14 @@
 module github.com/spdk/spdk-csi
 
-go 1.19
+go 1.22
 
 require (
 	github.com/container-storage-interface/spec v1.6.0
-	github.com/google/uuid v1.3.0
 	github.com/kubernetes-csi/csi-lib-utils v0.7.0
 	github.com/onsi/gomega v1.19.0
-	github.com/opiproject/opi-api v0.0.0-20230803153709-1e58d25ae2be
-	github.com/spdk/sma-goapi v0.0.0
-	github.com/stretchr/testify v1.8.3
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
+	k8s.io/api v0.25.0
 	k8s.io/apimachinery v0.25.0
 	k8s.io/client-go v0.25.0
 	k8s.io/klog v1.0.0
@@ -97,11 +94,10 @@ require (
 )
 
 require (
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/stretchr/testify v1.8.3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
-	k8s.io/api v0.25.0 // indirect
 )
 
 replace (

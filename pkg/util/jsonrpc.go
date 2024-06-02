@@ -76,13 +76,11 @@ import (
 
 // errors deserve special care
 var (
-	ErrJSONNoSpaceLeft   = errors.New("json: No space left")
-	ErrJSONNoSuchDevice  = errors.New("json: No such device")
-	ErrInvalidParameters = errors.New("json: Invalid parameters")
+	ErrJSONNoSpaceLeft  = errors.New("json: No space left")
+	ErrJSONNoSuchDevice = errors.New("json: No such device")
 
 	// internal errors
 	ErrVolumeDeleted     = errors.New("volume deleted")
-	ErrVolumePublished   = errors.New("volume already published")
 	ErrVolumeUnpublished = errors.New("volume not published")
 )
 
@@ -306,7 +304,6 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 
 func (client *RPCClient) deleteVolume(lvolID string) error {
 	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
-
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}
@@ -325,8 +322,7 @@ func (client *RPCClient) resizeVolume(lvolID string, size int64) (bool, error) {
 		NewSize: size,
 	}
 	var result bool
-
-	out, err := client.CallSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
+	out, err := client.CallSBCLI("POST", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}

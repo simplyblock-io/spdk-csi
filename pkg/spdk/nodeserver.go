@@ -223,14 +223,7 @@ func (ns *nodeServer) NodeUnstageVolume(_ context.Context, req *csi.NodeUnstageV
 		klog.Errorf("failed to lookup volume context, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	var initiator util.SpdkCsiInitiator
-	if ns.xpuConnClient != nil && ns.xpuTargetType != "" {
-		vc := volumeContext
-		vc["stagingParentPath"] = stagingParentPath
-		initiator, err = util.NewSpdkCsiXpuInitiator(vc, ns.xpuConnClient, ns.xpuTargetType, ns.kvmPciBridges)
-	} else {
-		initiator, err = util.NewSpdkCsiInitiator(volumeContext, ns.spdkNode)
-	}
+	initiator, err := util.NewSpdkCsiInitiator(volumeContext, ns.spdkNode)
 	if err != nil {
 		klog.Errorf("failed to create spdk initiator, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())

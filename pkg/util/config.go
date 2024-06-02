@@ -17,14 +17,7 @@ limitations under the License.
 package util
 
 const (
-	// TODO: move hardcoded settings to config map
 	cfgRPCTimeoutSeconds = 60
-	cfgLvolClearMethod   = "unmap" // none, unmap, write_zeroes
-	cfgLvolThinProvision = true
-	cfgNVMfSvcPort       = "4420"
-	cfgISCSISvcPort      = "3260"
-	cfgAllowAnyHost      = true
-	cfgAddrFamily        = "IPv4" // IPv4, IPv6, IB, FC
 )
 
 // Config stores parsed command line parameters
