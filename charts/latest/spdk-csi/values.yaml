@@ -58,19 +58,10 @@ externallyManagedConfigmap:
 externallyManagedSecret:
   # Specifies whether a externallyManagedSecret should be created
   create: true
-  
+
 spdkdev:
   # Specifies whether a spdkdev should be created
   create: false
-
-storageclass:
-  create: true
-
-snapshotclass:
-  create: true
-
-controller:
-  replicas: 1
 
 # Configuration for the CSI to connect to the cluster
 csiConfig:
