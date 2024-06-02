@@ -90,7 +90,7 @@ logicalVolume:
   max_size: "0"
   compression: "False"
   encryption: "False"
-  snapshot: "False"
+  snapshot: "True"
   distr_ndcs: "1"
   distr_npcs: "1"
 
