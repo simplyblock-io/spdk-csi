@@ -37,4 +37,3 @@ Please refer to [`csi.spdk.io` driver parameters](./charts/README.md#driver-para
 The CSI driver is currently tested with the following AWS EKS worker node instance types
 * AmazonLinux2 (AL_2_x86_64)
 * AmazonLinux2023 (AL_2023_x86_64_STANDARD)
-* BottleRock (BOTTLEROCK_x86_64)
