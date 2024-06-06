@@ -41,7 +41,7 @@ data:
     api_instance = client.CoreV1Api()
     pods = api_instance.list_pod_for_all_namespaces(label_selector=label_selector)
 
-    print(f"found len(pods.items) pods with label: app=caching-node")
+    print(f"found {len(pods.items)} pods with label: app=caching-node")
     for pod in pods.items:
         node_ip = pod.status.pod_ip
         print(f"adding caching node: {node_ip} in namespace: {namespace}")
@@ -54,7 +54,7 @@ data:
         data = json.dumps({
             "cluster_id": cluster_uuid,
             "node_ip": f"{node_ip}:5000",
-            "iface_name": "eth0",
+            "iface_name": "{{ .Values.cachingnode.ifname }}",
             "spdk_mem": "2g",
             "namespace": namespace
         })
