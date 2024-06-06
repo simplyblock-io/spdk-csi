@@ -95,3 +95,9 @@ logicalVolume:
   distr_npcs: "1"
 
 benchmarks: 0
+
+# FIXME: this will not work if there are group of nodes with different AMI types like: AL2, AL2023
+# AL2_x86_64: eth0
+# AL2023_x86_64_STANDARD: ens5
+cachingnode:
+  ifname: eth0
