@@ -34,6 +34,14 @@ Please refer to [`csi.spdk.io` driver parameters](./charts/README.md#driver-para
 
 ### Supported Worker node types
 
-The CSI driver is currently tested with the following AWS EKS worker node instance types
+The CSI driver is currently tested with various types of worker nodes.
+
+On AWS EKS the following worker nodes types are supports:
 * AmazonLinux2 (AL_2_x86_64)
 * AmazonLinux2023 (AL_2023_x86_64_STANDARD)
+
+On K3S the following Worker nodes are supported:
+* RHEL9
+* Ubuntu 22.04
+* AmazonLinux2
+* AmazonLinux2023
