@@ -103,6 +103,7 @@ The following table lists the configurable parameters of the latest Simplyblock 
 | `logicalVolume.encryption`             | set to `True` if encryption needs be enabled on lvols.                                                                   | `False`                                                                 |  |
 | `logicalVolume.distr_ndcs`             | the value of distr_ndcs                                                                                                  | `1`                                                                     |  |
 | `logicalVolume.distr_npcs`             | the value of distr_npcs                                                                                                  | `1`                                                                     |  |
+| `cachingnode.ifname`             | the default interface to be used for binding the caching node to host interface                                                                                                  | `eth0`                                                                     |  |
 
 ## troubleshooting
  - Add `--wait -v=5 --debug` in `helm install` command to get detailed error
