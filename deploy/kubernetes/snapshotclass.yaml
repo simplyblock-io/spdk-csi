@@ -12,5 +12,5 @@ apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
   name: csi-spdk-snapclass
-driver: csi.spdk.io
+driver: csi.simplyblock.io
 deletionPolicy: Delete

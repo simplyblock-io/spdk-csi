@@ -33,7 +33,7 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: spdkcsi-sc
-provisioner: csi.spdk.io
+provisioner: csi.simplyblock.io
 parameters:
   ...
   encryption: "True"
