@@ -82,7 +82,7 @@ Follow [deploy/spdk/README](deploy/spdk/README.md) to deploy SPDK storage servic
     kubectl get volumesnapshotcontent
     $ kubectl get volumesnapshotcontent
     NAME        ...   READYTOUSE   RESTORESIZE   DELETIONPOLICY   DRIVER        VOLUMESNAPSHOTCLASS   VOLUMESNAPSHOT   AGE
-    snapcontent-...   true         268435456     Delete           csi.spdk.io   csi-spdk-snapclass    spdk-snapshot    29s
+    snapcontent-...   true         268435456     Delete           csi.simplyblock.io   csi-spdk-snapclass    spdk-snapshot    29s
   ```
 
 ### Teardown
