@@ -27,7 +27,7 @@ Most parts of the CSI driver are vey much similar to the original [SPDK CSI Desi
  - install via [kubectl](./docs/install-simplyblock-csi-driver.md)
 
 ### Driver parameters
-Please refer to [`csi.spdk.io` driver parameters](./charts/README.md#driver-parameters)
+Please refer to [`csi.simplyblock.io` driver parameters](./charts/README.md#driver-parameters)
 
 ### Troubleshooting
  - [CSI driver troubleshooting guide](./docs/csi-debug.md)

@@ -621,7 +621,7 @@ func createstorageClassWithHostID(c kubernetes.Interface, storageClassName, host
 		ObjectMeta: metav1.ObjectMeta{
 			Name: storageClassName,
 		},
-		Provisioner: "csi.spdk.io",
+		Provisioner: "csi.simplyblock.io",
 		Parameters: map[string]string{
 			"hostID":                    hostID,
 			"pool_name":                 "testing1",
