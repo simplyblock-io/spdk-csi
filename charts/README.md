@@ -58,7 +58,7 @@ The following table lists the configurable parameters of the latest Simplyblock 
 
 | Parameter                              | Description                                                                                                              | Default                                                                 |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| `driverName`                           | alternative driver name                                                                                                  | `csi.spdk.io`                                                           |
+| `driverName`                           | alternative driver name                                                                                                  | `csi.simplyblock.io`                                                           |
 | `image.spdkcsi.repository`             | simplyblock-csi-driver image                                                                                             | `simplyblock/spdkcsi`                                                   |
 | `image.spdkcsi.tag`                    | simplyblock-csi-driver image tag                                                                                         | `latest`                                                                |
 | `image.spdkcsi.pullPolicy`             | simplyblock-csi-driver image pull policy                                                                                 | `Always`                                                                |
