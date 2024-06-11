@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	driverName    = "csi.simplyblock.io"
+	driverName    = "csi.spdk.io"
 	driverVersion = "0.1.0"
 )
 

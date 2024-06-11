@@ -16,7 +16,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   annotations:
-    pv.kubernetes.io/provisioned-by: csi.simplyblock.io
+    pv.kubernetes.io/provisioned-by: csi.spdk.io
   finalizers:
   - kubernetes.io/pv-protection
   name: pv-static
@@ -26,7 +26,7 @@ spec:
   capacity:
     storage: 256Mi
   csi:
-    driver: csi.simplyblock.io
+    driver: csi.spdk.io
     fsType: ext4
     volumeAttributes:
       # MODEL_NUMBER, set by the `nvmf_create_subsystem` method
@@ -61,7 +61,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   annotations:
-    pv.kubernetes.io/provisioned-by: csi.simplyblock.io
+    pv.kubernetes.io/provisioned-by: csi.spdk.io
   name: pv-static
 spec:
   accessModes:
@@ -69,7 +69,7 @@ spec:
   capacity:
     storage: 256Mi
   csi:
-    driver: csi.simplyblock.io
+    driver: csi.spdk.io
     fsType: ext4
     volumeAttributes:
       # number Initiator group tag, the default value is `iqn.2016-06.io.spdk:`+ `volumeHandle`
