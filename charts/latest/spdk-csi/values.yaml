@@ -7,7 +7,7 @@ driverName: csi.simplyblock.io
 image:
   spdkcsi:
     repository: simplyblock/spdkcsi
-    tag: latest
+    tag: pr-38
     pullPolicy: Always
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -51,6 +51,10 @@ controller:
 storageclass:
   create: true
 
+
+snapshotclass:
+  create: true
+
 externallyManagedConfigmap:
   # Specifies whether a externallyManagedConfigmap should be created
   create: true
@@ -58,6 +62,10 @@ externallyManagedConfigmap:
 externallyManagedSecret:
   # Specifies whether a externallyManagedSecret should be created
   create: true
+
+spdkdev:
+  # Specifies whether a spdkdev should be created
+  create: false
 
 # Configuration for the CSI to connect to the cluster
 csiConfig:
@@ -79,8 +87,10 @@ logicalVolume:
   qos_rw_mbytes: "0"
   qos_r_mbytes: "0"
   qos_w_mbytes: "0"
+  max_size: "0"
   compression: "False"
   encryption: "False"
+  snapshot: "True"
   distr_ndcs: "1"
   distr_npcs: "1"
 

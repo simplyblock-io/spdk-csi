@@ -143,36 +143,41 @@ func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *c
 
 func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
 	volumeID := req.GetSourceVolumeId()
+	klog.Infof("CreateSnapshot : volumeID=%s", volumeID)
 	unlock := cs.volumeLocks.Lock(volumeID)
 	defer unlock()
 
 	snapshotName := req.GetName()
+	klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
 		klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
 		return nil, err
 	}
 	poolName := req.GetParameters()["pool_name"]
+	klog.Infof("CreateSnapshot : poolName=%s", poolName)
 	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 	if err != nil {
 		klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	volInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
+	volSize, err := cs.spdkNode.GetVolumeSize(spdkVol.lvolID)
+	klog.Infof("CreateSnapshot : volSize=%s", volSize)
 	if err != nil {
 		klog.Errorf("failed to get volume info, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	size, err := strconv.ParseInt(volInfo["size"], 10, 64)
+	size, err := strconv.ParseInt(volSize, 10, 64)
 	if err != nil {
-		klog.Errorf("failed to parse volume size, size: %s err: %v", volInfo["size"], err)
+		klog.Errorf("failed to parse volume size, size: %s err: %v", volSize, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	creationTime := timestamppb.Now()
 	snapshotData := csi.Snapshot{
 		SizeBytes:      size,
-		SnapshotId:     fmt.Sprintf("%s:%s", spdkVol.poolName, snapshotID),
+		SnapshotId:     snapshotID,
 		SourceVolumeId: spdkVol.lvolID,
 		CreationTime:   creationTime,
 		ReadyToUse:     true,
@@ -233,6 +238,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 
 	compression := getBoolParameter(params, "compression")
 	encryption := getBoolParameter(params, "encryption")
+	snapshot := getBoolParameter(params, "snapshot")
 
 	pvcName, pvcNameSelected := params[CSIStorageNameKey]
 	pvcNamespace, pvcNamespaceSelected := params[CSIStorageNamespaceKey]
@@ -263,14 +269,26 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		MaxRWmBytes: params["qos_rw_mbytes"],
 		MaxRmBytes:  params["qos_r_mbytes"],
 		MaxWmBytes:  params["qos_w_mbytes"],
+		MaxSize:     params["max_size"],
 		Compression: compression,
 		Encryption:  encryption,
+		Snapshot:    snapshot,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
 		CryptoKey1:  cryptoKey1,
 		CryptoKey2:  cryptoKey2,
 	}
 	return &createVolReq, nil
+}
+
+func (cs *controllerServer) getExistingVolume(name, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+	volumeID, err := cs.spdkNode.GetVolume(name, poolName)
+	if err == nil {
+		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+		klog.V(5).Info("volume already exists", vol.GetVolumeId())
+		return vol, nil
+	}
+	return nil, err
 }
 
 func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.Volume, error) {
@@ -288,19 +306,29 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	klog.V(5).Info("provisioning volume from SDK node..")
 	poolName := req.GetParameters()["pool_name"]
-	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
+	existingVolume, err := cs.getExistingVolume(req.GetName(), poolName, &vol)
 	if err == nil {
-		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-		klog.V(5).Info("volume already exists", vol.GetVolumeId())
-		return &vol, nil
+		return existingVolume, nil
 	}
+
+	//////////////////////////////////////////
+	if req.GetVolumeContentSource() != nil {
+		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol)
+		if clonedErr != nil {
+			return nil, clonedErr
+		}
+		if clonedVolume != nil {
+			return clonedVolume, nil
+		}
+	}
+	//////////////////////////////////////////////////////////////
 
 	createVolReq, err := prepareCreateVolumeReq(ctx, req, sizeMiB)
 	if err != nil {
 		return nil, err
 	}
 
-	volumeID, err = cs.spdkNode.CreateVolume(createVolReq)
+	volumeID, err := cs.spdkNode.CreateVolume(createVolReq)
 	if err != nil {
 		klog.Errorf("error creating simplyBlock volume: %v", err)
 		return nil, err
@@ -565,6 +593,62 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// }
 
 	// return &server, nil
+}
+
+func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+	volumeSource := req.GetVolumeContentSource()
+	switch volumeSource.GetType().(type) {
+	case *csi.VolumeContentSource_Snapshot:
+		if snapshot := volumeSource.GetSnapshot(); snapshot != nil {
+			snapshotID := snapshot.GetSnapshotId()
+			klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+			snapshotName := req.GetName()
+			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+			if err != nil {
+				klog.Errorf("error creating simplyBlock volume: %v", err)
+				return nil, err
+			}
+			vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+			klog.V(5).Info("successfully Restored Snapshot from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+			return vol, nil
+		}
+	case *csi.VolumeContentSource_Volume:
+		if srcVolume := volumeSource.GetVolume(); srcVolume != nil {
+			srcVolumeID := srcVolume.GetVolumeId()
+
+			klog.Infof("srcVolumeID=%s", srcVolumeID)
+
+			snapshotName := req.GetName()
+			klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
+			spdkVol, err := getSPDKVol(srcVolumeID)
+			if err != nil {
+				klog.Errorf("failed to get spdk volume, srcVolumeID: %s err: %v", srcVolumeID, err)
+				return nil, err
+			}
+			klog.Infof("CreateSnapshot : poolName=%s", poolName)
+			snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+			klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+			if err != nil {
+				klog.Errorf("failed to create snapshot, srcVolumeID: %s snapshotName: %s err: %v", srcVolumeID, snapshotName, err)
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+
+			klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
+			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+			if err != nil {
+				klog.Errorf("error creating simplyBlock volume: %v", err)
+				return nil, err
+			}
+			vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+			klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+			return vol, nil
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
+	}
+	return nil, nil
 }
 
 func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey1, cryptoKey2 string, err error) {
