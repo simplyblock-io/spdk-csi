@@ -20,7 +20,11 @@ sudo modprobe nvme-tcp
 
 #### Step1: Setup hugepages
 
-Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating at least 8GB of huge pages.
+Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating at least 8GB of huge pages. 
+
+>[!IMPORTANT]
+>The caching node requires at least 2.2% of the size of the nvme cache + 50 MiB of RAM. This should be the minimum configured as hugepage
+>memory.
 
 ```
 sudo sysctl -w vm.nr_hugepages=4096
