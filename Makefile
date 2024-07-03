@@ -138,8 +138,9 @@ image: spdkcsi
 		proxy_opt="--build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTP_PROXY)"; \
 	fi; \
 	sudo docker build --no-cache -t $(CSI_IMAGE) $$proxy_opt \
-	-f deploy/image/Dockerfile $(OUT_DIR); \
+	-f deploy/image/Dockerfile $(OUT_DIR);
 
+    @spdkcsi GOARCH=arm64 ; \
 	sudo apt-get install -y qemu qemu-user-static ;\
 	export DOCKER_DEFAULT_PLATFORM=linux/arm64 ;\
 	sudo docker buildx build --platform linux/arm64 -t $(CSI_IMAGE)-arm64 $$proxy_opt \
