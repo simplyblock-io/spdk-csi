@@ -46,16 +46,9 @@ jobs:
     - name: Build & Push
       run: |
         SHORT_SHA=$(echo ${{ env.SHA }} | head -c 8)
-        make image
-        docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG
-        docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
-        docker push simplyblock/spdkcsi:$TAG
-        docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
-
-        docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
-        docker push simplyblock/spdkcsi:$TAG-arm64
-        
-        if [ "${{ github.ref }}" = "refs/heads/master" ]; then
-          docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
-          docker push simplyblock/spdkcsi:latest
-        fi
+        make spdkcsi
+        sudo apt-get install -y qemu qemu-user-static
+        docker buildx ls
+        docker buildx create --name mybuilder --bootstrap --use
+        docker buildx build --platform linux/amd64,linux/arm64 -t simplyblock/spdkcsi:$TAG -f deploy/image/Dockerfile ./_out --push
+        docker buildx build --platform linux/amd64,linux/arm64 -t simplyblock/spdkcsi:$TAG-$SHORT_SHA -f deploy/image/Dockerfile ./_out --push
