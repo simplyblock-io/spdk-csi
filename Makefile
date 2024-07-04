@@ -141,8 +141,14 @@ image: spdkcsi
 	# -f deploy/image/Dockerfile $(OUT_DIR); \
 
 	# make spdkcsi GOARCH=arm64 ; \
-	# sudo apt-get install -y qemu qemu-user-static ;\
+	#sudo apt-get install -y qemu qemu-user-static ;\
+	#sudo docker buildx create --use --driver docker-container || true ;\
 	# export DOCKER_DEFAULT_PLATFORM=linux/arm64 ;\
+
+	sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes ;\
+	sudo docker buildx rm builder ;\
+	sudo docker buildx create --name builder --driver docker-container --use ;\
+	sudo docker buildx inspect --bootstrap ;\
 	sudo docker buildx build --platform linux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR); \
 
