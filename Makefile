@@ -137,7 +137,7 @@ image: spdkcsi
 	@if [ -n $(HTTP_PROXY) ]; then \
 		proxy_opt="--build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTP_PROXY)"; \
 	fi; \
-	sudo docker build --no-cache -t $(CSI_IMAGE) $$proxy_opt \
+	sudo docker build --no-cache -t $(CSI_IMAGE)-amd64 $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR); \
 
 	make spdkcsi GOARCH=arm64 ; \
