@@ -138,8 +138,9 @@ image: spdkcsi
 		proxy_opt="--build-arg http_proxy=$(HTTP_PROXY) --build-arg https_proxy=$(HTTP_PROXY)"; \
 	fi; \
 
+	sudo apt-get install -y qemu qemu-user-static ;\
 	sudo docker buildx create --use || true ;\
-	sudo docker buildx build --no-cache --platform linux/amd64, linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
+	sudo docker buildx build --platform linux/amd64, linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR); \
 
 .PHONY: clean
