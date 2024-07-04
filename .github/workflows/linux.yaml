@@ -59,6 +59,5 @@ jobs:
         docker buildx imagetools create -t simplyblock/spdkcsi:$TAG-$SHORT_SHA simplyblock/spdkcsi:$TAG-amd64 simplyblock/spdkcsi:$TAG-arm64
     
         if [ "${{ github.ref }}" = "refs/heads/master" ]; then
-          docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
-          docker push simplyblock/spdkcsi:latest
+          docker buildx imagetools create -t simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-amd64 simplyblock/spdkcsi:$TAG-arm64
         fi
