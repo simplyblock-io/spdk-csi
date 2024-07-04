@@ -148,7 +148,7 @@ image: spdkcsi
 	sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes ;\
 	sudo docker buildx create --driver docker-container --use ;\
 	sudo docker buildx inspect --bootstrap ;\
-	sudo docker buildx build --platform linux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
+	sudo docker buildx build --load --platform linux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR) ;\
 
 .PHONY: clean
