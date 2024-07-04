@@ -47,14 +47,17 @@ jobs:
       run: |
         SHORT_SHA=$(echo ${{ env.SHA }} | head -c 8)
         make image
-        docker manifest create spdkcsi:latest spdkcsi:latest-amd64 spdkcsi:latest-arm64
-        docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG
-        docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
+        #docker manifest create spdkcsi:latest spdkcsi:latest-amd64 spdkcsi:latest-arm64
+
+        docker buildx imagetools create -t simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest-amd64 simplyblock/spdkcsi:latest-arm64
+       
+        #docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG
+        #docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
         #docker push simplyblock/spdkcsi:$TAG
         #docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
 
-        docker manifest push simplyblock/spdkcsi:$TAG
-        docker manifest push simplyblock/spdkcsi:$TAG-$SHORT_SHA
+        #docker manifest push simplyblock/spdkcsi:$TAG
+        #docker manifest push simplyblock/spdkcsi:$TAG-$SHORT_SHA
 
         #docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
         #docker push simplyblock/spdkcsi:$TAG-arm64
