@@ -2,7 +2,7 @@ name: Linux Unit tests and docker push
 on:
     pull_request:
     push:
-      branches: ['master', 'dev', 'push_multi_arch_image']
+      branches: ['master', 'dev']
 
 
 jobs:
