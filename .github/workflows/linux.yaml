@@ -47,24 +47,23 @@ jobs:
       run: |
         SHORT_SHA=$(echo ${{ env.SHA }} | head -c 8)
         make image
-        #docker manifest create spdkcsi:latest spdkcsi:latest-amd64 spdkcsi:latest-arm64
        
         docker tag simplyblock/spdkcsi:latest-amd64 simplyblock/spdkcsi:$TAG-amd64
         docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
 
-        #docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
+        docker tag simplyblock/spdkcsi:latest-amd64 simplyblock/spdkcsi:$TAG-amd64-$SHORT_SHA
+        docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64-$SHORT_SHA
 
         docker push simplyblock/spdkcsi:$TAG-amd64
         docker push simplyblock/spdkcsi:$TAG-arm64
 
-        #docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
+        docker push simplyblock/spdkcsi:$TAG-amd64-$SHORT_SHA
+        docker push simplyblock/spdkcsi:$TAG-arm64-$SHORT_SHA
 
         docker buildx imagetools create -t simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:$TAG-amd64 simplyblock/spdkcsi:$TAG-arm64
 
-        #docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
-        #docker push simplyblock/spdkcsi:$TAG-arm64
-        
-
+        docker buildx imagetools create -t simplyblock/spdkcsi:$TAG-$SHORT_SHA simplyblock/spdkcsi:$TAG-amd64-$SHORT_SHA simplyblock/spdkcsi:$TAG-arm64-$SHORT_SHA
+    
         if [ "${{ github.ref }}" = "refs/heads/master" ]; then
           docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
           docker push simplyblock/spdkcsi:latest
