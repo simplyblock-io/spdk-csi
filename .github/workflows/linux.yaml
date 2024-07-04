@@ -49,12 +49,16 @@ jobs:
         make image
         docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG
         docker tag simplyblock/spdkcsi:latest simplyblock/spdkcsi:$TAG-$SHORT_SHA
-        docker push simplyblock/spdkcsi:$TAG
-        docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
+        #docker push simplyblock/spdkcsi:$TAG
+        #docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
 
-        # docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
-        # docker push simplyblock/spdkcsi:$TAG-arm64
+        docker manifest push simplyblock/spdkcsi:$TAG
+        docker manifest push simplyblock/spdkcsi:$TAG-$SHORT_SHA
+
+        #docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
+        #docker push simplyblock/spdkcsi:$TAG-arm64
         
+
         if [ "${{ github.ref }}" = "refs/heads/master" ]; then
           docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
           docker push simplyblock/spdkcsi:latest
