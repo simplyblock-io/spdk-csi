@@ -12,17 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        driver: docker-container
-        platforms: linux/amd64,linux/arm64
-
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
       with:
@@ -63,8 +52,8 @@ jobs:
         docker push simplyblock/spdkcsi:$TAG
         docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
 
-        # docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
-        # docker push simplyblock/spdkcsi:$TAG-arm64
+        docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
+        docker push simplyblock/spdkcsi:$TAG-arm64
         
         if [ "${{ github.ref }}" = "refs/heads/master" ]; then
           docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
