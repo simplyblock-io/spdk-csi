@@ -146,8 +146,6 @@ image: spdkcsi
 	sudo docker buildx build --platform linux/arm64 -t $(CSI_IMAGE)-arm64 $$proxy_opt \
 	-f deploy/image/Dockerfile $(OUT_DIR); \
 
-	sudo docker manifest create spdkcsi:$(CSI_IMAGE_TAG) spdkcsi:$(CSI_IMAGE_TAG)-amd64 spdkcsi:$(CSI_IMAGE_TAG)-arm64
-
 .PHONY: clean
 clean:
 	rm -f $(OUT_DIR)/spdkcsi
