@@ -139,9 +139,8 @@ image: spdkcsi
 	fi; \
 
 	sudo apt-get install -y qemu qemu-user-static ;\
-	sudo docker buildx create --use || true ;\
-	sudo docker buildx build --platform linux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
-		-f deploy/image/Dockerfile $(OUT_DIR) --load
+	sudo docker buildx build --platform inux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
+	-f deploy/image/Dockerfile $(OUT_DIR); \
 
 .PHONY: clean
 clean:
