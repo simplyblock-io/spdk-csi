@@ -2,7 +2,7 @@ name: Linux Unit tests and docker push
 on:
     pull_request:
     push:
-      branches: ['master', 'dev']
+      branches: ['master', 'dev', 'push_multi_arch_image']
 
 
 jobs:
@@ -52,8 +52,8 @@ jobs:
         docker push simplyblock/spdkcsi:$TAG
         docker push simplyblock/spdkcsi:$TAG-$SHORT_SHA
 
-        docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
-        docker push simplyblock/spdkcsi:$TAG-arm64
+        # docker tag simplyblock/spdkcsi:latest-arm64 simplyblock/spdkcsi:$TAG-arm64
+        # docker push simplyblock/spdkcsi:$TAG-arm64
         
         if [ "${{ github.ref }}" = "refs/heads/master" ]; then
           docker tag simplyblock/spdkcsi:$TAG simplyblock/spdkcsi:latest
