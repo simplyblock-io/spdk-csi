@@ -149,7 +149,7 @@ image: spdkcsi
 	sudo docker buildx create --driver docker-container --use ;\
 	sudo docker buildx inspect --bootstrap ;\
 	sudo docker buildx build --platform linux/amd64,linux/arm64 -t $(CSI_IMAGE) $$proxy_opt \
-	-f deploy/image/Dockerfile $(OUT_DIR) --load ;\
+	-f deploy/image/Dockerfile $(OUT_DIR) ;\
 
 .PHONY: clean
 clean:
