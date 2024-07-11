@@ -313,7 +313,7 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	//////////////////////////////////////////
 	if req.GetVolumeContentSource() != nil {
-		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol)
+		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol, sizeMiB)
 		if clonedErr != nil {
 			return nil, clonedErr
 		}
@@ -595,7 +595,7 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// return &server, nil
 }
 
-func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
 	volumeSource := req.GetVolumeContentSource()
 	switch volumeSource.GetType().(type) {
 	case *csi.VolumeContentSource_Snapshot:
@@ -603,7 +603,8 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 			snapshotID := snapshot.GetSnapshotId()
 			klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 			snapshotName := req.GetName()
-			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+			newSize := fmt.Sprintf("%dM", sizeMiB)
+			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName, newSize)
 			if err != nil {
 				klog.Errorf("error creating simplyBlock volume: %v", err)
 				return nil, err
@@ -633,9 +634,9 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 				klog.Errorf("failed to create snapshot, srcVolumeID: %s snapshotName: %s err: %v", srcVolumeID, snapshotName, err)
 				return nil, status.Error(codes.Internal, err.Error())
 			}
-
+			newSize := fmt.Sprintf("%dM", sizeMiB)
 			klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
-			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName)
+			volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName, newSize)
 			if err != nil {
 				klog.Errorf("error creating simplyBlock volume: %v", err)
 				return nil, err

@@ -132,8 +132,8 @@ func (node *NodeNVMf) ListSnapshots() ([]*SnapshotResp, error) {
 	return node.client.listSnapshots()
 }
 
-func (node *NodeNVMf) CloneSnapshot(snapshotID, cloneName string) (string, error) {
-	lvolID, err := node.client.cloneSnapshot(snapshotID, cloneName)
+func (node *NodeNVMf) CloneSnapshot(snapshotID, cloneName, newSize string) (string, error) {
+	lvolID, err := node.client.cloneSnapshot(snapshotID, cloneName, newSize)
 	if err != nil {
 		return "", err
 	}
