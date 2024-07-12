@@ -322,7 +322,7 @@ func (client *RPCClient) resizeVolume(lvolID string, size int64) (bool, error) {
 		NewSize: size,
 	}
 	var result bool
-	out, err := client.CallSBCLI("POST", "/lvol/resize/"+lvolID, &params)
+	out, err := client.CallSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
