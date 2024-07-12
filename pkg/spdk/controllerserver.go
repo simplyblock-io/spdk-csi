@@ -199,8 +199,8 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 		return nil, err
 	}
 
-	klog.V(5).Info("spdk volume, snapshotID:", spdkVol)
-	
+	klog.Infof("Deleting Snapshot : snapshotID=%s", spdkVol)
+
 	err = cs.spdkNode.DeleteSnapshot(snapshotID)
 	if err != nil {
 		klog.Errorf("failed to delete snapshot, snapshotID: %s err: %v", snapshotID, err)
