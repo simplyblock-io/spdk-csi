@@ -15,7 +15,7 @@ metadata:
   name: csi-spdk-snapclass
   annotations:
     helm.sh/hook: post-install
-driver: csi.spdk.io
+driver: csi.simplyblock.io
 deletionPolicy: Delete
 
 {{- end -}}

@@ -343,6 +343,9 @@ func (client *RPCClient) cloneSnapshot(snapshotID, cloneName, newSize string) (s
 		CloneName:  cloneName,
 		//	NewSize:    newSize,
 	}
+
+	klog.V(5).Infof("cloned volume size: %s", newSize)
+
 	var lvolID string
 	out, err := client.CallSBCLI("POST", "/snapshot/clone", &params)
 	if err != nil {
