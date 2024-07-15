@@ -154,9 +154,7 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 		klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
 		return nil, err
 	}
-	poolName := req.GetParameters()["pool_name"]
-	klog.Infof("CreateSnapshot : poolName=%s", poolName)
-	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName)
 	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 	if err != nil {
 		klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
@@ -190,6 +188,7 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 
 func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
 	snapshotID := req.GetSnapshotId()
+	klog.Infof("snapshotID=%s", snapshotID)
 	unlock := cs.volumeLocks.Lock(snapshotID)
 	defer unlock()
 

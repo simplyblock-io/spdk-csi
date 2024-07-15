@@ -141,8 +141,8 @@ func (node *NodeNVMf) CloneSnapshot(snapshotID, cloneName, newSize string) (stri
 	return lvolID, nil
 }
 
-func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName, poolName string) (string, error) {
-	snapshotID, err := node.client.snapshot(lvolID, snapshotName, poolName)
+func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName string) (string, error) {
+	snapshotID, err := node.client.snapshot(lvolID, snapshotName)
 	if err != nil {
 		return "", err
 	}

@@ -387,15 +387,13 @@ func (client *RPCClient) deleteSnapshot(snapshotID string) error {
 	return err
 }
 
-func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string, error) {
+func (client *RPCClient) snapshot(lvolID, snapShotName string) (string, error) {
 	params := struct {
 		LvolName     string `json:"lvol_id"`
 		SnapShotName string `json:"snapshot_name"`
-		PoolName     string `json:"pool_name"`
 	}{
 		LvolName:     lvolID,
 		SnapShotName: snapShotName,
-		PoolName:     poolName,
 	}
 	var snapshotID string
 	out, err := client.CallSBCLI("POST", "/snapshot", &params)
