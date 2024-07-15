@@ -192,15 +192,9 @@ func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSna
 	unlock := cs.volumeLocks.Lock(snapshotID)
 	defer unlock()
 
-	spdkVol, err := getSPDKVol(snapshotID)
-	if err != nil {
-		klog.Errorf("failed to get spdk volume, snapshotID: %s err: %v", snapshotID, err)
-		return nil, err
-	}
+	klog.Infof("Deleting Snapshot : snapshotID=%s", snapshotID)
 
-	klog.Infof("Deleting Snapshot : snapshotID=%s", spdkVol)
-
-	err = cs.spdkNode.DeleteSnapshot(snapshotID)
+	err := cs.spdkNode.DeleteSnapshot(snapshotID)
 	if err != nil {
 		klog.Errorf("failed to delete snapshot, snapshotID: %s err: %v", snapshotID, err)
 		return nil, status.Error(codes.Internal, err.Error())
