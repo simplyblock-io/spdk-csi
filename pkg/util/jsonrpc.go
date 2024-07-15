@@ -378,7 +378,7 @@ func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 }
 
 func (client *RPCClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
+	_, err := client.CallSBCLI("DELETE", "/snapshot/"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
