@@ -629,7 +629,7 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 				return nil, err
 			}
 			klog.Infof("CreateSnapshot : poolName=%s", poolName)
-			snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+			snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName)
 			klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 			if err != nil {
 				klog.Errorf("failed to create snapshot, srcVolumeID: %s snapshotName: %s err: %v", srcVolumeID, snapshotName, err)
