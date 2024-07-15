@@ -337,11 +337,11 @@ func (client *RPCClient) cloneSnapshot(snapshotID, cloneName, newSize string) (s
 	params := struct {
 		SnapshotID string `json:"snapshot_id"`
 		CloneName  string `json:"clone_name"`
-		NewSize    string `json:"new_size"`
+		//	NewSize    string `json:"new_size"`
 	}{
 		SnapshotID: snapshotID,
 		CloneName:  cloneName,
-		NewSize:    newSize,
+		//	NewSize:    newSize,
 	}
 	var lvolID string
 	out, err := client.CallSBCLI("POST", "/snapshot/clone", &params)
