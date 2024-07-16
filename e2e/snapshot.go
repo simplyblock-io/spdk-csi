@@ -20,7 +20,6 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 
 				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
-					deletePVC()
 					ginkgo.Fail(err.Error())
 				}
 				// write data to source pvc
@@ -33,7 +32,7 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 				defer deleteSnapshot()
 				defer deletePVC()
 
-				err := waitForTestPodReady(f.ClientSet, 5*time.Minute)
+				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
