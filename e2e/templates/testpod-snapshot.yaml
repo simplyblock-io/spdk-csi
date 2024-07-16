@@ -28,7 +28,7 @@ spec:
 kind: Pod
 apiVersion: v1
 metadata:
-  name: spdkcsi-test-restore
+  name: spdkcsi-test
 spec:
   containers:
   - name: alpine
