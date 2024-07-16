@@ -47,6 +47,7 @@ const (
 	cachetestPodPath         = "templates/testpod-cache.yaml"
 	multiPvcsPath            = "templates/multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "templates/testpod-multi-pvc.yaml"
+	testPodWithSnapshotPath  = "templates/testpod-snapshot.yaml"
 
 	// controller statefulset and node daemonset names
 	controllerStsName = "spdkcsi-controller"
@@ -104,6 +105,20 @@ func deletePVC() {
 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", pvcPath)
 	if err != nil {
 		e2elog.Logf("failed to delete pvc: %s", err)
+	}
+}
+
+func deploySnapshot() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodWithSnapshotPath)
+	if err != nil {
+		e2elog.Logf("failed to deployed snapshot: %s", err)
+	}
+}
+
+func deleteSnapshot() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithSnapshotPath)
+	if err != nil {
+		e2elog.Logf("failed to delete snapshot: %s", err)
 	}
 }
 
@@ -674,4 +689,18 @@ func getStorageNode(c kubernetes.Interface) (string, error) {
 		return "", err
 	}
 	return sn, nil
+}
+
+func writeDataToPod(f *framework.Framework, opt *metav1.ListOptions, data, dataPath string) {
+	execCommandInPod(f, fmt.Sprintf("echo %s > %s", data, dataPath), nameSpace, opt)
+}
+
+func compareDataInPod(f *framework.Framework, opt *metav1.ListOptions, data, dataPath string) error {
+	// read data from PVC
+	persistData, stdErr := execCommandInPod(f, fmt.Sprintf("cat %s", dataPath), nameSpace, opt)
+	Expect(stdErr).Should(BeEmpty()) //nolint
+	if !strings.Contains(persistData, data) {
+		return fmt.Errorf("data not persistent: expected data %s received data %s ", data, persistData)
+	}
+	return nil
 }
