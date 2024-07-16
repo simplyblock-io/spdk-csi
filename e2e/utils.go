@@ -48,6 +48,7 @@ const (
 	multiPvcsPath            = "templates/multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "templates/testpod-multi-pvc.yaml"
 	testPodWithSnapshotPath  = "templates/testpod-snapshot.yaml"
+	testPodWithClonePath     = "templates/testpod-clone.yaml"
 
 	// controller statefulset and node daemonset names
 	controllerStsName = "spdkcsi-controller"
@@ -119,6 +120,20 @@ func deleteSnapshot() {
 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithSnapshotPath)
 	if err != nil {
 		e2elog.Logf("failed to delete snapshot: %s", err)
+	}
+}
+
+func deployClone() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodWithClonePath)
+	if err != nil {
+		e2elog.Logf("failed to deployed Cloned Volume: %s", err)
+	}
+}
+
+func deleteClone() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithClonePath)
+	if err != nil {
+		e2elog.Logf("failed to delete cloned volume : %s", err)
 	}
 }
 
