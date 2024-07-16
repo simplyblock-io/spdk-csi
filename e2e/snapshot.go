@@ -3,8 +3,6 @@ package e2e
 import (
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
@@ -14,11 +12,6 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 
 	ginkgo.Context("Test SPDK CSI Snapshot", func() {
 		ginkgo.It("Test SPDK CSI Snapshot", func() {
-			testPodLabel := metav1.ListOptions{
-				LabelSelector: "app=spdkcsi-pvc",
-			}
-			persistData := "Data that needs to be stored"
-			persistDataPath := "/spdkvol/test"
 
 			ginkgo.By("create source pvc and write data", func() {
 				deployPVC()
@@ -32,7 +25,7 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 					ginkgo.Fail(err.Error())
 				}
 				// write data to source pvc
-				writeDataToPod(f, &testPodLabel, persistData, persistDataPath)
+				writeDataToPod(f)
 			})
 
 			ginkgo.By("create snapshot and check data persistency", func() {
@@ -46,7 +39,7 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 					ginkgo.Fail(err.Error())
 				}
 				// check if data in snapshot pvc is the same as source pvc
-				err = compareDataInPod(f, &testPodLabel, persistData, persistDataPath)
+				err = compareDataInPod(f)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
