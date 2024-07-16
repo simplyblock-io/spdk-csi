@@ -12,7 +12,6 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 
 	ginkgo.Context("Test SPDK CSI Snapshot", func() {
 		ginkgo.It("Test SPDK CSI Snapshot", func() {
-
 			ginkgo.By("create source pvc and write data", func() {
 				deployPVC()
 				deployTestPod()
