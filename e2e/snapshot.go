@@ -16,18 +16,15 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 				deployPVC()
 				deployTestPod()
 				defer deleteTestPod()
-				// do not delete pvc here, since we need it for snapshot
 
 				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
-				// write data to source pvc
 				writeDataToPod(f)
 			})
 
 			ginkgo.By("create snapshot and check data persistency", func() {
-				// deploy volume snapshot and new pvc which data source is the snapshot
 				deploySnapshot()
 				defer deleteSnapshot()
 				defer deletePVC()
@@ -36,7 +33,6 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 				if err != nil {
 					ginkgo.Fail(err.Error())
 				}
-				// check if data in snapshot pvc is the same as source pvc
 				err = compareDataInPod(f)
 				if err != nil {
 					ginkgo.Fail(err.Error())
