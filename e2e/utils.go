@@ -697,7 +697,7 @@ func writeDataToPod(f *framework.Framework, opt *metav1.ListOptions, data, dataP
 
 func compareDataInPod(f *framework.Framework, opt *metav1.ListOptions, data, dataPath string) error {
 	// read data from PVC
-	persistData, stdErr := execCommandInPod(f, fmt.Sprintf("cat %s", dataPath), nameSpace, opt)
+	persistData, stdErr := execCommandInPod(f, "cat "+dataPath, nameSpace, opt)
 	Expect(stdErr).Should(BeEmpty()) //nolint
 	if !strings.Contains(persistData, data) {
 		return fmt.Errorf("data not persistent: expected data %s received data %s ", data, persistData)
