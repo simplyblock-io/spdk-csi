@@ -648,11 +648,6 @@ func (cs *controllerServer) handleVolumeSource(srcVolume *csi.VolumeContentSourc
 		klog.Errorf("error creating simplyBlock volume: %v", err)
 		return nil, err
 	}
-	err = cs.spdkNode.DeleteSnapshot(snapshotID)
-	if err != nil {
-		klog.Errorf("failed to delete snapshot, snapshotID: %s err: %v", snapshotID, err)
-		return nil, err
-	}
 	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
 	klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
 
