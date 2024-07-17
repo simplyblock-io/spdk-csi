@@ -600,8 +600,13 @@ func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeReque
 	}
 }
 
-func (cs *controllerServer) handleSnapshotSource(snapshot *csi.VolumeContentSource_SnapshotSource, req *csi.CreateVolumeRequest, poolName string,
-	vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
+func (cs *controllerServer) handleSnapshotSource(
+	snapshot *csi.VolumeContentSource_SnapshotSource,
+	req *csi.CreateVolumeRequest,
+	poolName string,
+	vol *csi.Volume,
+	sizeMiB int64,
+) (*csi.Volume, error) {
 	if snapshot == nil {
 		return nil, nil
 	}
@@ -620,8 +625,13 @@ func (cs *controllerServer) handleSnapshotSource(snapshot *csi.VolumeContentSour
 	return vol, nil
 }
 
-func (cs *controllerServer) handleVolumeSource(srcVolume *csi.VolumeContentSource_VolumeSource, req *csi.CreateVolumeRequest, poolName string,
-	vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
+func (cs *controllerServer) handleVolumeSource(
+	srcVolume *csi.VolumeContentSource_VolumeSource,
+	req *csi.CreateVolumeRequest,
+	poolName string,
+	vol *csi.Volume,
+	sizeMiB int64,
+) (*csi.Volume, error) {
 	if srcVolume == nil {
 		return nil, nil
 	}
