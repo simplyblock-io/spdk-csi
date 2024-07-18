@@ -43,8 +43,6 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-
-
     - name: Build & Push
       run: |
         SHORT_SHA=$(echo ${{ env.SHA }} | head -c 8)
