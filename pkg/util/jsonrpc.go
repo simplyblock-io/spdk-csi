@@ -291,17 +291,6 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 	}, nil
 }
 
-// func (client *rpcClient) isVolumeCreated(lvolID string) (bool, error) {
-// 	_, err := client.getVolume(lvolID)
-// 	if err != nil {
-// 		if errors.Is(err, ErrJSONNoSuchDevice) {
-// 			return false, nil
-// 		}
-// 		return false, err
-// 	}
-// 	return true, nil
-// }
-
 func (client *RPCClient) deleteVolume(lvolID string) error {
 	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {

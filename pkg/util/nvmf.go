@@ -180,23 +180,6 @@ func (node *NodeNVMf) PublishVolume(lvolID string) error {
 	return nil
 }
 
-// func (node *NodeNVMf) isVolumePublished(lvolID string) (bool, error) {
-// 	var isPublished bool
-// 	out, err := node.client.CallSBCLI("GET", "/lvol/is_volume_published/"+lvolID, nil)
-// 	if err != nil {
-// 		// querying nqn that does not exist, an invalid parameters error will be thrown
-// 		if errorMatches(err, ErrInvalidParameters) {
-// 			return false, nil
-// 		}
-// 		return false, err
-// 	}
-// 	isPublished, ok := out.(bool)
-// 	if !ok {
-// 		return false, fmt.Errorf("failed to convert the response to bool type. Interface: %v", out)
-// 	}
-// 	return isPublished, nil
-// }
-
 func (node *NodeNVMf) UnpublishVolume(lvolID string) error {
 	_, err := node.client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {

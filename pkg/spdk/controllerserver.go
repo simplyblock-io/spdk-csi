@@ -628,7 +628,6 @@ func (cs *controllerServer) handleVolumeSource(srcVolume *csi.VolumeContentSourc
 	klog.Infof("srcVolumeID=%s", srcVolumeID)
 
 	snapshotName := req.GetName()
-	klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
 	spdkVol, err := getSPDKVol(srcVolumeID)
 	if err != nil {
 		klog.Errorf("failed to get spdk volume, srcVolumeID: %s err: %v", srcVolumeID, err)
