@@ -6,7 +6,7 @@ kind: StatefulSet
 apiVersion: apps/v1
 metadata:
   name: spdkcsi-controller
-  namespace: kube-system
+  namespace: {{ .Release.Namespace }}
 {{ include "spdk.labels" . | indent 2 }}
 spec:
   serviceName: spdkcsi-controller
