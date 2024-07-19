@@ -62,8 +62,8 @@ var _ = ginkgo.Describe("SPDKCSI-SNAPSHOT", func() {
 			})
 
 			ginkgo.By("create snapshot2 and check second data persistency", func() {
-				deploySnapshot()
-				defer deleteSnapshot()
+				deploySnapshot2()
+				defer deleteSnapshot2()
 				defer deletePVC()
 
 				err := waitForTestPodReady(f.ClientSet, 3*time.Minute)
