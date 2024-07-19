@@ -706,28 +706,18 @@ func getStorageNode(c kubernetes.Interface) (string, error) {
 	return sn, nil
 }
 
-func writeDataToPod(f *framework.Framework) {
-	opt := metav1.ListOptions{
-		LabelSelector: "app=spdkcsi-pvc",
-	}
-	data := "Data that needs to be stored"
-	dataPath := "/spdkvol/test"
-
-	execCommandInPod(f, fmt.Sprintf("echo %s > %s", data, dataPath), nameSpace, &opt)
+func writeDataToPod(f *framework.Framework, opt *metav1.ListOptions, data, dataPath string) {
+	execCommandInPod(f, fmt.Sprintf("echo %s > %s", data, dataPath), nameSpace, opt)
 }
 
-func compareDataInPod(f *framework.Framework) error {
-	// read data from PVC
-	opt := metav1.ListOptions{
-		LabelSelector: "app=spdkcsi-pvc",
-	}
-	data := "Data that needs to be stored"
-	dataPath := "/spdkvol/test"
-
-	persistData, stdErr := execCommandInPod(f, "cat "+dataPath, nameSpace, &opt)
-	Expect(stdErr).Should(BeEmpty()) //nolint
-	if !strings.Contains(persistData, data) {
-		return fmt.Errorf("data not persistent: expected data %s received data %s ", data, persistData)
+func compareDataInPod(f *framework.Framework, opt *metav1.ListOptions, data, dataPaths []string) error {
+	for i := range data {
+		// read data from PVC
+		persistData, stdErr := execCommandInPod(f, "cat "+dataPaths[i], nameSpace, opt)
+		Expect(stdErr).Should(BeEmpty()) //nolint
+		if !strings.Contains(persistData, data[i]) {
+			return fmt.Errorf("data not persistent: expected data %s received data %s ", data[i], persistData)
+		}
 	}
 	return nil
 }
