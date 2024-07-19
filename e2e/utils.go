@@ -48,6 +48,7 @@ const (
 	multiPvcsPath            = "templates/multi-pvc.yaml"
 	testPodWithMultiPvcsPath = "templates/testpod-multi-pvc.yaml"
 	testPodWithSnapshotPath  = "templates/testpod-snapshot.yaml"
+	testPodWithSnapshotPath2 = "templates/testpod-snapshot2.yaml"
 	testPodWithClonePath     = "templates/testpod-clone.yaml"
 
 	// controller statefulset and node daemonset names
@@ -118,6 +119,20 @@ func deploySnapshot() {
 
 func deleteSnapshot() {
 	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithSnapshotPath)
+	if err != nil {
+		e2elog.Logf("failed to delete snapshot: %s", err)
+	}
+}
+
+func deploySnapshot2() {
+	_, err := framework.RunKubectl(nameSpace, "apply", "-f", testPodWithSnapshotPath2)
+	if err != nil {
+		e2elog.Logf("failed to deployed snapshot: %s", err)
+	}
+}
+
+func deleteSnapshot2() {
+	_, err := framework.RunKubectl(nameSpace, "delete", "-f", testPodWithSnapshotPath2)
 	if err != nil {
 		e2elog.Logf("failed to delete snapshot: %s", err)
 	}
