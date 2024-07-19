@@ -119,15 +119,9 @@ type connectionInfo struct {
 
 // BDev SPDK block device
 type BDev struct {
-	Name           string `json:"name"`
-	UUID           string `json:"uuid"`
-	BlockSize      int64  `json:"block_size"`
-	NumBlocks      int64  `json:"num_blocks"`
-	DriverSpecific *struct {
-		Lvol struct {
-			LvolStoreUUID string `json:"lvol_store_uuid"`
-		} `json:"lvol"`
-	} `json:"driver_specific,omitempty"`
+	Name     string `json:"lvol_name"`
+	UUID     string `json:"uuid"`
+	LvolSize int64  `json:"size"`
 }
 
 type RPCClient struct {
@@ -155,9 +149,8 @@ type SnapshotResp struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-type ResizeVolReq struct {
-	LvolID  string `json:"lvol_id"`
-	NewSize int64  `json:"new_size"`
+type CreateVolResp struct {
+	LVols []string `json:"lvols"`
 }
 
 type Error struct {
@@ -225,10 +218,13 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 		}
 		return nil, err
 	}
-
-	result, ok := out.([]BDev)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []BDev type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return nil, err
 	}
 	return &result[0], err
 }
@@ -240,9 +236,13 @@ func (client *RPCClient) listVolumes() ([]*BDev, error) {
 	if err != nil {
 		return nil, err
 	}
-	results, ok := out.([]*BDev)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	err = json.Unmarshal(b, &results)
+	if err != nil {
+		return nil, err
 	}
 	return results, nil
 }
@@ -300,13 +300,18 @@ func (client *RPCClient) deleteVolume(lvolID string) error {
 	return err
 }
 
-func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
+type ResizeVolReq struct {
+	LvolID  string `json:"lvol_id"`
+	NewSize int64  `json:"size"`
+}
+
+func (client *RPCClient) resizeVolume(lvolID string, size int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
-		NewSize: newSize,
+		NewSize: size,
 	}
 	var result bool
-	out, err := client.CallSBCLI("POST", "/lvol/resize/"+lvolID, &params)
+	out, err := client.CallSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -317,6 +322,35 @@ func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error
 	return result, nil
 }
 
+func (client *RPCClient) cloneSnapshot(snapshotID, cloneName, newSize string) (string, error) {
+	params := struct {
+		SnapshotID string `json:"snapshot_id"`
+		CloneName  string `json:"clone_name"`
+		//	NewSize    string `json:"new_size"`
+	}{
+		SnapshotID: snapshotID,
+		CloneName:  cloneName,
+		//	NewSize:    newSize,
+	}
+
+	klog.V(5).Infof("cloned volume size: %s", newSize)
+
+	var lvolID string
+	out, err := client.CallSBCLI("POST", "/snapshot/clone", &params)
+	if err != nil {
+		if errorMatches(err, ErrJSONNoSpaceLeft) {
+			err = ErrJSONNoSpaceLeft // may happen in concurrency
+		}
+		return "", err
+	}
+
+	lvolID, ok := out.(string)
+	if !ok {
+		return "", fmt.Errorf("failed to convert the response to string type. Interface: %v", out)
+	}
+	return lvolID, err
+}
+
 func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
@@ -324,15 +358,19 @@ func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	results, ok := out.([]*SnapshotResp)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	err = json.Unmarshal(b, &results)
+	if err != nil {
+		return nil, err
 	}
 	return results, nil
 }
 
 func (client *RPCClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
+	_, err := client.CallSBCLI("DELETE", "/snapshot/"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -341,21 +379,26 @@ func (client *RPCClient) deleteSnapshot(snapshotID string) error {
 	return err
 }
 
-func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string, error) {
+func (client *RPCClient) snapshot(lvolID, snapShotName string) (string, error) {
 	params := struct {
 		LvolName     string `json:"lvol_id"`
 		SnapShotName string `json:"snapshot_name"`
-		PoolName     string `json:"pool_name"`
 	}{
 		LvolName:     lvolID,
 		SnapShotName: snapShotName,
-		PoolName:     poolName,
 	}
 	var snapshotID string
 	out, err := client.CallSBCLI("POST", "/snapshot", &params)
+	if err != nil {
+		if errorMatches(err, ErrJSONNoSpaceLeft) {
+			err = ErrJSONNoSpaceLeft // may happen in concurrency
+		}
+		return "", err
+	}
+
 	snapshotID, ok := out.(string)
 	if !ok {
-		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
+		return "", fmt.Errorf("failed to convert the response to string type. Interface: %v", out)
 	}
 	return snapshotID, err
 }
@@ -372,6 +415,7 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 	}
 
 	requestURL := fmt.Sprintf("%s/%s", client.ClusterIP, path)
+	klog.Infof("Calling Simplyblock API: Method: %s: RequestURL: %s: Body: %s\n", method, requestURL, string(data))
 	req, err := http.NewRequest(method, requestURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
