@@ -47,12 +47,19 @@ spec:
     spec:
       serviceAccountName: caching-node-sa
       nodeSelector:
-        type: cache
+        type: simplyblock-cache
       volumes:
         - name: dev-vol
           hostPath:
             path: /dev
       hostNetwork: true
+      {{- if .Values.tolerations.create -}}
+      tolerations:
+      - effect: {{ .Values.tolerations.effect }}
+        key: {{ .Values.tolerations.key }}
+        operator: {{ .Values.tolerations.operator }}
+        value: {{ .Values.tolerations.value }}
+      {{- end -}}
       containers:
       - name: c-node-api-container
         image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
