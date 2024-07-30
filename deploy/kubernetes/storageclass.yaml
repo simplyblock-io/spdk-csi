@@ -16,7 +16,6 @@ parameters:
   qos_w_mbytes: "0"
   compression: "False"
   encryption: "False"
-  snapshot: "False"
   distr_ndcs: "1"
   distr_npcs: "1"
 reclaimPolicy: Delete
@@ -39,7 +38,6 @@ parameters:
   qos_w_mbytes: "0"
   compression: "False"
   encryption: "False"
-  snapshot: "False"
   distr_ndcs: "1"
   distr_npcs: "1"
 reclaimPolicy: Delete

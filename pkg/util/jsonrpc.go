@@ -86,7 +86,7 @@ var (
 
 type SpdkNode interface {
 	Info() string
-	//LvStores() ([]LvStore, error)
+	LvStores() ([]LvStore, error)
 	VolumeInfo(lvolID string) (map[string]string, error)
 	CreateVolume(lvolName, lvsName string, sizeMiB int64) (string, error)
 	GetVolume(lvolName, lvsName string) (string, error)
@@ -145,30 +145,54 @@ type CSIPoolsResp struct {
 	UUID          string `json:"uuid"`
 }
 
-// func (client *rpcClient) lvStores() ([]LvStore, error) {
-// 	var result []CSIPoolsResp
+type SnapshotResp struct {
+	Name       string `json:"name"`
+	UUID       string `json:"uuid"`
+	Size       string `json:"size"`
+	PoolName   string `json:"pool_name"`
+	PoolID     string `json:"pool_id"`
+	SourceUUID string `json:"source_uuid"`
+	CreatedAt  string `json:"created_at"`
+}
 
-// 	out, err := client.callSBCLI("GET", "csi/get_pools", nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+type ResizeVolReq struct {
+	LvolID  string `json:"lvol_id"`
+	NewSize int64  `json:"new_size"`
+}
 
-// 	result, ok := out.([]CSIPoolsResp)
-// 	if !ok {
-// 		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
-// 	}
+type Error struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
 
-// 	lvs := make([]LvStore, len(result))
-// 	for i := range result {
-// 		r := &result[i]
-// 		lvs[i].Name = r.Name
-// 		lvs[i].UUID = r.UUID
-// 		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
-// 		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
-// 	}
+func (client *RPCClient) info() string {
+	return client.ClusterID
+}
 
-// 	return lvs, nil
-// }
+func (client *RPCClient) lvStores() ([]LvStore, error) {
+	var result []CSIPoolsResp
+
+	out, err := client.CallSBCLI("GET", "/pool/get_pools", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result, ok := out.([]CSIPoolsResp)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert the response to CSIPoolsResp type. Interface: %v", out)
+	}
+
+	lvs := make([]LvStore, len(result))
+	for i := range result {
+		r := &result[i]
+		lvs[i].Name = r.Name
+		lvs[i].UUID = r.UUID
+		lvs[i].TotalSizeMiB = r.TotalClusters * r.ClusterSize / 1024 / 1024
+		lvs[i].FreeSizeMiB = r.FreeClusters * r.ClusterSize / 1024 / 1024
+	}
+
+	return lvs, nil
+}
 
 // createVolume create a logical volume with simplyblock storage
 func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
@@ -267,19 +291,8 @@ func (client *RPCClient) getVolumeInfo(lvolID string) (map[string]string, error)
 	}, nil
 }
 
-// func (client *rpcClient) isVolumeCreated(lvolID string) (bool, error) {
-// 	_, err := client.getVolume(lvolID)
-// 	if err != nil {
-// 		if errors.Is(err, ErrJSONNoSuchDevice) {
-// 			return false, nil
-// 		}
-// 		return false, err
-// 	}
-// 	return true, nil
-// }
-
-func (client *rpcClient) deleteVolume(lvolID string) error {
-	_, err := client.callSBCLI("DELETE", "/lvol/"+lvolID, nil)
+func (client *RPCClient) deleteVolume(lvolID string) error {
+	_, err := client.CallSBCLI("DELETE", "/lvol/"+lvolID, nil)
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
 	}
@@ -287,18 +300,13 @@ func (client *rpcClient) deleteVolume(lvolID string) error {
 	return err
 }
 
-type ResizeVolReq struct {
-	LvolID  string `json:"lvol_id"`
-	NewSize int64  `json:"size"`
-}
-
-func (client *rpcClient) resizeVolume(lvolID string, Size int64) (bool, error) {
+func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
 	params := ResizeVolReq{
 		LvolID:  lvolID,
-		NewSize: Size,
+		NewSize: newSize,
 	}
 	var result bool
-	out, err := client.callSBCLI("PUT", "/lvol/resize/"+lvolID, &params)
+	out, err := client.CallSBCLI("POST", "/lvol/resize/"+lvolID, &params)
 	if err != nil {
 		return false, err
 	}
@@ -312,7 +320,7 @@ func (client *rpcClient) resizeVolume(lvolID string, Size int64) (bool, error) {
 func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	var results []*SnapshotResp
 
-	out, err := client.callSBCLI("GET", "snapshot/list_snapshots", nil)
+	out, err := client.CallSBCLI("GET", "/snapshot", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -323,8 +331,8 @@ func (client *RPCClient) listSnapshots() ([]*SnapshotResp, error) {
 	return results, nil
 }
 
-func (client *rpcClient) deleteSnapshot(snapshotID string) error {
-	_, err := client.callSBCLI("DELETE", "snapshot/delete_snapshot/%s"+snapshotID, nil)
+func (client *RPCClient) deleteSnapshot(snapshotID string) error {
+	_, err := client.CallSBCLI("DELETE", "/snapshot/%s"+snapshotID, nil)
 
 	if errorMatches(err, ErrJSONNoSuchDevice) {
 		err = ErrJSONNoSuchDevice // may happen in concurrency
@@ -344,7 +352,7 @@ func (client *RPCClient) snapshot(lvolID, snapShotName, poolName string) (string
 		PoolName:     poolName,
 	}
 	var snapshotID string
-	out, err := client.callSBCLI("POST", "snapshot/create_snapshot", &params)
+	out, err := client.CallSBCLI("POST", "/snapshot", &params)
 	snapshotID, ok := out.(string)
 	if !ok {
 		return "", fmt.Errorf("failed to convert the response to []ResizeVolResp type. Interface: %v", out)
