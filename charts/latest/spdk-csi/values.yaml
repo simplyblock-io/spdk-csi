@@ -98,3 +98,4 @@ benchmarks: 0
 # AL2023_x86_64_STANDARD: ens5
 cachingnode:
   ifname: eth0
+  cpuMask: 0x2
