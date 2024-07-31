@@ -99,3 +99,4 @@ benchmarks: 0
 cachingnode:
   ifname: eth0
   cpuMask: 0x2
+  memory: 2g

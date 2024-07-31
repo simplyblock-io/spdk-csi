@@ -55,7 +55,8 @@ data:
             "cluster_id": cluster_uuid,
             "node_ip": f"{node_ip}:5000",
             "iface_name": "{{ .Values.cachingnode.ifname }}",
-            "cpu_mask": "{{ .Values.cachingnode.cpuMask }}",
+            "spdk_cpu_mask": "{{ .Values.cachingnode.cpuMask }}",
+            "spdk_memory": "{{ .Values.cachingnode.memory }}",
             "namespace": namespace
         })
 
