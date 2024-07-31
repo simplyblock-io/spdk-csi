@@ -47,7 +47,7 @@ spec:
     spec:
       serviceAccountName: caching-node-sa
       nodeSelector:
-        type: cache
+        type: simplyblock-cache
       volumes:
         - name: dev-vol
           hostPath:

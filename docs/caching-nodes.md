@@ -64,18 +64,18 @@ Now the nodes are ready to deploy caching nodes.
 
 ### StorageClass
 
-If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: cache`.
+If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: simplyblock-cache`.
 
 
 ### Usage and Implementation
 
-During dynamic volume provisioning, nodeSelector should be provided on pod, deployment, daemonset, statefulset. So that such pods are scheduled only on the nodes that has the `cache` label on it.
+During dynamic volume provisioning, nodeSelector should be provided on pod, deployment, daemonset, statefulset. So that such pods are scheduled only on the nodes that has the `simplyblock-cache` label on it.
 
 As shown below
 ```
     spec:
       nodeSelector:
-        type: cache
+        type: simplyblock-cache
 ```
 
 On the controller server, when a new volume is requested, we create a `lvol` . This steps is exactly same as the current implementation.

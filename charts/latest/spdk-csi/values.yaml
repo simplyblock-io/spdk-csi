@@ -51,6 +51,13 @@ controller:
 storageclass:
   create: true
 
+tolerations:
+  create: false
+  effect: NoSchedule
+  key: dedicated
+  operator: Equal
+  value: simplyblock-cache
+
 externallyManagedConfigmap:
   # Specifies whether a externallyManagedConfigmap should be created
   create: true
