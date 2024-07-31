@@ -53,13 +53,13 @@ spec:
           hostPath:
             path: /dev
       hostNetwork: true
-      {{- if .Values.tolerations.create -}}
+      {{- if .Values.tolerations.create }}
       tolerations:
       - effect: {{ .Values.tolerations.effect }}
         key: {{ .Values.tolerations.key }}
         operator: {{ .Values.tolerations.operator }}
         value: {{ .Values.tolerations.value }}
-      {{- end -}}
+      {{- end }}
       containers:
       - name: c-node-api-container
         image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
