@@ -374,6 +374,7 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 	}
 
 	requestURL := fmt.Sprintf("%s/%s", client.ClusterIP, path)
+	klog.V(5).Infof("requestURL info: %s", requestURL)
 	req, err := http.NewRequest(method, requestURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
