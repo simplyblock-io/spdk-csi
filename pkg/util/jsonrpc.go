@@ -204,6 +204,8 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
 		}
+		klog.V(5).Infof("Error creating Volume: %s", err)
+		klog.Errorf("failed to creating Volume: %v", err)
 		return "", err
 	}
 
@@ -371,7 +373,7 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 		}
 	}
 
-	requestURL := fmt.Sprintf("%s%s", client.ClusterIP, path)
+	requestURL := fmt.Sprintf("%s/%s", client.ClusterIP, path)
 	req, err := http.NewRequest(method, requestURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", method, err)
@@ -386,6 +388,8 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
+		klog.V(5).Infof("Error sending request: %s", err)
+		klog.Errorf("failed to sending request: %v", err)
 		return nil, fmt.Errorf("%s: %w", method, err)
 	}
 
