@@ -200,11 +200,12 @@ func (client *RPCClient) createVolume(params *CreateLVolData) (string, error) {
 	klog.V(5).Info("params", params)
 
 	out, err := client.CallSBCLI("POST", "/lvol", &params)
+	klog.V(5).Infof("creating Volume output: %s", out)
+
 	if err != nil {
 		if errorMatches(err, ErrJSONNoSpaceLeft) {
 			err = ErrJSONNoSpaceLeft // may happen in concurrency
 		}
-		klog.V(5).Infof("Error creating Volume: %s", err)
 		klog.Errorf("failed to creating Volume: %v", err)
 		return "", err
 	}
@@ -368,7 +369,9 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 
 	if args != nil {
 		data, err = json.Marshal(args)
+		klog.V(5).Infof("requestURL data: %s", data)
 		if err != nil {
+			klog.Errorf("failed to sending request: %v", err)
 			return nil, fmt.Errorf("%s: %w", method, err)
 		}
 	}
@@ -388,6 +391,8 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.HTTPClient.Do(req)
+	klog.V(5).Infof("Response >>>>>>>>>>: %s", resp)
+
 	if err != nil {
 		klog.V(5).Infof("Error sending request: %s", err)
 		klog.Errorf("failed to sending request: %v", err)
