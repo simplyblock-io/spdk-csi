@@ -391,7 +391,7 @@ func (client *RPCClient) CallSBCLI(method, path string, args interface{}) (inter
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.HTTPClient.Do(req)
-	klog.V(5).Infof("Response >>>>>>>>>>: %d", resp)
+	klog.V(2).Infof("Response: %+v", resp)
 
 	if err != nil {
 		klog.V(5).Infof("Error sending request: %s", err)
