@@ -41,7 +41,7 @@ data:
     api_instance = client.CoreV1Api()
     pods = api_instance.list_pod_for_all_namespaces(label_selector=label_selector)
 
-    print(f"found {len(pods.items)} pods with label: app=caching-node")
+    print("found %s pods with label: app=caching-node" % len(pods.items))
     for pod in pods.items:
         node_ip = pod.status.pod_ip
         print(f"adding caching node: {node_ip} in namespace: {namespace}")
@@ -56,24 +56,30 @@ data:
             "node_ip": f"{node_ip}:5000",
             "iface_name": "{{ .Values.cachingnode.ifname }}",
             "cpu_mask": "{{ .Values.cachingnode.cpuMask }}",
-            "namespace": namespace
+            "namespace": namespace,
+            "spdk_mem": "{{ .Values.cachingnode.spdkMem }}",
+            "multipathing": {{ .Values.cachingnode.multiPathing }}
         })
 
         requests.post(url, headers=headers, data=data)
-        url = f"{cluster_ip}/cachingnode/"
-
+        print("Waiting for node to be added...")
         for i in range(12):
-          response = requests.get(url, headers=headers)
-          if response.status_code != 200:
-            print(f"failed to list caching nodes: response: {response.text}. response code: {response.status_code}")
-            sleep(10)
-          else:
-            for result in response.json()['results']:
-              if result['mgmt_ip'] == node_ip and result['status'] == "online":
-                print(f"successfully added caching node: {node_ip}")
-                break
-            sleep(10)
-
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                print(f"failed to list caching nodes: response: {response.text}. response code: {response.status_code}")
+                sleep(10)
+            else:
+                found = False
+                for result in response.json()['results']:
+                    if result['mgmt_ip'] == node_ip:
+                        print(f"{result['mgmt_ip']} status: {result['status']}")
+                        if result['status'] == "online":
+                            print(f"successfully added caching node: {node_ip}")
+                            found = True
+                            break
+                if found:
+                    break
+                sleep(10)
 ---
 apiVersion: v1
 kind: ConfigMap
