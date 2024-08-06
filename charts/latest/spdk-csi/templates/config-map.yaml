@@ -58,7 +58,7 @@ data:
             "cpu_mask": "{{ .Values.cachingnode.cpuMask }}",
             "namespace": namespace,
             "spdk_mem": "{{ .Values.cachingnode.spdkMem }}",
-            "multipathing": {{ .Values.cachingnode.multiPathing }}
+            "multipathing": "{{ .Values.cachingnode.multiPathing }}"
         })
 
         requests.post(url, headers=headers, data=data)
