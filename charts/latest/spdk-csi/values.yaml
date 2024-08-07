@@ -99,3 +99,5 @@ benchmarks: 0
 cachingnode:
   ifname: eth0
   cpuMask: 0x2
+  spdkMem: 44g
+  multiPathing: False

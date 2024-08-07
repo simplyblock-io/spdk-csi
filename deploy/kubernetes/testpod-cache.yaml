@@ -21,7 +21,7 @@ metadata:
   name: spdkcsi-cache-test
 spec:
   nodeSelector:
-    type: cache
+    type: simplyblock-cache
   containers:
   - name: alpine
     image: alpine:3
