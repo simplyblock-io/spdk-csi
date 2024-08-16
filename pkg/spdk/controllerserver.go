@@ -631,6 +631,7 @@ func getHostIDAnnotation(ctx context.Context, pvcName, pvcNamespace string) (str
 		klog.Errorf("failed to get PVC %s in namespace %s: %v", pvcName, pvcNamespace, err)
 		return "", fmt.Errorf("could not get PVC %s in namespace %s: %w", pvcName, pvcNamespace, err)
 	}
+
 	hostID, ok := pvc.ObjectMeta.Annotations["simplybk/host-id"]
 	if !ok {
 		return "", nil
