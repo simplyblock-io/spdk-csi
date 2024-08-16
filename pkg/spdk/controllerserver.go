@@ -255,6 +255,11 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		}
 	}
 
+	hostID, err := getHostIDAnnotation(ctx, pvcName, pvcNamespace)
+	if err != nil {
+		return nil, err
+	}
+
 	createVolReq := util.CreateLVolData{
 		LvolName:    req.GetName(),
 		Size:        fmt.Sprintf("%dM", sizeMiB),
@@ -269,6 +274,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		DistNpcs:    distrNpcs,
 		CryptoKey1:  cryptoKey1,
 		CryptoKey2:  cryptoKey2,
+		HostID:      hostID,
 	}
 	return &createVolReq, nil
 }
@@ -605,4 +611,30 @@ func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey
 	}
 
 	return strings.TrimSpace(string(key1)), strings.TrimSpace(string(key2)), nil
+}
+
+func getHostIDAnnotation(ctx context.Context, pvcName, pvcNamespace string) (string, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		klog.Errorf("failed to get in-cluster config: %v", err)
+		return "", fmt.Errorf("could not get in-cluster config: %w", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		klog.Errorf("failed to create clientset: %v", err)
+		return "", fmt.Errorf("could not create clientset: %w", err)
+	}
+
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(ctx, pvcName, metav1.GetOptions{})
+	if err != nil {
+		klog.Errorf("failed to get PVC %s in namespace %s: %v", pvcName, pvcNamespace, err)
+		return "", fmt.Errorf("could not get PVC %s in namespace %s: %w", pvcName, pvcNamespace, err)
+	}
+	hostID, ok := pvc.ObjectMeta.Annotations["simplybk/host-id"]
+	if !ok {
+		return "", nil
+	}
+
+	return hostID, nil
 }
