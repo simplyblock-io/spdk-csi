@@ -36,6 +36,8 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: caching-node-ds
+  annotations:
+    helm.sh/hook: post-install
 spec:
   selector:
     matchLabels:
