@@ -82,6 +82,8 @@ spec:
           value: "{{ .Values.cachingnode.lvStoreDataSize }}"
         - name: NUMPAGESPERCLUSTERRATIO
           value: "{{ .Values.cachingnode.numPagesPerClusterRatio }}"
+        - name: S3BUCKETNAME
+          value: "{{ .Values.cachingnode.s3BucketName }}"
         - name: NAMESPACE
           valueFrom:
             fieldRef:
