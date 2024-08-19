@@ -108,5 +108,7 @@ cachingnode:
   s3DataPath: /dev/nvme2n1
   blockedPcie: 0000:00:1e.0
   ftlBufferSize: 10g
-  lvStoreClusterSize: 0
-  numPagesPerClusterRatio: 0
+  lvStoreClusterSize: 4M
+  lvStoreDataSize: ""
+  numPagesPerClusterRatio: ""
+  s3BucketName: ""
