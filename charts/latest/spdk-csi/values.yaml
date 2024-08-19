@@ -103,8 +103,8 @@ benchmarks: 0
 # AL2023_x86_64_STANDARD: ens5
 cachingnode:
   ifname: eth0
-  cpuMask: 0x2
-  spdkMem: 44g
+  cpuMask: 
+  spdkMem: 
   s3DataPath: /dev/nvme2n1
   blockedPcie: 0000:00:1e.0
   ftlBufferSize: 10g
