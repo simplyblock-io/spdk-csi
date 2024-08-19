@@ -109,6 +109,6 @@ cachingnode:
   blockedPcie: 0000:00:1e.0
   ftlBufferSize: 10g
   lvStoreClusterSize: 4M
-  lvStoreDataSize: ""
-  numPagesPerClusterRatio: ""
-  s3BucketName: ""
+  lvStoreDataSize: 
+  numPagesPerClusterRatio:
+  s3BucketName: 
