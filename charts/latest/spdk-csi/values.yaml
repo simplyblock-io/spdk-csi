@@ -7,7 +7,7 @@ driverName: csi.simplyblock.io
 image:
   spdkcsi:
     repository: simplyblock/spdkcsi
-    tag: pr-38
+    tag: latest
     pullPolicy: Always
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -37,6 +37,11 @@ image:
     repository: simplyblock/simplyblock
     tag: release_v1
     pullPolicy: Always
+  spdk:
+    repository: simplyblock/spdk
+    tag: prerelease_v2-latest
+    pullPolicy: Always
+
 serviceAccount:
   # Specifies whether a serviceAccount should be created
   create: true
@@ -107,4 +112,12 @@ benchmarks: 0
 # AL2023_x86_64_STANDARD: ens5
 cachingnode:
   ifname: eth0
-  cpuMask: 0x2
+  cpuMask: 
+  spdkMem: 
+  s3DataPath: /dev/nvme2n1
+  blockedPcie: 0000:00:1e.0
+  ftlBufferSize: 10g
+  lvStoreClusterSize: 4M
+  lvStoreDataSize: 
+  numPagesPerClusterRatio:
+  s3BucketName: 

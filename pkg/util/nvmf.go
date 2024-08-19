@@ -86,7 +86,7 @@ type CreateLVolData struct {
 	DistNpcs    int    `json:"distr_npcs"`
 	CryptoKey1  string `json:"crypto_key1"`
 	CryptoKey2  string `json:"crypto_key2"`
-	HostNode    string `json:"host_id"`
+	HostID      string `json:"host_id"`
 }
 
 // CreateVolume creates a logical volume and returns volume ID
