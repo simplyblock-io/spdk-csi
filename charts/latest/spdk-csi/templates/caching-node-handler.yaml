@@ -78,8 +78,8 @@ spec:
           value: "{{ .Values.cachingnode.ftlBufferSize }}"
         - name: LVSTORECLUSTERSIZE
           value: "{{ .Values.cachingnode.lvStoreClusterSize }}"
-        - name: LVSTOREDATASIZE
-          value: "{{ .Values.cachingnode.lvStoreDataSize }}"
+        - name: INITIALSTORESIZE
+          value: "{{ .Values.cachingnode.initialStoreSize }}"
         - name: NUMPAGESPERCLUSTERRATIO
           value: "{{ .Values.cachingnode.numPagesPerClusterRatio }}"
         - name: S3BUCKETNAME
