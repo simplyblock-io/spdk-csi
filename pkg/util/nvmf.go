@@ -105,6 +105,16 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
+func (node *NodeNVMf) GetVolumeHostID(lvolID string) (string, error) {
+	lvol, err := node.client.getVolume(lvolID)
+	if err != nil {
+		return "", err
+	}
+
+	hostId := lvol.HostID
+	return hostId, err
+}
+
 // ListVolumes returns a list of volumes
 func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
@@ -147,6 +157,15 @@ func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 		return err
 	}
 	klog.V(5).Infof("snapshot deleted: %s", snapshotID)
+	return nil
+}
+
+func (node *NodeNVMf) CachingNodeConnect(hostID, lvolID string) error {
+	_, err := node.client.cachingNodeConnect(hostID, lvolID)
+	if err != nil {
+		return err
+	}
+	klog.V(5).Infof("caching node connected: %s", hostID)
 	return nil
 }
 

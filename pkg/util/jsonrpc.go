@@ -119,15 +119,10 @@ type connectionInfo struct {
 
 // BDev SPDK block device
 type BDev struct {
-	Name           string `json:"name"`
-	UUID           string `json:"uuid"`
-	BlockSize      int64  `json:"block_size"`
-	NumBlocks      int64  `json:"num_blocks"`
-	DriverSpecific *struct {
-		Lvol struct {
-			LvolStoreUUID string `json:"lvol_store_uuid"`
-		} `json:"lvol"`
-	} `json:"driver_specific,omitempty"`
+	Name     string `json:"lvol_name"`
+	UUID     string `json:"uuid"`
+	LvolSize int64  `json:"size"`
+	HostID   string `json:"host_id"`
 }
 
 type RPCClient struct {
@@ -225,10 +220,13 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 		}
 		return nil, err
 	}
-
-	result, ok := out.([]BDev)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to []BDev type. Interface: %v", out)
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the response: %w", err)
+	}
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return nil, err
 	}
 	return &result[0], err
 }
@@ -298,6 +296,26 @@ func (client *RPCClient) deleteVolume(lvolID string) error {
 	}
 
 	return err
+}
+
+type CachingNodeReq struct {
+	LvolID string `json:"lvol_id"`
+}
+
+func (client *RPCClient) cachingNodeConnect(hostID, lvolID string) (bool, error) {
+	params := CachingNodeReq{
+		LvolID: lvolID,
+	}
+	var result bool
+	out, err := client.CallSBCLI("PUT", "/cachingnode/connect/"+hostID, &params)
+	if err != nil {
+		return false, err
+	}
+	result, ok := out.(bool)
+	if !ok {
+		return false, fmt.Errorf("failed to convert the response to bool type. Interface: %v", out)
+	}
+	return result, nil
 }
 
 func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {

@@ -66,7 +66,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	volumeInfo, err := cs.publishVolume(csiVolume.GetVolumeId())
+	volumeInfo, err := cs.publishVolume(req, csiVolume.GetVolumeId())
 	if err != nil {
 		klog.Errorf("failed to publish volume, volumeID: %s err: %v", volumeID, err)
 		cs.deleteVolume(csiVolume.GetVolumeId()) //nolint:errcheck // we can do little
@@ -333,7 +333,7 @@ func getSPDKVol(csiVolumeID string) (*spdkVolume, error) {
 	return nil, fmt.Errorf("missing poolName in volume: %s", csiVolumeID)
 }
 
-func (cs *controllerServer) publishVolume(volumeID string) (map[string]string, error) {
+func (cs *controllerServer) publishVolume(req *csi.CreateVolumeRequest, volumeID string) (map[string]string, error) {
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
 		return nil, err
@@ -341,6 +341,20 @@ func (cs *controllerServer) publishVolume(volumeID string) (map[string]string, e
 	err = cs.spdkNode.PublishVolume(spdkVol.lvolID)
 	if err != nil {
 		return nil, err
+	}
+	if _, ok := req.GetParameters()["type"]; ok {
+		hostId, err := cs.spdkNode.GetVolumeHostID(spdkVol.lvolID)
+		if err != nil {
+			return nil, err
+		}
+		err = cs.spdkNode.CachingNodeConnect(hostId, spdkVol.lvolID)
+		if err != nil {
+			klog.Errorf("error Connecting volume to host: %v", err)
+			return nil, err
+		}
+		return map[string]string{
+			"hostId": hostId,
+		}, nil
 	}
 
 	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
