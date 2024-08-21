@@ -111,8 +111,8 @@ func (node *NodeNVMf) GetVolumeHostID(lvolID string) (string, error) {
 		return "", err
 	}
 
-	hostId := lvol.HostID
-	return hostId, err
+	hostID := lvol.HostID
+	return hostID, err
 }
 
 // ListVolumes returns a list of volumes
