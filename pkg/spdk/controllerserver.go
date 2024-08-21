@@ -343,7 +343,8 @@ func (cs *controllerServer) publishVolume(req *csi.CreateVolumeRequest, volumeID
 		return nil, err
 	}
 	if _, ok := req.GetParameters()["type"]; ok {
-		hostID, err := cs.spdkNode.GetVolumeHostID(spdkVol.lvolID)
+		var hostID string
+		hostID, err = cs.spdkNode.GetVolumeHostID(spdkVol.lvolID)
 		if err != nil {
 			return nil, err
 		}
