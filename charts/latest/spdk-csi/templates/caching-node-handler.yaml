@@ -50,7 +50,7 @@ spec:
       serviceAccountName: caching-node-service-account
       containers:
       - name: caching-node-handler
-        image: geoffrey13/caching-node-handler
+        image: simplyblock/caching-node-handler
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
