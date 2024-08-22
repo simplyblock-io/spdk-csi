@@ -343,18 +343,18 @@ func (cs *controllerServer) publishVolume(req *csi.CreateVolumeRequest, volumeID
 		return nil, err
 	}
 
-	if volType, ok := req.GetParameters()["type"]; ok && volType == "cache" {
-		hostID, volErr := cs.spdkNode.GetVolumeHostID(spdkVol.lvolID)
-		if volErr != nil {
-			return nil, volErr
-		}
-		connInfo, conErr := cs.spdkNode.CachingNodeConnect(hostID, spdkVol.lvolID)
-		if conErr != nil {
-			klog.Errorf("error Connecting volume to host: %v", conErr)
-			return nil, conErr
-		}
-		return connInfo, nil
-	}
+	// if volType, ok := req.GetParameters()["type"]; ok && volType == "cache" {
+	// 	hostID, volErr := cs.spdkNode.GetVolumeHostID(spdkVol.lvolID)
+	// 	if volErr != nil {
+	// 		return nil, volErr
+	// 	}
+	// 	connInfo, conErr := cs.spdkNode.CachingNodeConnect(hostID, spdkVol.lvolID)
+	// 	if conErr != nil {
+	// 		klog.Errorf("error Connecting volume to host: %v", conErr)
+	// 		return nil, conErr
+	// 	}
+	// 	return connInfo, nil
+	// }
 
 	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
 	if err != nil {

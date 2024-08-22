@@ -302,21 +302,21 @@ type CachingNodeReq struct {
 	LvolID string `json:"lvol_id"`
 }
 
-func (client *RPCClient) cachingNodeConnect(hostID, lvolID string) (map[string]string, error) {
-	params := CachingNodeReq{
-		LvolID: lvolID,
-	}
+// func (client *RPCClient) cachingNodeConnect(hostID, lvolID string) (map[string]string, error) {
+// 	params := CachingNodeReq{
+// 		LvolID: lvolID,
+// 	}
 
-	_, err := client.CallSBCLI("PUT", "/cachingnode/connect/"+hostID, &params)
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{
-		"name":  lvolID,
-		"uuid":  lvolID,
-		"model": lvolID,
-	}, nil
-}
+// 	_, err := client.CallSBCLI("PUT", "/cachingnode/connect/"+hostID, &params)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return map[string]string{
+// 		"name":  lvolID,
+// 		"uuid":  lvolID,
+// 		"model": lvolID,
+// 	}, nil
+// }
 
 func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {
 	params := ResizeVolReq{
