@@ -119,10 +119,15 @@ type connectionInfo struct {
 
 // BDev SPDK block device
 type BDev struct {
-	Name     string `json:"lvol_name"`
-	UUID     string `json:"uuid"`
-	LvolSize int64  `json:"size"`
-	HostID   string `json:"host_id"`
+	Name           string `json:"name"`
+	UUID           string `json:"uuid"`
+	BlockSize      int64  `json:"block_size"`
+	NumBlocks      int64  `json:"num_blocks"`
+	DriverSpecific *struct {
+		Lvol struct {
+			LvolStoreUUID string `json:"lvol_store_uuid"`
+		} `json:"lvol"`
+	} `json:"driver_specific,omitempty"`
 }
 
 type RPCClient struct {
@@ -220,13 +225,10 @@ func (client *RPCClient) getVolume(lvolID string) (*BDev, error) {
 		}
 		return nil, err
 	}
-	b, err := json.Marshal(out)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal the response: %w", err)
-	}
-	err = json.Unmarshal(b, &result)
-	if err != nil {
-		return nil, err
+
+	result, ok := out.([]BDev)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert the response to []BDev type. Interface: %v", out)
 	}
 	return &result[0], err
 }
