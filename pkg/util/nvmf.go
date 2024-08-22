@@ -105,16 +105,6 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
-func (node *NodeNVMf) GetVolumeHostID(lvolID string) (string, error) {
-	lvol, err := node.client.getVolume(lvolID)
-	if err != nil {
-		return "", err
-	}
-
-	hostID := lvol.HostID
-	return hostID, err
-}
-
 // ListVolumes returns a list of volumes
 func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
