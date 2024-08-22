@@ -160,13 +160,13 @@ func (node *NodeNVMf) DeleteSnapshot(snapshotID string) error {
 	return nil
 }
 
-func (node *NodeNVMf) CachingNodeConnect(hostID, lvolID string) error {
-	_, err := node.client.cachingNodeConnect(hostID, lvolID)
+func (node *NodeNVMf) CachingNodeConnect(hostID, lvolID string) (map[string]string, error) {
+	conn, err := node.client.cachingNodeConnect(hostID, lvolID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	klog.V(5).Infof("caching node connected: %s", hostID)
-	return nil
+	return conn, nil
 }
 
 // PublishVolume exports a volume through NVMf target

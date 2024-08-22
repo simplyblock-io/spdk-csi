@@ -68,8 +68,8 @@ spec:
           value: "{{ .Values.cachingnode.cpuMask }}"
         - name: SPDKMEM
           value: "{{ .Values.cachingnode.spdkMem }}"
-        - name: SPDKIMAGE
-          value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
+        # - name: SPDKIMAGE
+        #   value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
         - name: S3DATAPATH
           value: "{{ .Values.cachingnode.s3DataPath }}"
         - name: BLOCKEDPCIE

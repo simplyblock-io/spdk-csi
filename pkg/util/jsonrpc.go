@@ -302,20 +302,20 @@ type CachingNodeReq struct {
 	LvolID string `json:"lvol_id"`
 }
 
-func (client *RPCClient) cachingNodeConnect(hostID, lvolID string) (bool, error) {
+func (client *RPCClient) cachingNodeConnect(hostID, lvolID string) (map[string]string, error) {
 	params := CachingNodeReq{
 		LvolID: lvolID,
 	}
-	var result bool
-	out, err := client.CallSBCLI("PUT", "/cachingnode/connect/"+hostID, &params)
+
+	_, err := client.CallSBCLI("PUT", "/cachingnode/connect/"+hostID, &params)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	result, ok := out.(bool)
-	if !ok {
-		return false, fmt.Errorf("failed to convert the response to bool type. Interface: %v", out)
-	}
-	return result, nil
+	return map[string]string{
+		"name":  lvolID,
+		"uuid":  lvolID,
+		"model": lvolID,
+	}, nil
 }
 
 func (client *RPCClient) resizeVolume(lvolID string, newSize int64) (bool, error) {

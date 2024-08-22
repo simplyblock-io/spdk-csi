@@ -349,14 +349,12 @@ func (cs *controllerServer) publishVolume(req *csi.CreateVolumeRequest, volumeID
 		if err != nil {
 			return nil, err
 		}
-		err = cs.spdkNode.CachingNodeConnect(hostID, spdkVol.lvolID)
+		connInfo, err := cs.spdkNode.CachingNodeConnect(hostID, spdkVol.lvolID)
 		if err != nil {
 			klog.Errorf("error Connecting volume to host: %v", err)
 			return nil, err
 		}
-		return map[string]string{
-			"hostID": hostID,
-		}, nil
+		return connInfo, nil
 	}
 
 	volumeInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
