@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: caching-node-sa
+  name: storage-node-sa
 
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: caching-node-role
+  name: storage-node-role
 rules:
 - apiGroups: [""]
   resources: ["pods"]
@@ -24,49 +24,49 @@ metadata:
   name: pods-list
 subjects:
 - kind: ServiceAccount
-  name: caching-node-sa
+  name: storage-node-sa
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: caching-node-role
+  name: storage-node-role
   apiGroup: rbac.authorization.k8s.io
 
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: caching-node-ds
+  name: storage-node-ds
   annotations:
     helm.sh/hook: post-install
 spec:
   selector:
     matchLabels:
-      app: caching-node
+      app: storage-node
   template:
     metadata:
       labels:
-        app: caching-node
+        app: storage-node
     spec:
-      serviceAccountName: caching-node-sa
+      serviceAccountName: storage-node-sa
       nodeSelector:
-        type: simplyblock-cache
+        type: simplyblock-storage-plane
       volumes:
         - name: dev-vol
           hostPath:
             path: /dev
       hostNetwork: true
-      {{- if .Values.cachingnode.tolerations.create }}
+      {{- if .Values.storagenode.tolerations.create }}
       tolerations:
-      - effect: {{ .Values.cachingnode.tolerations.effect }}
-        key: {{ .Values.cachingnode.tolerations.key }}
-        operator: {{ .Values.cachingnode.tolerations.operator }}
-        value: {{ .Values.cachingnode.tolerations.value }}
+      - effect: {{ .Values.storagenode.tolerations.effect }}
+        key: {{ .Values.storagenode.tolerations.key }}
+        operator: {{ .Values.storagenode.tolerations.operator }}
+        value: {{ .Values.storagenode.tolerations.value }}
       {{- end }}
       containers:
       - name: c-node-api-container
         image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
         imagePullPolicy: "Always"
-        command: ["python", "simplyblock_web/caching_node_app_k8s.py"]
+        command: ["python", "simplyblock_web/storage_node_app_k8s.py"]
         env:
         - name: HOSTNAME
           valueFrom:
