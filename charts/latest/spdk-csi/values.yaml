@@ -41,6 +41,10 @@ image:
     repository: simplyblock/spdk
     tag: prerelease_v2-latest
     pullPolicy: Always
+  cachingnode:
+    repository: simplyblock/caching-node-handler
+    tag: latest
+    pullPolicy: Always
 
 serviceAccount:
   # Specifies whether a serviceAccount should be created

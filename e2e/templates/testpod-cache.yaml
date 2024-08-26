@@ -16,4 +16,4 @@ spec:
   volumes:
   - name: spdk-volume
     persistentVolumeClaim:
-      claimName: spdkcsi-cache-pvc
+      claimName: spdkcsi-cache-pvc3

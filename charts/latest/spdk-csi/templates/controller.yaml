@@ -36,6 +36,8 @@ spec:
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
+        securityContext:
+          runAsUser: 0
       - name: spdkcsi-snapshotter
         image: "{{ .Values.image.csiSnapshotter.repository }}:{{ .Values.image.csiSnapshotter.tag }}"
         args:
@@ -45,7 +47,7 @@ spec:
         - "--leader-election=false"
         imagePullPolicy: {{ .Values.image.csiProvisioner.pullPolicy }}
         securityContext:
-          privileged: true
+          runAsUser: 0
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -56,6 +58,8 @@ spec:
         - "--v=5"
         - "--csi-address=unix:///csi/csi-provisioner.sock"
         - "--leader-election=false"
+        securityContext:
+          runAsUser: 0
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -69,6 +73,8 @@ spec:
         volumeMounts:
           - name: socket-dir
             mountPath: /csi
+        securityContext:
+          runAsUser: 0
       - name: spdkcsi-health-monitor
         image: "{{ .Values.image.csiHealthMonitor.repository }}:{{ .Values.image.csiHealthMonitor.tag }}"
         imagePullPolicy: {{ .Values.image.csiHealthMonitor.pullPolicy }}
@@ -80,6 +86,8 @@ spec:
         volumeMounts:
           - name: socket-dir
             mountPath:  /csi
+        securityContext:
+          runAsUser: 0
         ports:
           - containerPort: 8080
             name: http-endpoint
@@ -87,6 +95,8 @@ spec:
       - name: spdkcsi-controller
         image: "{{ .Values.image.spdkcsi.repository }}:{{ .Values.image.spdkcsi.tag }}"
         imagePullPolicy: {{ .Values.image.spdkcsi.pullPolicy }}
+        securityContext:
+          runAsUser: 0
         args:
         - "--v=5"
         - "--endpoint=unix:///csi/csi-provisioner.sock"

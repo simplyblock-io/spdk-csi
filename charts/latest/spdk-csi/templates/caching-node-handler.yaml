@@ -50,7 +50,7 @@ spec:
       serviceAccountName: caching-node-service-account
       containers:
       - name: caching-node-handler
-        image: geoffrey13/caching-node-handler
+        image: "{{ .Values.image.cachingnode.repository }}:{{ .Values.image.cachingnode.tag }}"
         env:
         - name: SPDKCSI_SECRET
           valueFrom:

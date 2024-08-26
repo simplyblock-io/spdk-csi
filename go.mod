@@ -1,6 +1,6 @@
 module github.com/spdk/spdk-csi
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/container-storage-interface/spec v1.6.0
