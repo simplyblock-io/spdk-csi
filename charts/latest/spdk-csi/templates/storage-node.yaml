@@ -63,7 +63,7 @@ spec:
         value: {{ .Values.storagenode.tolerations.value }}
       {{- end }}
       containers:
-      - name: c-node-api-container
+      - name: s-node-api-container
         image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
         imagePullPolicy: "Always"
         command: ["python", "simplyblock_web/storage_node_app_k8s.py"]
