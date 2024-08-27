@@ -21,7 +21,7 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pods-list
+  name: pods-list-sn
 subjects:
 - kind: ServiceAccount
   name: storage-node-sa
