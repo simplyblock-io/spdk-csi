@@ -102,3 +102,52 @@ data:
 
     print("Response Text:", response.text)
     print("Response Code:", response.status_code)
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mgmt-api-script-cm
+data:
+  action.py: |
+    import json, os, requests
+    from time import sleep
+
+    action_type = os.getenv("ACTION_TYPE")
+    uuid = os.getenv("SNODE_UUID", "")
+    secret = json.loads(os.getenv("SPDKCSI_SECRET"))
+    cluster_secret = secret['simplybk']['secret']
+
+    cluster_config = json.loads(os.getenv("CLUSTER_CONFIG"))
+    namespace = os.getenv("NAMESPACE", "default")
+    cluster_uuid = cluster_config['simplybk']['uuid']
+    cluster_ip = cluster_config['simplybk']['ip']
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"{cluster_uuid} {cluster_secret}"
+    }
+
+    if action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid:
+        if action_type == "sn_restart":
+            url = f"{cluster_ip}/storagenode/restart/{uuid}"
+        elif action_type == "sn_shutdown":
+            url = f"{cluster_ip}/storagenode/shutdown/{uuid}"
+        elif action_type == "sn_remove":
+            url = f"{cluster_ip}/storagenode/remove/{uuid}"
+    elif action_type == "sn_idle":
+        print("No action needed for 'sn_idle'.")
+    else:
+        print(f"Invalid action type or UUID is missing for action: {action_type}")
+        exit(1)  # Exit the script if the action type is invalid or UUID is missing
+
+    if action_type != "sn_idle" and uuid:
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                print(f"Successfully executed action: {action_type} for UUID: {uuid}")
+            else:
+                print(f"Failed to execute action: {action_type} for UUID: {uuid}, Status Code: {response.status_code}")
+        except Exception as e:
+            print(f"Error occurred: {e}")
+    else:
+        print("No GET request sent because the action type is 'sn_idle' or UUID is missing.")

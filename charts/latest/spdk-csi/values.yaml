@@ -121,8 +121,8 @@ storagenode:
     value: simplyblock-storage-plane
   ifname: eth0
   cpuMask: 
-  maxLvol: 1
-  maxSnap: 1
+  maxLvol: 10
+  maxSnap: 10
   maxProv: 150g
   jmPercent: 3
   numPartitions: 1
