@@ -131,7 +131,7 @@ data:
         if action_type == "sn_restart":
             url = f"{cluster_ip}/storagenode/restart/{uuid}"
         elif action_type == "sn_shutdown":
-            url = f"{cluster_ip}/storagenode/shutdown/{uuid}"
+            url = f"{cluster_ip}/storagenode/shutdown/{uuid}/?force=True"
         elif action_type == "sn_remove":
             url = f"{cluster_ip}/storagenode/remove/{uuid}"
     elif action_type == "sn_idle":
