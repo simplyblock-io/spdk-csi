@@ -125,7 +125,7 @@ storagenode:
   maxSnap: 10
   maxProv: 150g
   jmPercent: 3
-  numPartitions: 1
+  numPartitions: 0
   numDevices: 1
   iobufSmallPoolCount: 
   iobufLargePoolCount:
