@@ -134,13 +134,15 @@ data:
             url = f"{cluster_ip}/storagenode/shutdown/{uuid}?force=True"
         elif action_type == "sn_remove":
             url = f"{cluster_ip}/storagenode/remove/{uuid}"
+    elif action_type == "cl_activate":
+        url = f"{cluster_ip}/cluster/activate/{cluster_uuid}"
     elif action_type == "sn_idle":
         print("No action needed for 'sn_idle'.")
     else:
         print(f"Invalid action type or UUID is missing for action: {action_type}")
         exit(1)  # Exit the script if the action type is invalid or UUID is missing
 
-    if action_type != "sn_idle" and uuid:
+    if (action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid) or action_type == "cl_activate":
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
