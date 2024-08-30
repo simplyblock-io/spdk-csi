@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: storage-node-service-account
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-node-handler
+  labels:
+    app: storage-node-handler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-node-handler
+  template:
+    metadata:
+      labels:
+        app: storage-node-handler
+    spec:
+      serviceAccountName: storage-node-service-account
+      containers:
+      - name: storage-node-handler
+        image: simplyblock/storage-node-handler
+        env:
+        - name: SPDKCSI_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: spdkcsi-secret
+              key: secret.json
+        - name: CLUSTER_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: spdkcsi-cm
+              key: config.json
+        - name: IFNAME
+          value: "{{ .Values.storagenode.ifname }}"
+        - name: CPUMASK
+          value: "{{ .Values.storagenode.cpuMask }}"
+        - name: MAXLVOL
+          value: "{{ .Values.storagenode.maxLvol }}"
+        - name: MAXSNAP
+          value: "{{ .Values.storagenode.maxSnap }}"
+        - name: MAXPROV
+          value: "{{ .Values.storagenode.maxProv }}"
+        - name: JMPERCENT
+          value: "{{ .Values.storagenode.jmPercent }}"
+        - name: NUMPARTITIONS
+          value: "{{ .Values.storagenode.numPartitions }}"
+        - name: NUMDEVICES
+          value: "{{ .Values.storagenode.numDevices }}"
+        - name: IOBUFSMALLPOOLCOUNT
+          value: "{{ .Values.storagenode.iobufSmallPoolCount }}"
+        - name: IOBUFLARGEPOOLCOUNT
+          value: "{{ .Values.storagenode.iobufLargePoolCount }}"
+        # - name: SPDKIMAGE
+        #   value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      restartPolicy: Always
