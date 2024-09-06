@@ -10,12 +10,13 @@ Caching nodes are a special kind of node that works as a cache with a local NVMe
 
 Make sure that the Kubernetes worker nodes to be used for cache has access to the simplyblock storage cluster. If you are using terraform to deploy the cluster. Please attach `container-instance-sg` security group to all the instances.
 
-#### Step1: Install nvme cli tools
+#### Step1: Install nvme cli tools and nbd
 
 To attach NVMe device to the host machine, the CSI driver uses [nvme-cli]([url](https://github.com/linux-nvme/nvme-cli)). So lets install that
 ```
 sudo yum install -y nvme-cli
 sudo modprobe nvme-tcp
+sudo modprobe nbd
 ```
 
 #### Step1: Setup hugepages
@@ -58,13 +59,13 @@ lspci
 
 After the nodes are prepared, label the kubernetes nodes
 ```
-kubectl label nodes ip-10-0-4-118.us-east-2.compute.internal ip-10-0-4-176.us-east-2.compute.internal type=cache
+kubectl label nodes ip-10-0-4-118.us-east-2.compute.internal ip-10-0-4-176.us-east-2.compute.internal type=simplyblock-cache
 ```
 Now the nodes are ready to deploy caching nodes.
 
 ### StorageClass
 
-If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: simplyblock-cache`.
+If the user wants to create a PVC that uses NVMe cache, a new storage class can be used with additional volume parameter as `type: cache`.
 
 
 ### Usage and Implementation
