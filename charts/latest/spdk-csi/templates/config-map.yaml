@@ -110,9 +110,61 @@ metadata:
   name: mgmt-api-script-cm
 data:
   action.py: |
-    import json, os, requests
+    import json
+    import os
+    import requests
     from time import sleep
 
+    def get_node_statuses(cluster_ip, cluster_uuid, cluster_secret):
+        url = f"{cluster_ip}/storagenode"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"{cluster_uuid} {cluster_secret}"
+        }
+
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                results = response.json().get('results', [])
+                return results
+            else:
+                print(f"Failed to get node statuses, Status Code: {response.status_code}")
+        except Exception as e:
+            print(f"Error occurred while getting node statuses: {e}")
+        return []
+
+    def activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret):
+        retries = 60
+
+        while retries > 0:
+            node_statuses = get_node_statuses(cluster_ip, cluster_uuid, cluster_secret)
+            online_nodes = [node for node in node_statuses if node.get('status') == 'online']
+
+            if len(online_nodes) >= 3:
+                print("Proceeding with cluster activation.")
+                url = f"{cluster_ip}/cluster/activate/{cluster_uuid}"
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"{cluster_uuid} {cluster_secret}"
+                }
+                try:
+                    response = requests.put(url, headers=headers)
+                    if response.status_code == 200:
+                        print("Successfully activated the cluster.")
+                        return
+                    else:
+                        print(f"Failed to activate the cluster, Status Code: {response.status_code}")
+                except Exception as e:
+                    print(f"Error occurred while activating the cluster: {e}")
+                return
+
+            retries -= 1
+            print(f"Not enough 'online' nodes. Retrying in 5 seconds... Remaining retries: {retries}")
+            sleep(5)
+
+        print("Cluster not activated: Number of 'online' storage nodes is less than 3 after maximum retries.")
+
+    # Load environment variables
     action_type = os.getenv("ACTION_TYPE")
     uuid = os.getenv("SNODE_UUID", "")
     secret = json.loads(os.getenv("SPDKCSI_SECRET"))
@@ -127,22 +179,18 @@ data:
         "Authorization": f"{cluster_uuid} {cluster_secret}"
     }
 
-    if action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid:
+    # Check the action type and perform the appropriate action
+    if action_type == "cl_activate":
+        # Check if we should activate the cluster
+        activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret)
+    elif action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid:
         if action_type == "sn_restart":
             url = f"{cluster_ip}/storagenode/restart/{uuid}"
         elif action_type == "sn_shutdown":
             url = f"{cluster_ip}/storagenode/shutdown/{uuid}?force=True"
         elif action_type == "sn_remove":
             url = f"{cluster_ip}/storagenode/remove/{uuid}"
-    elif action_type == "cl_activate":
-        url = f"{cluster_ip}/cluster/activate/{cluster_uuid}"
-    elif action_type == "sn_idle":
-        print("No action needed for 'sn_idle'.")
-    else:
-        print(f"Invalid action type or UUID is missing for action: {action_type}")
-        exit(1)  # Exit the script if the action type is invalid or UUID is missing
-
-    if (action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid) or action_type == "cl_activate":
+        
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
@@ -151,5 +199,8 @@ data:
                 print(f"Failed to execute action: {action_type} for UUID: {uuid}, Status Code: {response.status_code}")
         except Exception as e:
             print(f"Error occurred: {e}")
+    elif action_type == "sn_idle":
+        print("No action needed for 'sn_idle'.")
     else:
-        print("No GET request sent because the action type is 'sn_idle' or UUID is missing.")
+        print(f"Invalid action type or UUID is missing for action: {action_type}")
+        exit(1)
