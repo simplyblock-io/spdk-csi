@@ -37,10 +37,6 @@ image:
     repository: simplyblock/simplyblock
     tag: release_v1
     pullPolicy: Always
-  spdk:
-    repository: simplyblock/spdk
-    tag: prerelease_v2-latest
-    pullPolicy: Always
 
 serviceAccount:
   # Specifies whether a serviceAccount should be created
@@ -103,14 +99,9 @@ cachingnode:
     value: simplyblock-cache
   ifname: eth0
   cpuMask: 
-  spdkMem: 
-  s3DataPath: /dev/nvme2n1
-  blockedPcie: 0000:00:1e.0
-  ftlBufferSize: 10g
-  lvStoreClusterSize: 4194304
-  initialStoreSize: 1T 
-  numPagesPerClusterRatio: 25
-  s3BucketName: 
+  spdkMem:
+  spdkImage: 
+  multipathing: true
 
 storagenode:
   tolerations:
@@ -120,7 +111,8 @@ storagenode:
     operator: Equal
     value: simplyblock-storage-plane
   ifname: eth0
-  cpuMask: 
+  cpuMask:
+  spdkImage:  
   maxLvol: 10
   maxSnap: 10
   maxProv: 150g
