@@ -56,8 +56,8 @@ spec:
           value: "{{ .Values.storagenode.iobufSmallPoolCount }}"
         - name: IOBUFLARGEPOOLCOUNT
           value: "{{ .Values.storagenode.iobufLargePoolCount }}"
-        # - name: SPDKIMAGE
-        #   value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
+        - name: SPDKIMAGE
+          value: "{{ .Values.storagenode.spdkImage }}"
         - name: NAMESPACE
           valueFrom:
             fieldRef:

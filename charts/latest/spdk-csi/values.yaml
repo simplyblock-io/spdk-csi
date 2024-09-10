@@ -37,10 +37,6 @@ image:
     repository: simplyblock/simplyblock
     tag: release_v1
     pullPolicy: Always
-  spdk:
-    repository: simplyblock/spdk
-    tag: prerelease_v2-latest
-    pullPolicy: Always
 
 serviceAccount:
   # Specifies whether a serviceAccount should be created
@@ -103,7 +99,8 @@ cachingnode:
     value: simplyblock-cache
   ifname: eth0
   cpuMask: 
-  spdkMem: 
+  spdkMem:
+  spdkImage: 
   multipathing: true
 
 storagenode:
@@ -114,7 +111,8 @@ storagenode:
     operator: Equal
     value: simplyblock-storage-plane
   ifname: eth0
-  cpuMask: 
+  cpuMask:
+  spdkImage:  
   maxLvol: 10
   maxSnap: 10
   maxProv: 150g
