@@ -104,13 +104,7 @@ cachingnode:
   ifname: eth0
   cpuMask: 
   spdkMem: 
-  s3DataPath: /dev/nvme2n1
-  blockedPcie: 0000:00:1e.0
-  ftlBufferSize: 10g
-  lvStoreClusterSize: 4194304
-  initialStoreSize: 1T 
-  numPagesPerClusterRatio: 25
-  s3BucketName: 
+  multipathing: true
 
 storagenode:
   tolerations:

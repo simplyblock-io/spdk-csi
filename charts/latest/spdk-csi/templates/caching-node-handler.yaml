@@ -44,20 +44,9 @@ spec:
           value: "{{ .Values.cachingnode.spdkMem }}"
         # - name: SPDKIMAGE
         #   value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
-        - name: S3DATAPATH
-          value: "{{ .Values.cachingnode.s3DataPath }}"
-        - name: BLOCKEDPCIE
-          value: "{{ .Values.cachingnode.blockedPcie }}"
-        - name: FTLBUFFERSIZE
-          value: "{{ .Values.cachingnode.ftlBufferSize }}"
-        - name: LVSTORECLUSTERSIZE
-          value: "{{ .Values.cachingnode.lvStoreClusterSize }}"
-        - name: INITIALSTORESIZE
-          value: "{{ .Values.cachingnode.initialStoreSize }}"
-        - name: NUMPAGESPERCLUSTERRATIO
-          value: "{{ .Values.cachingnode.numPagesPerClusterRatio }}"
-        - name: S3BUCKETNAME
-          value: "{{ .Values.cachingnode.s3BucketName }}"
+        - name: MULTIPATHING
+          value: "{{ .Values.cachingnode.multipathing }}"
+
         - name: NAMESPACE
           valueFrom:
             fieldRef:
