@@ -111,21 +111,9 @@ The following table lists the configurable parameters of the latest Simplyblock 
 | `cachingnode.tolerations.value	`      | The value of tolerations for the caching node	                                                                          |                                            `simplyblock-cache`                                                        |  |
 | `cachingnode.ifname`                   | the default interface to be used for binding the caching node to host interface                                          | `eth0`                                                                     |  |
 | `cachingnode.cpuMask`                  | the cpu mask for the spdk app to use for caching node                                                                    | `<empty>`                                                                  |  |
-| `cachingnode.spdkMem`                  |                                                                                                                          | `<empty>`                                                                  |  |
-| `cachingnode.s3DataPath`               |                                                                                                                          | 
-`/dev/nvme2n1`                                                             |  |
-| `cachingnode.blockedPcie`              |                                                                                                                          | 
-`0000:00:1e.0`                                                             |  |
-| `cachingnode.ftlBufferSize`            |                                                                                                                          | 
-`10g`                                                                      |  |
-| `cachingnode.lvStoreClusterSize`       |                                                                                                                          | 
-`4194304`                                                                  |  |
-| `cachingnode.initialStoreSize`         |                                                                                                                          | 
-`1T`                                                                       |  |
-| `cachingnode.numPagesPerClusterRatio`  |                                                                                                                          | 
-`25`                                                                       |  |
-| `cachingnode.s3BucketName`             |                                                                                                                          | 
-`<empty>`                                                                  |  |
+| `cachingnode.spdkMem`                  |  the amount of hugepage memory to allocate for caching node                                                                                                                        | `<empty>`                                                                  |  |
+| `cachingnode.spdkImage`                | SPDK image uri for caching node                                                                                                                     | `<empty>`                                                                  |  |
+| `cachingnode.multipathing`             | Enable multipathing for lvol connection                                                                                                                        | `true`                                                                  |  |
 | `storagenode.tolerations.create`       | Whether to create tolerations for the storage node                                                                       | `false`                                                                     |  |
 | `storagenode.tolerations.effect`       | the effect of tolerations on the storage node	                                                                          | `NoSchedule`                                                               |  |
 | `storagenode.tolerations.key	`        | the key of tolerations for the storage node	                                                                            | `dedicated`                                                                |  |
@@ -133,6 +121,7 @@ The following table lists the configurable parameters of the latest Simplyblock 
 | `storagenode.tolerations.value	`      | the value of tolerations for the storage node	                                                                          |                                            `simplyblock-cache`                                                        |  |
 | `storagenode.ifname`                   | the default interface to be used for binding the storage node to host interface                                          | `eth0`                                                                     |  |
 | `storagenode.cpuMask`                  | the cpu mask for the spdk app to use for storage node                                                                    | `<empty>`                                                                  |  |
+| `storagenode.spdkImage`                | SPDK image uri for storage node                                                                                                                        | `<empty>`                                                                  |  |
 | `storagenode.maxLvol`                  | the default max lvol per storage node	                                                                                  | `10`                                                                       |  |
 | `storagenode.maxSnap`                  | the default max snapshot per storage node	                                                                              | `10`                                                                       |  |
 | `storagenode.maxProv`                  | the max provisioning size of all storage nodes	                                                                          | `150g`                                                                     |  |
