@@ -21,11 +21,11 @@ sudo modprobe nbd
 
 #### Step1: Setup hugepages
 
-Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. We suggest allocating at least 8GB of huge pages. 
+Before you prepare the caching nodes, please decide the amount of huge pages that you would like to allocate for simplyblock and set those hugepages accordingly. 
+It is recommended to use a minimum of 1 GiB + 0.5% of the size of the local SSD, which you want to use as a cache. For example, if your local SSD has a size of 1.9 TiB, and you want to use it entirely as a write-through cache, you need to assign 10.5 GiB of RAM. If you only want to utilize 1 TiB (52.9% of the SSD), you assign 6 GiB of RAM and the cache will be automatically resized to fit the available (assigned) memory. 
 
 >[!IMPORTANT]
->The caching node requires at least 2.2% of the size of the nvme cache + 50 MiB of RAM. This should be the minimum configured as hugepage
->memory.
+>One huge page contains 2 MiB of memory. A value of e.g. 4096 therefore is equal to 8 GiB of huge page memory.
 
 ```
 sudo sysctl -w vm.nr_hugepages=4096
