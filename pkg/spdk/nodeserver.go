@@ -21,6 +21,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	osExec "os/exec"
+	"strconv"
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -181,7 +183,7 @@ func (ns *nodeServer) NodeStageVolume(_ context.Context, req *csi.NodeStageVolum
 			initiator.Disconnect() //nolint:errcheck // ignore error
 		}
 	}()
-	if err = ns.stageVolume(devicePath, stagingTargetPath, req); err != nil { // idempotent
+	if err = ns.stageVolume(devicePath, stagingTargetPath, req, vc); err != nil { // idempotent
 		klog.Errorf("failed to stage volume, volumeID: %s devicePath:%s err: %v", volumeID, devicePath, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -303,7 +305,7 @@ func (ns *nodeServer) NodeExpandVolume(_ context.Context, req *csi.NodeExpandVol
 // must be idempotent
 //
 //nolint:cyclop // many cases in switch increases complexity
-func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeStageVolumeRequest) error {
+func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeStageVolumeRequest, volumeContext map[string]string) error {
 	mounted, err := ns.createMountPoint(stagingPath)
 	if err != nil {
 		return err
@@ -316,6 +318,18 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	// if fsType is not specified, use ext4 as default
 	if fsType == "" {
 		fsType = "ext4"
+	} else if fsType == "xfs" {
+		distrNdcs, err := strconv.Atoi(volumeContext["distr_ndcs"])
+		if err != nil {
+			return err
+		}
+		cmd := fmt.Sprintf("mkfs.xfs -d sunit=%d swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
+		klog.Infof("Executing command: %s", cmd)
+		err = osExec.Command("sh", "-c", cmd).Run()
+		if err != nil {
+			klog.Errorf("Error executing command: %v", err)
+			return err
+		}
 	}
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
