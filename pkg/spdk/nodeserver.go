@@ -319,16 +319,16 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	if fsType == "" {
 		fsType = "ext4"
 	} else if fsType == "xfs" {
-		distrNdcs, err := strconv.Atoi(volumeContext["distr_ndcs"])
-		if err != nil {
-			return err
+		distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
+		if errNdcs != nil {
+			return errNdcs
 		}
 		cmd := fmt.Sprintf("mkfs.xfs -d sunit=%d swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
 		klog.Infof("Executing command: %s", cmd)
-		err = osExec.Command("sh", "-c", cmd).Run()
-		if err != nil {
-			klog.Errorf("Error executing command: %v", err)
-			return err
+		errNdcs = osExec.Command("sh", "-c", cmd).Run()
+		if errNdcs != nil {
+			klog.Errorf("Error executing command: %v", errNdcs)
+			return errNdcs
 		}
 	}
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
