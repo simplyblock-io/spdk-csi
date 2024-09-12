@@ -157,7 +157,6 @@ func (ns *nodeServer) NodeStageVolume(_ context.Context, req *csi.NodeStageVolum
 	vc := req.GetVolumeContext()
 
 	klog.Infof("VolumeContext for volumeID %s: %+v", volumeID, vc)
-	
 	// if ns.xpuConnClient != nil && ns.xpuTargetType != "" {
 	// 	vc["stagingParentPath"] = stagingParentPath
 	// 	initiator, err = util.NewSpdkCsiXpuInitiator(vc, ns.xpuConnClient, ns.xpuTargetType, ns.kvmPciBridges)
