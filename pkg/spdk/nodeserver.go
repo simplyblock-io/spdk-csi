@@ -323,7 +323,7 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 		if errNdcs != nil {
 			return errNdcs
 		}
-		cmd := fmt.Sprintf("mkfs.xfs -d sunit=%d swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
+		cmd := fmt.Sprintf("mkfs.xfs -f -d sunit=%d,swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
 		klog.Infof("Executing command: %s", cmd)
 		errNdcs = osExec.Command("sh", "-c", cmd).Run()
 		if errNdcs != nil {

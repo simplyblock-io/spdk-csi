@@ -10,7 +10,7 @@ metadata:
   name: spdkcsi-sc
 provisioner: csi.simplyblock.io
 parameters:
-  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/fstype: xfs
   pool_name: {{ .Values.logicalVolume.pool_name }}
   qos_rw_iops: "{{ .Values.logicalVolume.qos_rw_iops }}"
   qos_rw_mbytes: "{{ .Values.logicalVolume.qos_rw_mbytes }}"
@@ -31,7 +31,7 @@ metadata:
   name: spdkcsi-sc-cache
 provisioner: csi.simplyblock.io
 parameters:
-  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/fstype: xfs
   type: cache
   pool_name: "{{ .Values.logicalVolume.pool_name }}"
   qos_rw_iops: "{{ .Values.logicalVolume.qos_rw_iops }}"
