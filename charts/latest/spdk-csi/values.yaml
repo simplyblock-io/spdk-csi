@@ -37,7 +37,14 @@ image:
     repository: simplyblock/simplyblock
     tag: release_v1
     pullPolicy: Always
-
+  storageNode:
+    repository: simplyblock/storage-node-handler
+    tag: latest
+    pullPolicy: Always
+  cachingNode:
+    repository: simplyblock/caching-node-handler
+    tag: latest
+    pullPolicy: Always
 serviceAccount:
   # Specifies whether a serviceAccount should be created
   create: true
