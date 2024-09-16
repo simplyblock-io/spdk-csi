@@ -65,7 +65,7 @@ spec:
       containers:
       - name: c-node-api-container
         image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
-        imagePullPolicy: "Always"
+        imagePullPolicy: "{{ .Values.image.simplyblock.pullPolicy }}"
         command: ["python", "simplyblock_web/caching_node_app_k8s.py"]
         env:
         - name: HOSTNAME
