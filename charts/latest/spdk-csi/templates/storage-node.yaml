@@ -96,7 +96,7 @@ spec:
     spec:
       serviceAccountName: storage-node-sa
       nodeSelector:
-        type: simplyblock-storage-plane
+        type: simplyblock-storage-plane-reserve
       volumes:
         - name: dev-vol
           hostPath:
