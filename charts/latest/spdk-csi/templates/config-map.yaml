@@ -133,14 +133,14 @@ data:
             print(f"Error occurred while getting node statuses: {e}")
         return []
 
-    def activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret):
+    def activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret, distr_ndcs, distr_npcs):
         retries = 60
-
+        total_value = distr_ndcs + distr_npcs + 1
         while retries > 0:
             node_statuses = get_node_statuses(cluster_ip, cluster_uuid, cluster_secret)
             online_nodes = [node for node in node_statuses if node.get('status') == 'online']
 
-            if len(online_nodes) >= 3:
+            if len(online_nodes) >= total_value:
                 print("Proceeding with cluster activation.")
                 url = f"{cluster_ip}/cluster/activate/{cluster_uuid}"
                 headers = {
@@ -162,11 +162,14 @@ data:
             print(f"Not enough 'online' nodes. Retrying in 5 seconds... Remaining retries: {retries}")
             sleep(5)
 
-        print("Cluster not activated: Number of 'online' storage nodes is less than 3 after maximum retries.")
+        print(f"Cluster not activated: Number of 'online' storage nodes is less than {total_value} after maximum retries.")
 
     # Load environment variables
     action_type = os.getenv("ACTION_TYPE")
     uuid = os.getenv("SNODE_UUID", "")
+    distr_ndcs = int(os.getenv("DISTR_NDCS", 1)) if os.getenv("DISTR_NDCS", "").isdigit() else 1
+    distr_npcs = int(os.getenv("DISTR_NPCS", 1)) if os.getenv("DISTR_NPCS", "").isdigit() else 1
+
     secret = json.loads(os.getenv("SPDKCSI_SECRET"))
     cluster_secret = secret['simplybk']['secret']
 
@@ -182,7 +185,7 @@ data:
     # Check the action type and perform the appropriate action
     if action_type == "cl_activate":
         # Check if we should activate the cluster
-        activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret)
+        activate_cluster_if_needed(cluster_ip, cluster_uuid, cluster_secret, distr_ndcs, distr_npcs)
     elif action_type in ["sn_restart", "sn_shutdown", "sn_remove"] and uuid:
         if action_type == "sn_restart":
             url = f"{cluster_ip}/storagenode/restart/{uuid}"

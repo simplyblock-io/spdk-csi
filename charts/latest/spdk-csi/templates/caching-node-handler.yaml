@@ -24,7 +24,8 @@ spec:
       serviceAccountName: caching-node-service-account
       containers:
       - name: caching-node-handler
-        image: simplyblock/caching-node-handler
+        image: "{{ .Values.image.cachingNode.repository }}:{{ .Values.image.cachingNode.tag }}"
+        imagePullPolicy: "{{ .Values.image.cachingNode.pullPolicy }}"
         env:
         - name: SPDKCSI_SECRET
           valueFrom:

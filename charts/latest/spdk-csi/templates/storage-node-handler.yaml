@@ -24,7 +24,8 @@ spec:
       serviceAccountName: storage-node-service-account
       containers:
       - name: storage-node-handler
-        image: simplyblock/storage-node-handler
+        image: "{{ .Values.image.storageNode.repository }}:{{ .Values.image.storageNode.tag }}"
+        imagePullPolicy: "{{ .Values.image.storageNode.pullPolicy }}"
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
