@@ -31,10 +31,14 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: DISTR_NDCS
+          value: "{{ .Values.logicalVolume.distr_ndcs }}"
+        - name: DISTR_NPCS
+          value: "{{ .Values.logicalVolume.distr_npcs }}"  
         - name: ACTION_TYPE
           value: "cl_activate" #options: "sn_idle", "sn_restart", "sn_shutdown", "sn_remove", "cl_activate"
         - name: SNODE_UUID
-          value: ""
+          value: "" 
         volumeMounts:
             - name: script-config
               mountPath: /config

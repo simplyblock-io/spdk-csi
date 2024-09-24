@@ -119,7 +119,7 @@ storagenode:
     value: simplyblock-storage-plane
   ifname: eth0
   cpuMask:
-  spdkImage:  
+  spdkImage:
   maxLvol: 10
   maxSnap: 10
   maxProv: 150g
