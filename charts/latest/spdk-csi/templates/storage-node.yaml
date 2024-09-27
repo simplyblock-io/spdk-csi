@@ -31,36 +31,37 @@ roleRef:
   name: storage-node-role
   apiGroup: rbac.authorization.k8s.io
 
+{{- range .Values.storagenode.daemonsets }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: storage-node-ds
+  name: {{ .name }}
   annotations:
     helm.sh/hook: post-install
 spec:
   selector:
     matchLabels:
-      app: storage-node
+      app: {{ .appLabel }}
   template:
     metadata:
       labels:
-        app: storage-node
+        app: {{ .appLabel }}
     spec:
       serviceAccountName: storage-node-sa
       nodeSelector:
-        type: simplyblock-storage-plane
+        type: {{ .nodeSelector }}
       volumes:
         - name: dev-vol
           hostPath:
             path: /dev
       hostNetwork: true
-      {{- if .Values.storagenode.tolerations.create }}
+      {{- if .tolerations.create }}
       tolerations:
-      - effect: {{ .Values.storagenode.tolerations.effect }}
-        key: {{ .Values.storagenode.tolerations.key }}
-        operator: {{ .Values.storagenode.tolerations.operator }}
-        value: {{ .Values.storagenode.tolerations.value }}
+      - effect: {{ .tolerations.effect }}
+        key: {{ .tolerations.key }}
+        operator: {{ .tolerations.operator }}
+        value: {{ .tolerations.value }}
       {{- end }}
       containers:
       - name: s-node-api-container
@@ -77,50 +78,4 @@ spec:
         volumeMounts:
         - name: dev-vol
           mountPath: /dev
-
----
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: storage-node-ds-reserve
-  annotations:
-    helm.sh/hook: post-install
-spec:
-  selector:
-    matchLabels:
-      app: storage-node-reserve
-  template:
-    metadata:
-      labels:
-        app: storage-node-reserve
-    spec:
-      serviceAccountName: storage-node-sa
-      nodeSelector:
-        type: simplyblock-storage-plane-reserve
-      volumes:
-        - name: dev-vol
-          hostPath:
-            path: /dev
-      hostNetwork: true
-      {{- if .Values.storagenode.tolerations.create }}
-      tolerations:
-      - effect: {{ .Values.storagenode.tolerations.effect }}
-        key: {{ .Values.storagenode.tolerations.key }}
-        operator: {{ .Values.storagenode.tolerations.operator }}
-        value: {{ .Values.storagenode.tolerations.value }}
-      {{- end }}
-      containers:
-      - name: s-node-api-container
-        image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
-        imagePullPolicy: "{{ .Values.image.simplyblock.pullPolicy }}"
-        command: ["python", "simplyblock_web/snode_app_k8s.py"]
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - name: dev-vol
-          mountPath: /dev
+{{- end }}
