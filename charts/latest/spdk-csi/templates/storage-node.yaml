@@ -65,8 +65,8 @@ spec:
       {{- end }}
       containers:
       - name: s-node-api-container
-        image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
-        imagePullPolicy: "Always"
+        image: "{{ $.Values.image.simplyblock.repository }}:{{ $.Values.image.simplyblock.tag }}"
+        imagePullPolicy: "{{ $.Values.image.simplyblock.pullPolicy }}"
         command: ["python", "simplyblock_web/snode_app_k8s.py"]
         env:
         - name: HOSTNAME
