@@ -35,7 +35,7 @@ image:
     pullPolicy: Always
   simplyblock:
     repository: simplyblock/simplyblock
-    tag: release_v1
+    tag: main
     pullPolicy: Always
   storageNode:
     repository: simplyblock/storage-node-handler
