@@ -20,64 +20,6 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: add-caching-node-script-cm
-data:
-  add_cn_script.py: |
-    from kubernetes import client, config
-    import json, os, requests
-    from time import sleep
-
-    config.load_incluster_config()
-
-    secret = json.loads(os.getenv("SPDKCSI_SECRET"))
-    cluster_secret = secret['simplybk']['secret']
-
-    cluster_config = json.loads(os.getenv("CLUSTER_CONFIG"))
-    namespace = os.getenv("NAMESPACE", "default")
-    cluster_uuid = cluster_config['simplybk']['uuid']
-    cluster_ip = cluster_config['simplybk']['ip']
-
-    label_selector = "app=caching-node"
-    api_instance = client.CoreV1Api()
-    pods = api_instance.list_pod_for_all_namespaces(label_selector=label_selector)
-
-    print(f"found {len(pods.items)} pods with label: app=caching-node")
-    for pod in pods.items:
-        node_ip = pod.status.pod_ip
-        print(f"adding caching node: {node_ip} in namespace: {namespace}")
-
-        url = f"{cluster_ip}/cachingnode/"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"{cluster_uuid} {cluster_secret}"
-        }
-        data = json.dumps({
-            "cluster_id": cluster_uuid,
-            "node_ip": f"{node_ip}:5000",
-            "iface_name": "{{ .Values.cachingnode.ifname }}",
-            "cpu_mask": "{{ .Values.cachingnode.cpuMask }}",
-            "namespace": namespace
-        })
-
-        requests.post(url, headers=headers, data=data)
-        url = f"{cluster_ip}/cachingnode/"
-
-        for i in range(12):
-          response = requests.get(url, headers=headers)
-          if response.status_code != 200:
-            print(f"failed to list caching nodes: response: {response.text}. response code: {response.status_code}")
-            sleep(10)
-          else:
-            for result in response.json()['results']:
-              if result['mgmt_ip'] == node_ip and result['status'] == "online":
-                print(f"successfully added caching node: {node_ip}")
-                break
-            sleep(10)
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: caching-node-restart-script-cm
 data:
   restart_script.py: |
