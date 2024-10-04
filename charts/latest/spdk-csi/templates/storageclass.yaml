@@ -18,7 +18,6 @@ parameters:
   qos_w_mbytes: "{{ .Values.logicalVolume.qos_w_mbytes }}"
   compression: "{{ .Values.logicalVolume.compression }}"
   encryption: "{{ .Values.logicalVolume.encryption }}"
-  snapshot: "{{ .Values.logicalVolume.snapshot }}"
   distr_ndcs: "{{ .Values.logicalVolume.distr_ndcs }}"
   distr_npcs: "{{ .Values.logicalVolume.distr_npcs }}"
 reclaimPolicy: Delete
@@ -41,7 +40,6 @@ parameters:
   qos_w_mbytes: "{{ .Values.logicalVolume.qos_w_mbytes }}"
   compression: "{{ .Values.logicalVolume.compression }}"
   encryption: "{{ .Values.logicalVolume.encryption }}"
-  snapshot: "{{ .Values.logicalVolume.snapshot }}"
   distr_ndcs: "{{ .Values.logicalVolume.distr_ndcs }}"
   distr_npcs: "{{ .Values.logicalVolume.distr_npcs }}"
 reclaimPolicy: Delete

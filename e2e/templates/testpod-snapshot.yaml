@@ -28,7 +28,7 @@ spec:
 kind: Pod
 apiVersion: v1
 metadata:
-  name: spdkcsi-test-2
+  name: spdkcsi-test
   labels:
     app: spdkcsi-pvc
 spec:
