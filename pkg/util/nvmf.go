@@ -19,6 +19,7 @@ package util
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"k8s.io/klog"
@@ -79,6 +80,7 @@ type CreateLVolData struct {
 	MaxRWmBytes string `json:"max_rw_mbytes"`
 	MaxRmBytes  string `json:"max_r_mbytes"`
 	MaxWmBytes  string `json:"max_w_mbytes"`
+	MaxSize     string `json:"max_size"`
 	DistNdcs    int    `json:"distr_ndcs"`
 	DistNpcs    int    `json:"distr_npcs"`
 	CryptoKey1  string `json:"crypto_key1"`
@@ -105,7 +107,16 @@ func (node *NodeNVMf) GetVolume(lvolName, poolName string) (string, error) {
 	return lvol.UUID, err
 }
 
-// ListVolumes returns a list of volumes
+func (node *NodeNVMf) GetVolumeSize(lvolID string) (string, error) {
+	lvol, err := node.client.getVolume(lvolID)
+	if err != nil {
+		return "", err
+	}
+
+	size := strconv.FormatInt(lvol.LvolSize, 10)
+	return size, err
+}
+
 func (node *NodeNVMf) ListVolumes() ([]*BDev, error) {
 	return node.client.listVolumes()
 }
@@ -120,9 +131,17 @@ func (node *NodeNVMf) ListSnapshots() ([]*SnapshotResp, error) {
 	return node.client.listSnapshots()
 }
 
-// CreateSnapshot creates a snapshot of a volume
-func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName, poolName string) (string, error) {
-	snapshotID, err := node.client.snapshot(lvolID, snapshotName, poolName)
+func (node *NodeNVMf) CloneSnapshot(snapshotID, cloneName, newSize string) (string, error) {
+	lvolID, err := node.client.cloneSnapshot(snapshotID, cloneName, newSize)
+	if err != nil {
+		return "", err
+	}
+	klog.V(5).Infof("snapshot cloned: %s", lvolID)
+	return lvolID, nil
+}
+
+func (node *NodeNVMf) CreateSnapshot(lvolID, snapshotName string) (string, error) {
+	snapshotID, err := node.client.snapshot(lvolID, snapshotName)
 	if err != nil {
 		return "", err
 	}
@@ -156,12 +175,10 @@ func (node *NodeNVMf) PublishVolume(lvolID string) error {
 	if err != nil {
 		return err
 	}
-
 	klog.V(5).Infof("volume published: %s", lvolID)
 	return nil
 }
 
-// UnpublishVolume unexports a volume through NVMf target
 func (node *NodeNVMf) UnpublishVolume(lvolID string) error {
 	_, err := node.client.CallSBCLI("GET", "/lvol/"+lvolID, nil)
 	if err != nil {

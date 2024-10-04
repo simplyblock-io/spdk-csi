@@ -13,12 +13,14 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 256Mi
 ---
 kind: Pod
 apiVersion: v1
 metadata:
-  name: spdkcsi-test-clone
+  name: spdkcsi-test
+  labels:
+    app: spdkcsi-pvc
 spec:
   containers:
   - name: alpine

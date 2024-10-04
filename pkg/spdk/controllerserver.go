@@ -143,36 +143,39 @@ func (cs *controllerServer) ValidateVolumeCapabilities(_ context.Context, req *c
 
 func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
 	volumeID := req.GetSourceVolumeId()
+	klog.Infof("CreateSnapshot : volumeID=%s", volumeID)
 	unlock := cs.volumeLocks.Lock(volumeID)
 	defer unlock()
 
 	snapshotName := req.GetName()
+	klog.Infof("CreateSnapshot : snapshotName=%s", snapshotName)
 	spdkVol, err := getSPDKVol(volumeID)
 	if err != nil {
 		klog.Errorf("failed to get spdk volume, volumeID: %s err: %v", volumeID, err)
 		return nil, err
 	}
-	poolName := req.GetParameters()["pool_name"]
-	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName, poolName)
+	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName)
+	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
 	if err != nil {
 		klog.Errorf("failed to create snapshot, volumeID: %s snapshotName: %s err: %v", volumeID, snapshotName, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	volInfo, err := cs.spdkNode.VolumeInfo(spdkVol.lvolID)
+	volSize, err := cs.spdkNode.GetVolumeSize(spdkVol.lvolID)
+	klog.Infof("CreateSnapshot : volSize=%s", volSize)
 	if err != nil {
 		klog.Errorf("failed to get volume info, volumeID: %s err: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	size, err := strconv.ParseInt(volInfo["size"], 10, 64)
+	size, err := strconv.ParseInt(volSize, 10, 64)
 	if err != nil {
-		klog.Errorf("failed to parse volume size, size: %s err: %v", volInfo["size"], err)
+		klog.Errorf("failed to parse volume size, size: %s err: %v", volSize, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	creationTime := timestamppb.Now()
 	snapshotData := csi.Snapshot{
 		SizeBytes:      size,
-		SnapshotId:     fmt.Sprintf("%s:%s", spdkVol.poolName, snapshotID),
+		SnapshotId:     snapshotID,
 		SourceVolumeId: spdkVol.lvolID,
 		CreationTime:   creationTime,
 		ReadyToUse:     true,
@@ -185,16 +188,13 @@ func (cs *controllerServer) CreateSnapshot(_ context.Context, req *csi.CreateSna
 
 func (cs *controllerServer) DeleteSnapshot(_ context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
 	snapshotID := req.GetSnapshotId()
+	klog.Infof("snapshotID=%s", snapshotID)
 	unlock := cs.volumeLocks.Lock(snapshotID)
 	defer unlock()
 
-	spdkVol, err := getSPDKVol(snapshotID)
-	if err != nil {
-		klog.Errorf("failed to get spdk volume, snapshotID: %s err: %v", snapshotID, err)
-		return nil, err
-	}
+	klog.Infof("Deleting Snapshot : snapshotID=%s", snapshotID)
 
-	err = cs.spdkNode.DeleteSnapshot(spdkVol.lvolID)
+	err := cs.spdkNode.DeleteSnapshot(snapshotID)
 	if err != nil {
 		klog.Errorf("failed to delete snapshot, snapshotID: %s err: %v", snapshotID, err)
 		return nil, status.Error(codes.Internal, err.Error())
@@ -268,6 +268,7 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		MaxRWmBytes: params["qos_rw_mbytes"],
 		MaxRmBytes:  params["qos_r_mbytes"],
 		MaxWmBytes:  params["qos_w_mbytes"],
+		MaxSize:     params["max_size"],
 		Compression: compression,
 		Encryption:  encryption,
 		DistNdcs:    distrNdcs,
@@ -277,6 +278,16 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		HostID:      hostID,
 	}
 	return &createVolReq, nil
+}
+
+func (cs *controllerServer) getExistingVolume(name, poolName string, vol *csi.Volume) (*csi.Volume, error) {
+	volumeID, err := cs.spdkNode.GetVolume(name, poolName)
+	if err == nil {
+		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+		klog.V(5).Info("volume already exists", vol.GetVolumeId())
+		return vol, nil
+	}
+	return nil, err
 }
 
 func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.Volume, error) {
@@ -294,11 +305,19 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 
 	klog.V(5).Info("provisioning volume from SDK node..")
 	poolName := req.GetParameters()["pool_name"]
-	volumeID, err := cs.spdkNode.GetVolume(req.GetName(), poolName)
+	existingVolume, err := cs.getExistingVolume(req.GetName(), poolName, &vol)
 	if err == nil {
-		vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
-		klog.V(5).Info("volume already exists", vol.GetVolumeId())
-		return &vol, nil
+		return existingVolume, nil
+	}
+
+	if req.GetVolumeContentSource() != nil {
+		clonedVolume, clonedErr := cs.handleVolumeContentSource(req, poolName, &vol, sizeMiB)
+		if clonedErr != nil {
+			return nil, clonedErr
+		}
+		if clonedVolume != nil {
+			return clonedVolume, nil
+		}
 	}
 
 	createVolReq, err := prepareCreateVolumeReq(ctx, req, sizeMiB)
@@ -306,7 +325,7 @@ func (cs *controllerServer) createVolume(ctx context.Context, req *csi.CreateVol
 		return nil, err
 	}
 
-	volumeID, err = cs.spdkNode.CreateVolume(createVolReq)
+	volumeID, err := cs.spdkNode.CreateVolume(createVolReq)
 	if err != nil {
 		klog.Errorf("error creating simplyBlock volume: %v", err)
 		return nil, err
@@ -571,6 +590,71 @@ func newControllerServer(d *csicommon.CSIDriver) (*controllerServer, error) {
 	// }
 
 	// return &server, nil
+}
+
+func (cs *controllerServer) handleVolumeContentSource(req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
+	volumeSource := req.GetVolumeContentSource()
+	switch volumeSource.GetType().(type) {
+	case *csi.VolumeContentSource_Snapshot:
+		return cs.handleSnapshotSource(volumeSource.GetSnapshot(), req, poolName, vol, sizeMiB)
+	case *csi.VolumeContentSource_Volume:
+		return cs.handleVolumeSource(volumeSource.GetVolume(), req, poolName, vol, sizeMiB)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "%v not a proper volume source", volumeSource)
+	}
+}
+
+func (cs *controllerServer) handleSnapshotSource(snapshot *csi.VolumeContentSource_SnapshotSource, req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
+	if snapshot == nil {
+		return nil, nil
+	}
+	snapshotID := snapshot.GetSnapshotId()
+	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+	snapshotName := req.GetName()
+	newSize := fmt.Sprintf("%dM", sizeMiB)
+	volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName, newSize)
+	if err != nil {
+		klog.Errorf("error creating simplyBlock volume: %v", err)
+		return nil, err
+	}
+	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+	klog.V(5).Info("successfully Restored Snapshot from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+	return vol, nil
+}
+
+func (cs *controllerServer) handleVolumeSource(srcVolume *csi.VolumeContentSource_VolumeSource, req *csi.CreateVolumeRequest, poolName string, vol *csi.Volume, sizeMiB int64) (*csi.Volume, error) {
+	if srcVolume == nil {
+		return nil, nil
+	}
+	srcVolumeID := srcVolume.GetVolumeId()
+
+	klog.Infof("srcVolumeID=%s", srcVolumeID)
+
+	snapshotName := req.GetName()
+	spdkVol, err := getSPDKVol(srcVolumeID)
+	if err != nil {
+		klog.Errorf("failed to get spdk volume, srcVolumeID: %s err: %v", srcVolumeID, err)
+		return nil, err
+	}
+	klog.Infof("CreateSnapshot : poolName=%s", poolName)
+	snapshotID, err := cs.spdkNode.CreateSnapshot(spdkVol.lvolID, snapshotName)
+	klog.Infof("CreateSnapshot : snapshotID=%s", snapshotID)
+	if err != nil {
+		klog.Errorf("failed to create snapshot, srcVolumeID: %s snapshotName: %s err: %v", srcVolumeID, snapshotName, err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	newSize := fmt.Sprintf("%dM", sizeMiB)
+	klog.Infof("CloneSnapshot : snapshotName=%s", snapshotName)
+	volumeID, err := cs.spdkNode.CloneSnapshot(snapshotID, snapshotName, newSize)
+	if err != nil {
+		klog.Errorf("error creating simplyBlock volume: %v", err)
+		return nil, err
+	}
+	vol.VolumeId = fmt.Sprintf("%s:%s", poolName, volumeID)
+	klog.V(5).Info("successfully created clonesnapshot volume from Simplyblock with Volume ID: ", vol.GetVolumeId())
+
+	return vol, nil
 }
 
 func GetCryptoKeys(ctx context.Context, pvcName, pvcNamespace string) (cryptoKey1, cryptoKey2 string, err error) {
