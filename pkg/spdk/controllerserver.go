@@ -233,7 +233,6 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 
 	compression := getBoolParameter(params, "compression")
 	encryption := getBoolParameter(params, "encryption")
-	snapshot := getBoolParameter(params, "snapshot")
 
 	pvcName, pvcNameSelected := params[CSIStorageNameKey]
 	pvcNamespace, pvcNamespaceSelected := params[CSIStorageNamespaceKey]
@@ -272,7 +271,6 @@ func prepareCreateVolumeReq(ctx context.Context, req *csi.CreateVolumeRequest, s
 		MaxSize:     params["max_size"],
 		Compression: compression,
 		Encryption:  encryption,
-		Snapshot:    snapshot,
 		DistNdcs:    distrNdcs,
 		DistNpcs:    distrNpcs,
 		CryptoKey1:  cryptoKey1,
