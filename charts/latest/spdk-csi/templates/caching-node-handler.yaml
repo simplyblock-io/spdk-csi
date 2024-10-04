@@ -1,29 +1,3 @@
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: simplyblock-pod-listing-role-binding
-subjects:
-- kind: ServiceAccount
-  name: caching-node-service-account
-  namespace: {{ .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  name: simplyblock-pod-listing-role
-  apiGroup: rbac.authorization.k8s.io
-
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: simplyblock-pod-listing-role
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["nodes"]
-  verbs: ["get", "list", "watch"]
-
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -50,7 +24,8 @@ spec:
       serviceAccountName: caching-node-service-account
       containers:
       - name: caching-node-handler
-        image: geoffrey13/caching-node-handler
+        image: "{{ .Values.image.cachingNode.repository }}:{{ .Values.image.cachingNode.tag }}"
+        imagePullPolicy: "{{ .Values.image.cachingNode.pullPolicy }}"
         env:
         - name: SPDKCSI_SECRET
           valueFrom:
@@ -69,21 +44,10 @@ spec:
         - name: SPDKMEM
           value: "{{ .Values.cachingnode.spdkMem }}"
         - name: SPDKIMAGE
-          value: "{{ .Values.image.spdk.repository }}:{{ .Values.image.spdk.tag }}"
-        - name: S3DATAPATH
-          value: "{{ .Values.cachingnode.s3DataPath }}"
-        - name: BLOCKEDPCIE
-          value: "{{ .Values.cachingnode.blockedPcie }}"
-        - name: FTLBUFFERSIZE
-          value: "{{ .Values.cachingnode.ftlBufferSize }}"
-        - name: LVSTORECLUSTERSIZE
-          value: "{{ .Values.cachingnode.lvStoreClusterSize }}"
-        - name: LVSTOREDATASIZE
-          value: "{{ .Values.cachingnode.lvStoreDataSize }}"
-        - name: NUMPAGESPERCLUSTERRATIO
-          value: "{{ .Values.cachingnode.numPagesPerClusterRatio }}"
-        - name: S3BUCKETNAME
-          value: "{{ .Values.cachingnode.s3BucketName }}"
+          value: "{{ .Values.cachingnode.spdkImage }}"
+        - name: MULTIPATHING
+          value: "{{ .Values.cachingnode.multipathing }}"
+
         - name: NAMESPACE
           valueFrom:
             fieldRef:

@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: caching-node-sa
+  name: storage-node-sa
 
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: caching-node-role
+  name: storage-node-role
 rules:
 - apiGroups: [""]
   resources: ["pods"]
@@ -21,52 +21,53 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: pods-list-cn
+  name: pods-list-sn
 subjects:
 - kind: ServiceAccount
-  name: caching-node-sa
+  name: storage-node-sa
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: caching-node-role
+  name: storage-node-role
   apiGroup: rbac.authorization.k8s.io
 
+{{- range .Values.storagenode.daemonsets }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: caching-node-ds
+  name: {{ .name }}
   annotations:
     helm.sh/hook: post-install
 spec:
   selector:
     matchLabels:
-      app: caching-node
+      app: {{ .appLabel }}
   template:
     metadata:
       labels:
-        app: caching-node
+        app: {{ .appLabel }}
     spec:
-      serviceAccountName: caching-node-sa
+      serviceAccountName: storage-node-sa
       nodeSelector:
-        type: simplyblock-cache
+        type: {{ .nodeSelector }}
       volumes:
         - name: dev-vol
           hostPath:
             path: /dev
       hostNetwork: true
-      {{- if .Values.cachingnode.tolerations.create }}
+      {{- if .tolerations.create }}
       tolerations:
-      - effect: {{ .Values.cachingnode.tolerations.effect }}
-        key: {{ .Values.cachingnode.tolerations.key }}
-        operator: {{ .Values.cachingnode.tolerations.operator }}
-        value: {{ .Values.cachingnode.tolerations.value }}
+      - effect: {{ .tolerations.effect }}
+        key: {{ .tolerations.key }}
+        operator: {{ .tolerations.operator }}
+        value: {{ .tolerations.value }}
       {{- end }}
       containers:
-      - name: c-node-api-container
-        image: "{{ .Values.image.simplyblock.repository }}:{{ .Values.image.simplyblock.tag }}"
-        imagePullPolicy: "{{ .Values.image.simplyblock.pullPolicy }}"
-        command: ["python", "simplyblock_web/caching_node_app_k8s.py"]
+      - name: s-node-api-container
+        image: "{{ $.Values.image.simplyblock.repository }}:{{ $.Values.image.simplyblock.tag }}"
+        imagePullPolicy: "{{ $.Values.image.simplyblock.pullPolicy }}"
+        command: ["python", "simplyblock_web/snode_app_k8s.py"]
         env:
         - name: HOSTNAME
           valueFrom:
@@ -77,3 +78,4 @@ spec:
         volumeMounts:
         - name: dev-vol
           mountPath: /dev
+{{- end }}
