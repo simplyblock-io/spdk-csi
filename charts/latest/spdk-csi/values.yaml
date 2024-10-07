@@ -2,7 +2,7 @@
 # Copyright (c) Arm Limited and Contributors
 # Copyright (c) Intel Corporation
 ---
-driverName: csi.simplyblock.io
+driverName: csi.spdk.io
 
 image:
   spdkcsi:
