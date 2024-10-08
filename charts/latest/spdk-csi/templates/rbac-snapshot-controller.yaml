@@ -1,3 +1,4 @@
+{{- if and .Values.snapshotclass.create .Values.snapshotcontroller.create -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -94,3 +95,5 @@ roleRef:
   kind: Role
   name: snapshot-controller-leaderelection
   apiGroup: rbac.authorization.k8s.io
+
+{{- end -}}
