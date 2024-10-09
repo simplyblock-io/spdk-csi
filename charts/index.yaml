@@ -64,7 +64,6 @@ entries:
     urls:
     - https://github.com/simplyblock-io/spdk-csi/raw/master/charts/v0.3.3/spdk-csi-v0.3.3.tgz
     version: v0.3.3
-
   - apiVersion: v1
     appVersion: v0.3.4
     created: "2024-10-08T12:25:43.811609006Z"
@@ -74,4 +73,12 @@ entries:
     urls:
     - https://github.com/simplyblock-io/spdk-csi/raw/master/charts/v0.3.4/spdk-csi-v0.3.4.tgz
     version: v0.3.4
-    
+  - apiVersion: v1
+    appVersion: v0.3.5
+    created: "2024-10-09T15:12:43.811609006Z"
+    description: SPDK CSI Driver for SimplyBlock
+    digest: 63091b6ff510f80e554df911b1aaac5847a1346a575a1390b71410490a0f763b
+    name: spdk-csi
+    urls:
+    - https://github.com/simplyblock-io/spdk-csi/raw/master/charts/v0.3.5/spdk-csi-v0.3.5.tgz
+    version: v0.3.5
