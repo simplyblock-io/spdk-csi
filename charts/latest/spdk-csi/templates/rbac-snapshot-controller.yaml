@@ -1,4 +1,4 @@
-{{- if and .Values.snapshotclass.create .Values.snapshotcontroller.create -}}
+{{- if .Values.snapshotcontroller.create -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
