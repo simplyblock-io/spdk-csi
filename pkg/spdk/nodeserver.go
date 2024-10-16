@@ -331,11 +331,10 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 		}
 	}
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
-	
+
 	if fsType == "xfs" {
 		mntFlags = append(mntFlags, "nofsck")
 	}
-
 	switch req.GetVolumeCapability().GetAccessMode().GetMode() {
 	case csi.VolumeCapability_AccessMode_SINGLE_NODE_READER_ONLY,
 		csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY:
