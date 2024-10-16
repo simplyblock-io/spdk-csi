@@ -21,8 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	osExec "os/exec"
-	"strconv"
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -317,24 +315,25 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	// if fsType is not specified, use ext4 as default
 	if fsType == "" {
 		fsType = "ext4"
-	} else if fsType == "xfs" {
-		distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
-		if errNdcs != nil {
-			return errNdcs
-		}
-		cmd := fmt.Sprintf("mkfs.xfs -f -d sunit=%d,swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
-		klog.Infof("Executing command: %s", cmd)
-		errNdcs = osExec.Command("sh", "-c", cmd).Run()
-		if errNdcs != nil {
-			klog.Errorf("Error executing command: %v", errNdcs)
-			return errNdcs
-		}
 	}
+	// else if fsType == "xfs" {
+	// 	distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
+	// 	if errNdcs != nil {
+	// 		return errNdcs
+	// 	}
+	// 	cmd := fmt.Sprintf("mkfs.xfs -f -d sunit=%d,swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
+	// 	klog.Infof("Executing command: %s", cmd)
+	// 	errNdcs = osExec.Command("sh", "-c", cmd).Run()
+	// 	if errNdcs != nil {
+	// 		klog.Errorf("Error executing command: %v", errNdcs)
+	// 		return errNdcs
+	// 	}
+	// }
 	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
-	if fsType == "xfs" {
-		mntFlags = append(mntFlags, "nofsck")
-	}
+	// if fsType == "xfs" {
+	// 	mntFlags = append(mntFlags, "nofsck")
+	// }
 	switch req.GetVolumeCapability().GetAccessMode().GetMode() {
 	case csi.VolumeCapability_AccessMode_SINGLE_NODE_READER_ONLY,
 		csi.VolumeCapability_AccessMode_MULTI_NODE_READER_ONLY:
