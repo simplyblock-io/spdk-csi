@@ -33,8 +33,6 @@ import (
 	"k8s.io/klog"
 	"k8s.io/utils/exec"
 
-	// "k8s.io/utils/mount"
-
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
 	mount "k8s.io/mount-utils"
@@ -353,7 +351,6 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
 	klog.Infof("formatOptions %v", formatOptions)
 	mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
-	//err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
 	err = mounter.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
 
 	if err != nil {
