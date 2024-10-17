@@ -330,8 +330,8 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 			return errNdcs
 		}
 
-		formatOptions = append(formatOptions, fmt.Sprintf("-d sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs))
-		formatOptions = append(formatOptions, fmt.Sprintf("-l sunit=%d", 8*distrNdcs))
+		formatOptions = append(formatOptions, "-d", fmt.Sprintf("sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs))
+		formatOptions = append(formatOptions, "-l", fmt.Sprintf("sunit=%d", 8*distrNdcs))
 
 		// By default, xfs does not allow mounting of two volumes with the same filesystem uuid.
 		// Force ignore this uuid to be able to mount volume + its clone / restored snapshot on the same node.
@@ -352,6 +352,7 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	}
 
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
+	klog.Infof("formatOptions %v", formatOptions)
 	mounter2 := mountutils.SafeFormatAndMount{Interface: ns.mounter2, Exec: exec.New()}
 	//err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
 	err = mounter2.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
