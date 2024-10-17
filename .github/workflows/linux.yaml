@@ -17,6 +17,10 @@ jobs:
         go-version: ^1.21
       id: go
 
+    - name: Tidy Go modules
+      run: |
+        go mod tidy
+        
     - name: Check out code into the Go module directory
       uses: actions/checkout@v4
 
