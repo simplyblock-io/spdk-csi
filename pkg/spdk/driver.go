@@ -22,14 +22,16 @@ import (
 
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
+	mountutils "k8s.io/mount-utils"
 )
 
 func Run(conf *util.Config) {
 	var (
-		cd  *csicommon.CSIDriver
-		ids *identityServer
-		cs  *controllerServer
-		ns  *nodeServer
+		cd      *csicommon.CSIDriver
+		ids     *identityServer
+		cs      *controllerServer
+		ns      *nodeServer
+		mounter mountutils.Interface
 
 		controllerCaps = []csi.ControllerServiceCapability_RPC_Type{
 			csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
@@ -59,7 +61,7 @@ func Run(conf *util.Config) {
 
 	if conf.IsNodeServer {
 		var err error
-		ns, err = newNodeServer(cd)
+		ns, err = newNodeServer(cd, mounter)
 		if err != nil {
 			klog.Fatalf("failed to create node server: %s", err)
 		}

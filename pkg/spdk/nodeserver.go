@@ -31,6 +31,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
+	"k8s.io/utils/exec"
 	"k8s.io/utils/mount"
 
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
@@ -49,11 +50,11 @@ type nodeServer struct {
 	spdkNode      *util.NodeNVMf
 }
 
-func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
+func newNodeServer(d *csicommon.CSIDriver, mounter2 mountutils.Interface) (*nodeServer, error) {
 	ns := &nodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
 		mounter:           mount.New(""),
-		mounter2:          *mountutils.SafeFormatAndMount,
+		mounter2:          mounter2,
 		volumeLocks:       util.NewVolumeLocks(),
 	}
 
@@ -351,9 +352,9 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	}
 
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
-	//mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
+	mounter2 := mountutils.SafeFormatAndMount{Interface: ns.mounter2, Exec: exec.New()}
 	//err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
-	err = ns.mounter2.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
+	err = mounter2.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
 
 	if err != nil {
 		return err
