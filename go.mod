@@ -14,7 +14,7 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.25.0
 	k8s.io/mount-utils v0.31.1
-	k8s.io/utils v0.0.0-20240902221715-702e33fdd3c3
+	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 )
 
 require (
