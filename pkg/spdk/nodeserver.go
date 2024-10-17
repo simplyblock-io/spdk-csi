@@ -32,17 +32,17 @@ import (
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 	"k8s.io/utils/exec"
-	"k8s.io/utils/mount"
+
+	// "k8s.io/utils/mount"
 
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
-	mountutils "k8s.io/mount-utils"
+	mount "k8s.io/mount-utils"
 )
 
 type nodeServer struct {
 	*csicommon.DefaultNodeServer
 	mounter       mount.Interface
-	mounter2      mountutils.Interface
 	volumeLocks   *util.VolumeLocks
 	xpuConnClient *grpc.ClientConn
 	xpuTargetType string
@@ -50,11 +50,10 @@ type nodeServer struct {
 	spdkNode      *util.NodeNVMf
 }
 
-func newNodeServer(d *csicommon.CSIDriver, mounter2 mountutils.Interface) (*nodeServer, error) {
+func newNodeServer(d *csicommon.CSIDriver) (*nodeServer, error) {
 	ns := &nodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
 		mounter:           mount.New(""),
-		mounter2:          mounter2,
 		volumeLocks:       util.NewVolumeLocks(),
 	}
 
@@ -353,9 +352,9 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
 	klog.Infof("formatOptions %v", formatOptions)
-	mounter2 := mountutils.SafeFormatAndMount{Interface: ns.mounter2, Exec: exec.New()}
+	mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
 	//err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
-	err = mounter2.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
+	err = mounter.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
 
 	if err != nil {
 		return err
@@ -365,15 +364,15 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 
 // isStaged if stagingPath is a mount point, it means it is already staged, and vice versa
 func (ns *nodeServer) isStaged(stagingPath string) (bool, error) {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, stagingPath)
+	isMount, err := ns.mounter.IsMountPoint(stagingPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
 		klog.Warningf("check is stage error: %v", err)
-		return true, err
+		return false, err
 	}
-	return !unmounted, nil
+	return isMount, nil
 }
 
 // must be idempotent
@@ -396,20 +395,20 @@ func (ns *nodeServer) publishVolume(stagingPath string, req *csi.NodePublishVolu
 
 // create mount point if not exists, return whether already mounted
 func (ns *nodeServer) createMountPoint(path string) (bool, error) {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, path)
+	isMount, err := ns.mounter.IsMountPoint(path)
 	if os.IsNotExist(err) {
-		unmounted = true
+		isMount = false
 		err = os.MkdirAll(path, 0o755)
 	}
-	if !unmounted {
+	if isMount {
 		klog.Infof("%s already mounted", path)
 	}
-	return !unmounted, err
+	return isMount, err
 }
 
 // unmount and delete mount point, must be idempotent
 func (ns *nodeServer) deleteMountPoint(path string) error {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, path)
+	isMount, err := ns.mounter.IsMountPoint(path)
 	if os.IsNotExist(err) {
 		klog.Infof("%s already deleted", path)
 		return nil
@@ -417,7 +416,7 @@ func (ns *nodeServer) deleteMountPoint(path string) error {
 	if err != nil {
 		return err
 	}
-	if !unmounted {
+	if isMount {
 		err = ns.mounter.Unmount(path)
 		if err != nil {
 			return err
