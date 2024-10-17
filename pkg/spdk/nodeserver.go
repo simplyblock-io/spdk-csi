@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	osExec "os/exec"
 	"strconv"
 	"time"
 
@@ -317,24 +316,22 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	// if fsType is not specified, use ext4 as default
 	if fsType == "" {
 		fsType = "ext4"
-	} else if fsType == "xfs" {
+	}
+
+	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
+	formatOptions := []string{}
+
+	if fsType == "xfs" {
 		distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
 		if errNdcs != nil {
 			return errNdcs
 		}
-		cmd := fmt.Sprintf("mkfs.xfs -f -d sunit=%d,swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
-		klog.Infof("Executing command: %s", cmd)
-		errNdcs = osExec.Command("sh", "-c", cmd).Run()
-		if errNdcs != nil {
-			klog.Errorf("Error executing command: %v", errNdcs)
-			return errNdcs
-		}
-	}
-	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
-	// By default, xfs does not allow mounting of two volumes with the same filesystem uuid.
-	// Force ignore this uuid to be able to mount volume + its clone / restored snapshot on the same node.
-	if fsType == "xfs" {
+		formatOptions = append(formatOptions, fmt.Sprintf("-d sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs))
+		formatOptions = append(formatOptions, fmt.Sprintf("-l sunit=%d", 8*distrNdcs))
+
+		// By default, xfs does not allow mounting of two volumes with the same filesystem uuid.
+		// Force ignore this uuid to be able to mount volume + its clone / restored snapshot on the same node.
 		mntFlags = append(mntFlags, "nouuid")
 	}
 
@@ -353,7 +350,9 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
 	mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
-	err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
+	//err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
+	err = mounter.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
+
 	if err != nil {
 		return err
 	}
