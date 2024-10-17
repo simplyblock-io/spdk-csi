@@ -1,6 +1,6 @@
 module github.com/spdk/spdk-csi
 
-go 1.22
+go 1.20
 
 require (
 	github.com/container-storage-interface/spec v1.6.0
@@ -13,7 +13,7 @@ require (
 	k8s.io/client-go v0.25.0
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.25.0
-	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
+	k8s.io/utils v0.0.0-20240902221715-702e33fdd3c3
 )
 
 require (
