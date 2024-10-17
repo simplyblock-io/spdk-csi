@@ -21,8 +21,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	osExec "os/exec"
-	"strconv"
+
+	//	osExec "os/exec"
+	//	"strconv"
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -317,7 +318,7 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	// if fsType is not specified, use ext4 as default
 	if fsType == "" {
 		fsType = "ext4"
-	} 
+	}
 	// else if fsType == "xfs" {
 	// 	distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
 	// 	if errNdcs != nil {
