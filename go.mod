@@ -12,7 +12,8 @@ require (
 	k8s.io/apimachinery v0.25.0
 	k8s.io/client-go v0.25.0
 	k8s.io/klog v1.0.0
-	k8s.io/kubernetes v1.20.0-alpha.0
+	k8s.io/kubernetes v1.25.0
+	k8s.io/mount-utils v0.31.1
 	k8s.io/utils v0.0.0-20240902221715-702e33fdd3c3
 )
 
@@ -101,10 +102,8 @@ require (
 	github.com/opencontainers/runc v1.1.13 // indirect
 	github.com/opencontainers/runtime-spec v1.0.3-0.20220909204839-494a5a6aca78 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stretchr/testify v1.9.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
-	k8s.io/mount-utils v0.31.1 // indirect
 )
 
 replace (
