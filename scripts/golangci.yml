@@ -11,7 +11,7 @@
 # options for analysis running
 run:
   # The default concurrency value is the number of available CPU.
-  # concurrency: 2
+  concurrency: 2
 
   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 5m
