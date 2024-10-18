@@ -19,7 +19,7 @@ echo -n '78505636c8133d9be42e347f82785b81a879cd8133046f8fc0b36f17b078ad0c' | bas
 After the keys are generated, an encrypted pvc can created by passing the generated keys `crypto_key1` and `crypto_key2` secret data
 ```
 apiVersion: v1
-Kind: Secret
+kind: Secret
 metadata:
   name: simplyblock-pvc-keys
   namespace: default
