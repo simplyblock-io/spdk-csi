@@ -327,8 +327,7 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 			return errNdcs
 		}
 
-		formatOptions = append(formatOptions, "-d", fmt.Sprintf("sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs))
-		formatOptions = append(formatOptions, "-l", fmt.Sprintf("sunit=%d", 8*distrNdcs))
+		formatOptions = append(formatOptions, "-d", fmt.Sprintf("sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs), "-l", fmt.Sprintf("sunit=%d", 8*distrNdcs))
 
 		// By default, xfs does not allow mounting of two volumes with the same filesystem uuid.
 		// Force ignore this uuid to be able to mount volume + its clone / restored snapshot on the same node.
