@@ -25,17 +25,16 @@ import (
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
+	"github.com/spdk/spdk-csi/pkg/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
-	"k8s.io/utils/exec"
-
-	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
-	"github.com/spdk/spdk-csi/pkg/util"
 	mount "k8s.io/mount-utils"
+	"k8s.io/utils/exec"
 )
 
 type nodeServer struct {
@@ -351,7 +350,6 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	klog.Infof("formatOptions %v", formatOptions)
 	mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
 	err = mounter.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
-
 	if err != nil {
 		return err
 	}
