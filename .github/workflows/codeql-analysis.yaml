@@ -47,6 +47,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Tidy Go modules
+      run: |
+        go mod tidy
+        
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3

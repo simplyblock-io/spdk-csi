@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	osExec "os/exec"
 	"strconv"
 	"time"
 
@@ -32,8 +31,8 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
+	mount "k8s.io/mount-utils"
 	"k8s.io/utils/exec"
-	"k8s.io/utils/mount"
 
 	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
 	"github.com/spdk/spdk-csi/pkg/util"
@@ -317,20 +316,23 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	// if fsType is not specified, use ext4 as default
 	if fsType == "" {
 		fsType = "ext4"
-	} else if fsType == "xfs" {
+	}
+
+	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
+	formatOptions := []string{}
+
+	if fsType == "xfs" {
 		distrNdcs, errNdcs := strconv.Atoi(volumeContext["distr_ndcs"])
 		if errNdcs != nil {
 			return errNdcs
 		}
-		cmd := fmt.Sprintf("mkfs.xfs -f -d sunit=%d,swidth=%d -l sunit=%d %s", 8*distrNdcs, 8*distrNdcs, 8*distrNdcs, devicePath)
-		klog.Infof("Executing command: %s", cmd)
-		errNdcs = osExec.Command("sh", "-c", cmd).Run()
-		if errNdcs != nil {
-			klog.Errorf("Error executing command: %v", errNdcs)
-			return errNdcs
-		}
+
+		formatOptions = append(formatOptions, "-d", fmt.Sprintf("sunit=%d,swidth=%d", 8*distrNdcs, 8*distrNdcs), "-l", fmt.Sprintf("sunit=%d", 8*distrNdcs))
+
+		// By default, xfs does not allow mounting of two volumes with the same filesystem uuid.
+		// Force ignore this uuid to be able to mount volume + its clone / restored snapshot on the same node.
+		mntFlags = append(mntFlags, "nouuid")
 	}
-	mntFlags := req.GetVolumeCapability().GetMount().GetMountFlags()
 
 	switch req.GetVolumeCapability().GetAccessMode().GetMode() {
 	case csi.VolumeCapability_AccessMode_SINGLE_NODE_READER_ONLY,
@@ -346,8 +348,9 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 	}
 
 	klog.Infof("mount %s to %s, fstype: %s, flags: %v", devicePath, stagingPath, fsType, mntFlags)
+	klog.Infof("formatOptions %v", formatOptions)
 	mounter := mount.SafeFormatAndMount{Interface: ns.mounter, Exec: exec.New()}
-	err = mounter.FormatAndMount(devicePath, stagingPath, fsType, mntFlags)
+	err = mounter.FormatAndMountSensitiveWithFormatOptions(devicePath, stagingPath, fsType, mntFlags, nil, formatOptions)
 	if err != nil {
 		return err
 	}
@@ -356,15 +359,15 @@ func (ns *nodeServer) stageVolume(devicePath, stagingPath string, req *csi.NodeS
 
 // isStaged if stagingPath is a mount point, it means it is already staged, and vice versa
 func (ns *nodeServer) isStaged(stagingPath string) (bool, error) {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, stagingPath)
+	isMount, err := ns.mounter.IsMountPoint(stagingPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
 		klog.Warningf("check is stage error: %v", err)
-		return true, err
+		return false, err
 	}
-	return !unmounted, nil
+	return isMount, nil
 }
 
 // must be idempotent
@@ -387,20 +390,20 @@ func (ns *nodeServer) publishVolume(stagingPath string, req *csi.NodePublishVolu
 
 // create mount point if not exists, return whether already mounted
 func (ns *nodeServer) createMountPoint(path string) (bool, error) {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, path)
+	isMount, err := ns.mounter.IsMountPoint(path)
 	if os.IsNotExist(err) {
-		unmounted = true
+		isMount = false
 		err = os.MkdirAll(path, 0o755)
 	}
-	if !unmounted {
+	if isMount {
 		klog.Infof("%s already mounted", path)
 	}
-	return !unmounted, err
+	return isMount, err
 }
 
 // unmount and delete mount point, must be idempotent
 func (ns *nodeServer) deleteMountPoint(path string) error {
-	unmounted, err := mount.IsNotMountPoint(ns.mounter, path)
+	isMount, err := ns.mounter.IsMountPoint(path)
 	if os.IsNotExist(err) {
 		klog.Infof("%s already deleted", path)
 		return nil
@@ -408,7 +411,7 @@ func (ns *nodeServer) deleteMountPoint(path string) error {
 	if err != nil {
 		return err
 	}
-	if !unmounted {
+	if isMount {
 		err = ns.mounter.Unmount(path)
 		if err != nil {
 			return err
