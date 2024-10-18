@@ -25,8 +25,6 @@ import (
 	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
-	"github.com/spdk/spdk-csi/pkg/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,6 +33,9 @@ import (
 	"k8s.io/klog"
 	mount "k8s.io/mount-utils"
 	"k8s.io/utils/exec"
+
+	csicommon "github.com/spdk/spdk-csi/pkg/csi-common"
+	"github.com/spdk/spdk-csi/pkg/util"
 )
 
 type nodeServer struct {
